@@ -386,5 +386,154 @@
    "nombre": 25,
    "As": 4.909
   }
+ ],
+ "hss": [
+  {
+   "nombre": "HSS4X4X1/4",
+   "H": 101.6,
+   "B": 101.6,
+   "t": 5.92,
+   "fuente": "AISC (t de diseño = 0.93·tnom)"
+  },
+  {
+   "nombre": "HSS5X5X1/4",
+   "H": 127.0,
+   "B": 127.0,
+   "t": 5.92,
+   "fuente": "AISC (t de diseño = 0.93·tnom)"
+  },
+  {
+   "nombre": "HSS5X5X3/8",
+   "H": 127.0,
+   "B": 127.0,
+   "t": 8.86,
+   "fuente": "AISC (t de diseño = 0.93·tnom)"
+  },
+  {
+   "nombre": "HSS6X6X1/4",
+   "H": 152.4,
+   "B": 152.4,
+   "t": 5.92,
+   "fuente": "AISC (t de diseño = 0.93·tnom)"
+  },
+  {
+   "nombre": "HSS6X6X3/8",
+   "H": 152.4,
+   "B": 152.4,
+   "t": 8.86,
+   "fuente": "AISC (t de diseño = 0.93·tnom)"
+  },
+  {
+   "nombre": "HSS6X6X1/2",
+   "H": 152.4,
+   "B": 152.4,
+   "t": 11.81,
+   "fuente": "AISC (t de diseño = 0.93·tnom)"
+  },
+  {
+   "nombre": "HSS8X8X1/4",
+   "H": 203.2,
+   "B": 203.2,
+   "t": 5.92,
+   "fuente": "AISC (t de diseño = 0.93·tnom)"
+  },
+  {
+   "nombre": "HSS8X8X3/8",
+   "H": 203.2,
+   "B": 203.2,
+   "t": 8.86,
+   "fuente": "AISC (t de diseño = 0.93·tnom)"
+  },
+  {
+   "nombre": "HSS8X8X1/2",
+   "H": 203.2,
+   "B": 203.2,
+   "t": 11.81,
+   "fuente": "AISC (t de diseño = 0.93·tnom)"
+  },
+  {
+   "nombre": "HSS10X10X3/8",
+   "H": 254.0,
+   "B": 254.0,
+   "t": 8.86,
+   "fuente": "AISC (t de diseño = 0.93·tnom)"
+  },
+  {
+   "nombre": "HSS10X10X1/2",
+   "H": 254.0,
+   "B": 254.0,
+   "t": 11.81,
+   "fuente": "AISC (t de diseño = 0.93·tnom)"
+  },
+  {
+   "nombre": "HSS12X12X3/8",
+   "H": 304.8,
+   "B": 304.8,
+   "t": 8.86,
+   "fuente": "AISC (t de diseño = 0.93·tnom)"
+  },
+  {
+   "nombre": "HSS12X12X1/2",
+   "H": 304.8,
+   "B": 304.8,
+   "t": 11.81,
+   "fuente": "AISC (t de diseño = 0.93·tnom)"
+  },
+  {
+   "nombre": "TUBO 100x100x3",
+   "H": 100,
+   "B": 100,
+   "t": 3,
+   "fuente": "nominal comercial — verificar con el proveedor"
+  },
+  {
+   "nombre": "TUBO 100x100x4",
+   "H": 100,
+   "B": 100,
+   "t": 4,
+   "fuente": "nominal comercial — verificar con el proveedor"
+  },
+  {
+   "nombre": "TUBO 100x100x5",
+   "H": 100,
+   "B": 100,
+   "t": 5,
+   "fuente": "nominal comercial — verificar con el proveedor"
+  },
+  {
+   "nombre": "TUBO 150x150x4",
+   "H": 150,
+   "B": 150,
+   "t": 4,
+   "fuente": "nominal comercial — verificar con el proveedor"
+  },
+  {
+   "nombre": "TUBO 150x150x5",
+   "H": 150,
+   "B": 150,
+   "t": 5,
+   "fuente": "nominal comercial — verificar con el proveedor"
+  },
+  {
+   "nombre": "TUBO 150x150x6",
+   "H": 150,
+   "B": 150,
+   "t": 6,
+   "fuente": "nominal comercial — verificar con el proveedor"
+  },
+  {
+   "nombre": "TUBO 200x200x6",
+   "H": 200,
+   "B": 200,
+   "t": 6,
+   "fuente": "nominal comercial — verificar con el proveedor"
+  },
+  {
+   "nombre": "TUBO 200x200x8",
+   "H": 200,
+   "B": 200,
+   "t": 8,
+   "fuente": "nominal comercial — verificar con el proveedor"
+  }
  ]
 }

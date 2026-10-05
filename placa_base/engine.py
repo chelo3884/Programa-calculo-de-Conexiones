@@ -86,16 +86,29 @@ def calcular(inp: dict) -> dict:
     lim = float(inp.get("lim_verde", 0.9))
 
     # ───────────────────────── 1. Geometría y materiales ─────────────────────────
-    perfil = inp.get("perfil", ARMADO)
-    colin = inp.get("armado", {})
-    if perfil == ARMADO:
-        d_mm, bf_mm = float(colin["d"]), float(colin["bf"])
-        tw_mm, tf_mm = float(colin["tw"]), float(colin["tf"])
+    tipo = inp.get("tipo_col", "I")          # "I" (perfil I/H) | "HSS" (rectangular / cajón)
+    hss = tipo == "HSS"
+    if hss:
+        perfil = inp.get("perfil_hss", PERSONALIZADO)
+        if perfil == PERSONALIZADO:
+            h_in = inp["hss"]
+            d_mm, bf_mm, tf_mm = float(h_in["H"]), float(h_in["Bc"]), float(h_in["t"])
+        else:
+            p = _by_name(CATALOGOS["hss"], perfil)
+            d_mm, bf_mm, tf_mm = p["H"], p["B"], p["t"]
+        tw_mm = tf_mm
     else:
-        p = _by_name(CATALOGOS["perfiles"], perfil)
-        d_mm, bf_mm, tw_mm, tf_mm = p["d"], p["bf"], p["tw"], p["tf"]
+        perfil = inp.get("perfil", ARMADO)
+        colin = inp.get("armado", {})
+        if perfil == ARMADO:
+            d_mm, bf_mm = float(colin["d"]), float(colin["bf"])
+            tw_mm, tf_mm = float(colin["tw"]), float(colin["tf"])
+        else:
+            p = _by_name(CATALOGOS["perfiles"], perfil)
+            d_mm, bf_mm, tw_mm, tf_mm = p["d"], p["bf"], p["tw"], p["tf"]
     d, bf, tw, tf = d_mm / 10, bf_mm / 10, tw_mm / 10, tf_mm / 10
-    A = 2 * bf * tf + (d - 2 * tf) * tw
+    # HSS: d = H (dirección N), bf = Bc (ancho), tf = tw = t (espesor de pared)
+    A = 2 * tf * (d + bf - 2 * tf) if hss else 2 * bf * tf + (d - 2 * tf) * tw
 
     pl = inp["placa"]
     N, B, tp, g = pl["N"] / 10, pl["B"] / 10, pl["tp"] / 10, pl.get("grout", 0) / 10
@@ -135,6 +148,9 @@ def calcular(inp: dict) -> dict:
     hp_n = int(pd.get("hp_n", 0))
     hp_db = pd.get("hp_db", 16)
     hp_fy = float(pd.get("hp_fy", 4200))
+    cor = inp.get("corte", {})
+    friccion = _si(cor.get("friccion", "No"))
+    mu_fr = float(cor.get("mu", 0.55))
     sis = inp.get("sismo", {})
     sismo = _si(sis.get("sismo", "No"))
     omega0 = float(sis.get("omega0", 1))
@@ -146,11 +162,17 @@ def calcular(inp: dict) -> dict:
 
     T = _Trace()
     G = "1. GEOMETRÍA Y MATERIALES"
-    T.add(G, "d", "Peralte de columna", d, "Lc")
-    T.add(G, "bf", "Ancho de ala", bf, "Lc")
-    T.add(G, "tw", "Espesor de alma", tw, "Lc")
-    T.add(G, "tf", "Espesor de ala", tf, "Lc")
-    T.add(G, "A", "Área del perfil ≈ 2·bf·tf + (d−2tf)·tw", A, "A")
+    if hss:
+        T.add(G, "H", "HSS: dimensión en la dirección N (del momento)", d, "Lc")
+        T.add(G, "Bc", "HSS: dimensión perpendicular", bf, "Lc")
+        T.add(G, "t", "HSS: espesor de pared (de diseño)", tf, "Lc")
+        T.add(G, "A", "Área del HSS ≈ 2·t·(H + Bc − 2t) (sin radios de esquina)", A, "A")
+    else:
+        T.add(G, "d", "Peralte de columna", d, "Lc")
+        T.add(G, "bf", "Ancho de ala", bf, "Lc")
+        T.add(G, "tw", "Espesor de alma", tw, "Lc")
+        T.add(G, "tf", "Espesor de ala", tf, "Lc")
+        T.add(G, "A", "Área del perfil ≈ 2·bf·tf + (d−2tf)·tw", A, "A")
     T.add(G, "N", "Largo de placa (dir. del momento)", N, "Lc")
     T.add(G, "B", "Ancho de placa", B, "Lc")
     T.add(G, "tp", "Espesor de placa", tp, "Lc")
@@ -174,16 +196,19 @@ def calcular(inp: dict) -> dict:
     fpu_max = 0.65 * 0.85 * fc * b_raiz
     qmax = fpu_max * B
     m_ = (N - 0.95 * d) / 2
-    n_ = (B - 0.8 * bf) / 2
-    np_ = math.sqrt(d * bf) / 4
+    n_ = (B - (0.95 if hss else 0.8) * bf) / 2     # HSS: líneas de fluencia a 0.95·H y 0.95·Bc (DG1 §3.1.3)
+    np_ = 0.0 if hss else math.sqrt(d * bf) / 4    # n' y λ no se usan en HSS
     x_t = f - d / 2 + tf / 2
     phiMn = 0.9 * pl_Fy * tp ** 2 / 4
     T.add(S2, "√(A2/A1)", "A2 geométricamente similar y concéntrica, 1 ≤ √(A2/A1) ≤ 2", b_raiz, "")
     T.add(S2, "fpu,max", "φc·0.85·f'c·√(A2/A1), φc = 0.65", fpu_max, "S")
     T.add(S2, "qmax", "fpu,max·B", qmax, "F")
-    T.add(S2, "m", "(N − 0.95·d)/2", m_, "Lc")
-    T.add(S2, "n", "(B − 0.80·bf)/2", n_, "Lc")
-    T.add(S2, "n'", "√(d·bf)/4", np_, "Lc")
+    T.add(S2, "m", "(N − 0.95·d)/2" if not hss else "(N − 0.95·H)/2", m_, "Lc")
+    if hss:
+        T.add(S2, "n", "(B − 0.95·Bc)/2  (HSS: n' y λ no se usan)", n_, "Lc")
+    else:
+        T.add(S2, "n", "(B − 0.80·bf)/2", n_, "Lc")
+        T.add(S2, "n'", "√(d·bf)/4", np_, "Lc")
     T.add(S2, "x", "Brazo lado tracción: f − d/2 + tf/2 (DG1)", x_t, "Lc")
     T.add(S2, "φMn", "0.90·Fy·tp²/4 (por unidad de ancho)", phiMn, "ML")
 
@@ -279,11 +304,13 @@ def calcular(inp: dict) -> dict:
     so = inp["sold"]
     FEXX = _by_name(CATALOGOS["electrodos"], so["electrodo"])["FEXX"]
     wf, ww = float(so["wf"]), float(so["ww"])
-    phiRf = 0.75 * 0.6 * FEXX * 0.707 * wf / 10 * (2 * bf - tw) * 1.5
+    # I: filete a ambos lados del ala (2bf − tw); HSS: filete exterior en la pared traccionada (Bc)
+    Lf = bf if hss else 2 * bf - tw
+    phiRf = 0.75 * 0.6 * FEXX * 0.707 * wf / 10 * Lf * 1.5
     phiRw = 0.75 * 0.6 * FEXX * 0.707 * ww / 10 * 2 * (d - 2 * tf)
     T.add(S4, "FEXX", "Resistencia del electrodo", FEXX, "S")
-    T.add(S4, "φRn,ala", "0.75·0.6·FEXX·0.707·w·(2bf − tw)·1.5 (θ = 90°, Ec. J2-5)", phiRf, "F")
-    T.add(S4, "φRn,alma", "0.75·0.6·FEXX·0.707·w·2(d − 2tf) (θ = 0°)", phiRw, "F")
+    T.add(S4, "φRn,ala", ("0.75·0.6·FEXX·0.707·w·Bc·1.5 (pared traccionada, θ = 90°, Ec. J2-5)" if hss else "0.75·0.6·FEXX·0.707·w·(2bf − tw)·1.5 (θ = 90°, Ec. J2-5)"), phiRf, "F")
+    T.add(S4, "φRn,alma", ("0.75·0.6·FEXX·0.707·w·2(H − 2t) (paredes paralelas al corte, θ = 0°)" if hss else "0.75·0.6·FEXX·0.707·w·2(d − 2tf) (θ = 0°)"), phiRw, "F")
 
     # ───────────────────── 5. Verificación por combinación ─────────────────────
     combos_out = []
@@ -329,7 +356,7 @@ def calcular(inp: dict) -> dict:
         Tu = max(0.0, qmax * Y - Pu) if caso == 2 else (-Pu / 2 + Mu / (2 * f) if caso == 3 else 0.0)
         # λ (solo carga axial)
         lam = 0.0
-        if caso == 1 and Mu == 0:
+        if caso == 1 and Mu == 0 and not hss:
             Xx = 4 * d * bf / (d + bf) ** 2 * Pu / (fpu_max * N * B)
             lam = 1.0 if Xx >= 1 else min(1.0, 2 * math.sqrt(Xx) / (1 + math.sqrt(1 - Xx)))
         l_ = max(m_, n_, lam * np_)
@@ -357,7 +384,9 @@ def calcular(inp: dict) -> dict:
         r_sbS = Nua / phiNsbS if apS else 0.0
         r_sb = max(r_sbF, r_sbS)
         dem_sb, cap_sb = (Nua_g, phiNsbgF) if r_sbF >= r_sbS else (Nua, phiNsbS)
-        Vua = Vu * omega0
+        # DG1 §3.5.1: φVn = φ·µ·Pu ≤ 0.2·f'c·Ac (φ = 0.75), sólo con Pu > 0 de la misma combinación
+        Vfr = min(0.75 * mu_fr * Pu, 0.2 * fc * N * B) if (friccion and Pu > 0) else 0.0
+        Vua = max(0.0, Vu - Vfr) * omega0
         r_vsa = Vua / nv / phiVsa
         r_vA = 0.0 if arand_sold else Vua * nf / n_pern / vA_phi
         r_vB = Vua / vB_phi
@@ -397,7 +426,9 @@ def calcular(inp: dict) -> dict:
         tr.add(C, "Nua", "Tracción por perno · Ω0", Nua, "F")
         tr.add(C, "Nua,g", "Tracción de la fila · Ω0", Nua_g, "F")
         tr.add(C, "ψec,N", "Caso 3: 1/(1 + e'N/(1.5h'ef))", psi_ec, "")
-        tr.add(C, "Vua", "Corte total · Ω0", Vua, "F")
+        if friccion:
+            tr.add(C, "φVfric", "Fricción DG1 §3.5.1: min(0.75·µ·Pu ; 0.2·f'c·N·B)", Vfr, "F")
+        tr.add(C, "Vua", "Corte en pernos = (Vu − fricción) · Ω0", Vua, "F")
         tr.add(C, "Nua/φNn", "Máximo en tracción (acero, arrancamiento, extracción, lateral)", r_t, "")
         tr.add(C, "Vua/φVn", "Máximo en corte (acero, arrancamiento, pryout)", r_v, "")
         tr.add(C, "int", "Interacción §17.8: ≤ 0.2 → sin interacción; si no (N+V)/1.2", r_int, "")
@@ -451,8 +482,8 @@ def calcular(inp: dict) -> dict:
         chk("PERNOS DE ANCLAJE — CORTE", "Arrancamiento del concreto en corte", "ACI §17.7.2", "vcb"),
         chk("PERNOS DE ANCLAJE — CORTE", "Desprendimiento por palanca (pryout)", "ACI §17.7.3", "pry"),
         chk("PERNOS DE ANCLAJE — CORTE", "Interacción tracción – corte", "ACI §17.8", "int"),
-        chk("SOLDADURA COLUMNA – PLACA", "Filete en alas (tracción de ala)", "AISC J2.4 · Ec. J2-5", "wf"),
-        chk("SOLDADURA COLUMNA – PLACA", "Filete en alma (corte)", "AISC J2.4", "ww"),
+        chk("SOLDADURA COLUMNA – PLACA", ("Filete en alas (tracción de ala)" if not hss else "Filete en pared traccionada"), "AISC J2.4 · Ec. J2-5", "wf"),
+        chk("SOLDADURA COLUMNA – PLACA", ("Filete en alma (corte)" if not hss else "Filete en paredes paralelas al corte"), "AISC J2.4", "ww"),
     ]
     # geometría y detalles (requerido / provisto) — ratio = requerido / provisto
     ped_ok = max(N / Np, B / Bp)
@@ -464,10 +495,11 @@ def calcular(inp: dict) -> dict:
     geo = [
         ("Espaciamiento mínimo 4·da", "ACI §17.9.2", 4 * da, sep_prov, "Lc"),
         ("Placa contenida en el pedestal", "Geometría", max(N, B), Np if N / Np >= B / Bp else Bp, "Lc"),
-        ("Holgura perno – cara de ala ≥ 1.5·da", "Práctica (tuerca/llave)", 1.5 * da, hol_prov, "Lc"),
+        ("Holgura perno – cara de columna ≥ 1.5·da", "Práctica (tuerca/llave)", 1.5 * da, hol_prov, "Lc"),
         ("Borde perno – placa ≥ 1.5·da", "Práctica / DG1", 1.5 * da, bor_prov, "Lc"),
-        ("Filete mínimo en alas", "AISC Tabla J2.4", fil_f, wf, "Ls"),
-        ("Filete mínimo en alma", "AISC Tabla J2.4", fil_w, ww, "Ls"),
+        ("Espesor mínimo práctico de placa", "DG1 §2.2 (½\" HSS / ¾\" otros)", 12.7 if hss else 19.05, pl["tp"], "Ls"),
+        ("Filete mínimo en alas" if not hss else "Filete mínimo en paredes", "AISC Tabla J2.4", fil_f, wf, "Ls"),
+        ("Filete mínimo en alma" if not hss else "Filete mínimo (paredes paralelas al corte)", "AISC Tabla J2.4", fil_w, ww, "Ls"),
     ]
     for nom, ref, req, prov, q in geo:
         rr = req / max(prov, 0.001)
@@ -495,7 +527,7 @@ def calcular(inp: dict) -> dict:
         "combos": combos_out,
         "memoria_global": _conv(T.rows),
         "geom": {
-            "d": d, "bf": bf, "tw": tw, "tf": tf, "N": N, "B": B, "tp": tp, "g": g,
+            "tipo": tipo, "d": d, "bf": bf, "tw": tw, "tf": tf, "N": N, "B": B, "tp": tp, "g": g,
             "f": f, "xb": xb, "nf": nf, "da": da, "hef": hef, "Np": Np, "Bp": Bp,
             "m": m_, "n": n_, "np": np_, "x": x_t, "eN": inp["pernos"]["eN"] / 10,
             "eB": inp["pernos"]["eB"] / 10, "ar_lado": ar_lado / 10, "ar_t": ar_t / 10,

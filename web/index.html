@@ -175,12 +175,13 @@ function withU(v,q){const u=uf(q);return fmt(v,q)+(u.l?' '+u.l:'');}
 const ARMADO='ARMADO (flejes soldados)';
 const DEFAULT = {
   proyecto:'Galpón KUBIEC — ejemplo', elemento:'Columna interior C-1', lim_verde:0.9,
-  perfil:'HA360X180X6X12', armado:{d:350,bf:200,tw:8,tf:12},
+  tipo_col:'I', perfil:'HA360X180X6X12', armado:{d:350,bf:200,tw:8,tf:12},
+  perfil_hss:'HSS8X8X3/8', hss:{H:200,Bc:200,t:8},
   placa:{acero:'A36',Fy:2530,N:600,B:400,tp:35,grout:25},
   pernos:{material:'F1554 Gr55',diam:'1"',nfila:2,eN:50,eB:50,hef:500,arandela_lado:70,arandela_t:12,arandela_sold:'Sí',nv:4},
   pedestal:{fc:210,Np:90,Bp:80,fisurado:'Sí',ref_borde:'Sí',hp_usar:'Sí',hp_n:4,hp_db:16,hp_fy:4200},
   sold:{electrodo:'E70XX',wf:8,ww:6},
-  sismo:{sismo:'Sí',omega0:1},
+  sismo:{sismo:'Sí',omega0:1}, corte:{friccion:'No',mu:0.55},
   combos:[
     {nombre:'1.4D',P:9,V:0.6,M:0.8},{nombre:'1.2D+1.6L',P:12,V:1.2,M:2.5},
     {nombre:'1.2D+1.0E+L',P:8,V:3.5,M:9},{nombre:'0.9D+1.0E',P:3,V:3.5,M:8.8},
@@ -195,12 +196,20 @@ const SEC = ()=>[
   {l:'Proyecto',p:'proyecto',k:'text'},{l:'Elemento / nudo',p:'elemento',k:'text'},
   {l:'Límite verde / ámbar (ratio)',p:'lim_verde',k:'num',step:.05}]},
  {t:'1. Columna',f:[
+  {l:'Tipo de columna',p:'tipo_col',k:'sel',o:()=>['I','HSS'],lab:{I:'Perfil I / H',HSS:'HSS / cajón'}},
+  ...(S.tipo_col==='HSS'?[
+   {l:'Perfil HSS',p:'perfil_hss',k:'sel',o:()=>['Personalizado',...CAT.hss.map(x=>x.nombre)]},
+   ...(S.perfil_hss==='Personalizado'?[
+    {l:'H — dimensión en dir. N',p:'hss.H',q:'Ls',k:'num'},{l:'Bc — dimensión perpendicular',p:'hss.Bc',q:'Ls',k:'num'},
+    {l:'t — espesor de pared (de diseño)',p:'hss.t',q:'Ls',k:'num'}]
+   :[{l:'H × Bc × t',ro:()=>RES?`${fmt(RES.derivados.d_mm,'Ls')} × ${fmt(RES.derivados.bf_mm,'Ls')} × ${fmt(RES.derivados.tf_mm,'Ls')} ${uf('Ls').l}`:'',k:'ro'}])]
+  :[
   {l:'Perfil (catálogo o ARMADO)',p:'perfil',k:'sel',o:()=>[ARMADO,...CAT.perfiles.map(x=>x.nombre)]},
   ...(S.perfil===ARMADO?[
    {l:'Peralte d',p:'armado.d',q:'Ls',k:'num'},{l:'Ancho de ala bf',p:'armado.bf',q:'Ls',k:'num'},
    {l:'Espesor de alma tw',p:'armado.tw',q:'Ls',k:'num'},{l:'Espesor de ala tf',p:'armado.tf',q:'Ls',k:'num'}]
   :[{l:'d / bf',ro:()=>RES?`${fmt(RES.derivados.d_mm,'Ls')} / ${fmt(RES.derivados.bf_mm,'Ls')} ${uf('Ls').l}`:'',k:'ro'},
-    {l:'tw / tf',ro:()=>RES?`${fmt(RES.derivados.tw_mm,'Ls')} / ${fmt(RES.derivados.tf_mm,'Ls')} ${uf('Ls').l}`:'',k:'ro'}])]},
+    {l:'tw / tf',ro:()=>RES?`${fmt(RES.derivados.tw_mm,'Ls')} / ${fmt(RES.derivados.tf_mm,'Ls')} ${uf('Ls').l}`:'',k:'ro'}])])]},
  {t:'2. Placa base',f:[
   {l:'Acero de placa',p:'placa.acero',k:'sel',o:()=>[...CAT.acero_placa.map(x=>x.nombre),'Personalizado']},
   ...(S.placa.acero==='Personalizado'?[{l:'Fy placa',p:'placa.Fy',q:'S',k:'num'}]:
@@ -230,10 +239,17 @@ const SEC = ()=>[
  {t:'5. Soldadura columna – placa',f:[
   {l:'Electrodo',p:'sold.electrodo',k:'sel',o:()=>CAT.electrodos.map(x=>x.nombre)},
   {l:'Filete en alas (w)',p:'sold.wf',q:'Ls',k:'num'},{l:'Filete en alma (w)',p:'sold.ww',q:'Ls',k:'num'}]},
- {t:'6. Sismo — ACI 318-19 §17.10',f:[
+ {t:'6. Transferencia de corte — DG1 §3.5',f:[
+  {l:'Considerar fricción (φ·μ·Pu)',p:'corte.friccion',k:'sel',o:()=>['No','Sí']},
+  ...(S.corte.friccion==='Sí'?[{l:'μ (0.55 grout · 0.70 concreto)',p:'corte.mu',k:'num',step:.05}]:[])]},
+ {t:'7. Sismo — ACI 318-19 §17.10',f:[
   {l:'Diseño sísmico (SDC C a F)',p:'sismo.sismo',k:'sel',o:()=>['Sí','No']},
   {l:'Ω0 sobre cargas de anclajes',p:'sismo.omega0',k:'num',step:.1}]},
 ];
+function mergeDef(d,v){ // completa con valores por defecto las claves que falten (proyectos guardados con versiones anteriores)
+  if(Array.isArray(d)||typeof d!=='object'||d===null)return v===undefined?JSON.parse(JSON.stringify(d)):v;
+  const o={};for(const k of Object.keys(d))o[k]=mergeDef(d[k],v&&v[k]);
+  if(v)for(const k of Object.keys(v))if(!(k in o))o[k]=v[k];return o;}
 const getP=(o,p)=>p.split('.').reduce((a,k)=>a[k],o);
 const setP=(o,p,v)=>{const ks=p.split('.');const l=ks.pop();ks.reduce((a,k)=>a[k],o)[l]=v;};
 const R6=x=>parseFloat(x.toPrecision(6));
@@ -252,10 +268,10 @@ function renderInputs(){
       const holder=r.children[1];let el;
       if(f.k==='sel'){
         el=document.createElement('select');
-        for(const o of f.o()){const op=document.createElement('option');op.value=o;op.textContent=o;el.appendChild(op);}
+        for(const o of f.o()){const op=document.createElement('option');op.value=o;op.textContent=f.lab?f.lab[o]:o;el.appendChild(op);}
         el.value=String(getP(S,f.p));
         el.onchange=()=>{let v=el.value;if(f.num)v=Number(v);setP(S,f.p,v);
-          if(f.p==='perfil'||f.p==='placa.acero'||f.p==='pedestal.hp_usar')renderInputs();changed();};
+          if(['perfil','placa.acero','pedestal.hp_usar','tipo_col','perfil_hss','corte.friccion'].includes(f.p))renderInputs();changed();};
       }else if(f.k==='ro'){
         el=document.createElement('input');el.readOnly=true;el.value=typeof f.ro==='function'?f.ro():'';el.dataset.ro=1;r.style.gridTemplateColumns='1fr 190px 0';
       }else if(f.k==='text'){
@@ -428,7 +444,9 @@ function svgPlan(){
   }
   // columna
   const dw=g.d*sc,bw=g.bf*sc,tfw=g.tf*sc,tww=g.tw*sc;
-  s+=`<g fill="var(--steel)" stroke="var(--ink)" stroke-width="1">
+  if(g.tipo==='HSS')s+=`<g stroke="var(--ink)" stroke-width="1"><rect x="${X(-g.d/2)}" y="${Y(-g.bf/2)}" width="${dw}" height="${bw}" fill="var(--steel)"/>
+   <rect x="${X(-g.d/2+g.tf)}" y="${Y(-g.bf/2+g.tf)}" width="${dw-2*tfw}" height="${bw-2*tfw}" fill="var(--steelf)"/></g>`;
+  else s+=`<g fill="var(--steel)" stroke="var(--ink)" stroke-width="1">
    <rect x="${X(-g.d/2)}" y="${Y(-g.bf/2)}" width="${tfw}" height="${bw}"/>
    <rect x="${X(g.d/2-g.tf)}" y="${Y(-g.bf/2)}" width="${tfw}" height="${bw}"/>
    <rect x="${X(-g.d/2+g.tf)}" y="${Y(-g.tw/2)}" width="${dw-2*tfw}" height="${tww}"/></g>`;
@@ -498,7 +516,7 @@ function svgElev(){
   const xr=X(Math.max(g.Np,g.N)/2)+14;
   s+=dimV(xr,yd0,yd0+g.hef*sc,`hef = ${Lsm(g.hef)}`);
   s+=dimV(xr+16,yp0,yp1,`tp ${Lsm(g.tp)}`);
-  s+=dimH(X(-g.d/2),X(g.d/2),yc0-6,`d = ${Lsm(g.d)}`);
+  s+=dimH(X(-g.d/2),X(g.d/2),yc0-6,`${g.tipo==='HSS'?'H':'d'} = ${Lsm(g.d)}`);
   s+=`<text class="dt" x="${X(-g.Np/2)+4}" y="${yd1-6}">Pedestal ${L(g.Np)} × ${L(g.Bp)} ${uf('Lc').l}</text></svg>`;
   return s;
 }
@@ -513,7 +531,8 @@ function reportHTML(){
   const rs=RES.resumen,d=RES.derivados,date=new Date().toLocaleDateString('es-EC',{year:'numeric',month:'long',day:'numeric'});
   const tbl=(rows)=>`<table>${rows.map(r=>`<tr><td>${r[0]}</td><td class="n"><b>${r[1]}</b></td></tr>`).join('')}</table>`;
   const U=(v,q)=>withU(v,q);
-  const col=S.perfil===ARMADO?`ARMADO d=${U(S.armado.d,'Ls')}, bf=${U(S.armado.bf,'Ls')}, tw=${U(S.armado.tw,'Ls')}, tf=${U(S.armado.tf,'Ls')}`
+  const col=S.tipo_col==='HSS'?`HSS ${S.perfil_hss==='Personalizado'?'personalizado':S.perfil_hss} (H=${U(d.d_mm,'Ls')}, Bc=${U(d.bf_mm,'Ls')}, t=${U(d.tf_mm,'Ls')})`
+        :S.perfil===ARMADO?`ARMADO d=${U(S.armado.d,'Ls')}, bf=${U(S.armado.bf,'Ls')}, tw=${U(S.armado.tw,'Ls')}, tf=${U(S.armado.tf,'Ls')}`
         :`${S.perfil} (d=${U(d.d_mm,'Ls')}, bf=${U(d.bf_mm,'Ls')}, tw=${U(d.tw_mm,'Ls')}, tf=${U(d.tf_mm,'Ls')})`;
   let checks='',g='';
   for(const c of RES.checks){
@@ -563,7 +582,7 @@ function reportHTML(){
    <h3>Pedestal y concreto</h3>${tbl([["f'c",U(S.pedestal.fc,'S')],['Np × Bp',`${U(S.pedestal.Np,'Lc').replace(/ \S+$/,'')} × ${U(S.pedestal.Bp,'Lc')}`],
      ['Concreto fisurado',S.pedestal.fisurado],['Refuerzo de borde',S.pedestal.ref_borde],
      ['Hairpins',S.pedestal.hp_usar==='Sí'?`Sí (${S.pedestal.hp_n} ramas Ø${S.pedestal.hp_db} mm, fy ${U(S.pedestal.hp_fy,'S')})`:'No'],
-     ['Diseño sísmico / Ω0',`${S.sismo.sismo} / ${S.sismo.omega0}`]])}
+     ['Fricción (DG1 §3.5.1)',S.corte.friccion==='Sí'?`Sí, μ = ${S.corte.mu}`:'No'],['Diseño sísmico / Ω0',`${S.sismo.sismo} / ${S.sismo.omega0}`]])}
   </div></div>
   <h3>Cargas factoradas (Pu + compresión)</h3><table>${combos}</table>
   <h2>2. Geometría</h2><div class="dr">${drawings}</div>
@@ -574,7 +593,7 @@ function reportHTML(){
   <h2 class="pb">4. Memoria detallada</h2>${memos}
   <h2>5. Alcance y supuestos</h2>
   <ul class="note"><li>LRFD con cargas factoradas del análisis. Momento alrededor del eje fuerte; corte en la dirección N.</li>
-  <li>Placa rígida, pedestal concéntrico; A2 geométricamente similar a A1 (AISC J8). Voladizos m, n y λn' de DG1; momento grande por Y (ecuación cuadrática) y Tu de DG1.</li>
+  <li>Placa rígida, pedestal concéntrico; A2 geométricamente similar a A1 (AISC J8). Voladizos m, n y λn' de DG1 (HSS: m y n a 0.95·H y 0.95·Bc, sin n' ni λ); momento grande por Y (ecuación cuadrática) y Tu de DG1.</li>
   <li>Pernos colados en sitio con tuerca hex. pesada; φ Condición B (sin refuerzo suplementario) salvo hairpins (ACI §17.5.2.1).</li>
   <li>No incluye: llave de corte, rigidizadores, fricción, flexión biaxial, pedestal a flexo-compresión.</li>
   <li>Herramienta de apoyo: la responsabilidad del diseño es del ingeniero que la usa.</li></ul>
@@ -610,7 +629,7 @@ document.getElementById('btnSave').onclick=()=>{
 document.getElementById('btnOpen').onclick=()=>document.getElementById('fileIn').click();
 document.getElementById('fileIn').onchange=async e=>{
   const f=e.target.files[0];if(!f)return;
-  try{const j=JSON.parse(await f.text());if(!j.S)throw new Error('formato');S=j.S;if(j.units)units=j.units;
+  try{const j=JSON.parse(await f.text());if(!j.S)throw new Error('formato');S=mergeDef(DEFAULT,j.S);if(j.units)units=j.units;
     renderUnits();renderInputs();calc();}catch(err){alert('Archivo no válido: '+err.message);}
   e.target.value='';};
 document.getElementById('btnTheme').onclick=()=>{
@@ -626,7 +645,7 @@ document.getElementById('tabs').onclick=e=>{if(e.target.dataset.t)tab(e.target.d
 /* ═════════════ Inicio ═════════════ */
 (async function init(){
   try{const th=localStorage.getItem('pb_theme');if(th)document.documentElement.dataset.theme=th;
-    const st=JSON.parse(localStorage.getItem('pb_state')||'null');if(st&&st.S){S=st.S;if(st.units)units=st.units;}}catch(e){}
+    const st=JSON.parse(localStorage.getItem('pb_state')||'null');if(st&&st.S){S=mergeDef(DEFAULT,st.S);if(st.units)units=st.units;}}catch(e){}
   CAT=await (await fetch('/api/placa_base/catalogos')).json();
   renderUnits();renderInputs();calc();
 })();
