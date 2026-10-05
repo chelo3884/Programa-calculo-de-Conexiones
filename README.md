@@ -76,3 +76,9 @@ Herramienta de apoyo: la responsabilidad del diseño es del ingeniero que la usa
   * II.A-20 (placa de alma 12×⅜ in A36, 4 pernos): ruptura por corte 78.0 kip y bloque de cortante 80.1 kip por placa; fluencia por corte 97.2 kip.
   * II.C-3: deslizamiento crítico de un perno Ø1" A325 clase A = 17.3 kip.
 * El grupo de pernos del alma usa el método elástico (conservador); el IC de AISC Tabla 7-6 da resistencias mayores, por lo que ese chequeo no se compara 1 a 1 con el ejemplo.
+
+## Viga–columna soldada directa (wuf)
+
+* Módulo escrito a mano sobre `aisc.py` (biblioteca de estados límite AISC 360-16) y `handmod.py` (estructura de hoja/combinaciones/verificaciones). Alas con soldadura CJP; alma con placa simple soldada a la columna y apernada a la viga (o solo soldada).
+* Verifica viga (φMp, φVn), columna (J10.1 flexión local del ala, J10.2 fluencia local del alma, J10.3 aplastamiento, J10.4 pandeo, J10.6 zona de panel, placas de continuidad) y la placa de alma (grupo de pernos, fluencia/ruptura por corte, bloque de cortante, filetes, ruptura del ala de columna).
+* Comprobado con AISC Design Examples v15, Ej. II.B-1 (68.9, 73.1, 72.9, 58.8, 70.0, 100.2, 410.7 y 171.1 kip) en `tests/test_wuf.py` y `tests/test_aisc_lib.py`.
