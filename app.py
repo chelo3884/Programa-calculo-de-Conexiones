@@ -12,6 +12,7 @@ import threading
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
+from end_plate import engine as end_plate_engine
 from placa_base.engine import CATALOGOS, calcular
 
 WEB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "web")
@@ -32,6 +33,8 @@ class Handler(BaseHTTPRequestHandler):
         path = self.path.split("?")[0]
         if path == "/api/placa_base/catalogos":
             return self._send(200, CATALOGOS)
+        if path == "/api/end_plate/spec":
+            return self._send(200, end_plate_engine.SPEC)
         if path == "/favicon.ico":
             return self._send(204, b"", "image/x-icon")
         rel = "index.html" if path in ("/", "") else path.lstrip("/")
@@ -45,12 +48,13 @@ class Handler(BaseHTTPRequestHandler):
             self._send(200, fh.read(), ctype)
 
     def do_POST(self):
-        if self.path != "/api/placa_base/calc":
+        funciones = {"/api/placa_base/calc": calcular, "/api/end_plate/calc": end_plate_engine.calcular}
+        if self.path not in funciones:
             return self._send(404, {"error": "no encontrado"})
         try:
             n = int(self.headers.get("Content-Length", 0))
             datos = json.loads(self.rfile.read(n) or b"{}")
-            self._send(200, calcular(datos))
+            self._send(200, funciones[self.path](datos))
         except (ValueError, KeyError, TypeError, ZeroDivisionError) as exc:
             self._send(400, {"error": f"{type(exc).__name__}: {exc}"})
 

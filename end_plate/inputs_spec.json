@@ -1,0 +1,581 @@
+{
+ "secciones": [
+  {
+   "titulo": "DATOS GENERALES",
+   "campos": [
+    {
+     "name": "DIS_C7",
+     "label": "Proyecto",
+     "unit": "",
+     "default": "Galpón KUBIEC — ejemplo",
+     "row": 7,
+     "kind": "text"
+    },
+    {
+     "name": "DIS_C8",
+     "label": "Elemento / nudo",
+     "unit": "",
+     "default": "Nudo viga–columna eje 2",
+     "row": 8,
+     "kind": "text"
+    },
+    {
+     "name": "lim_verde",
+     "label": "Límite verde / amarillo (ratio)",
+     "unit": "",
+     "default": 0.9,
+     "row": 9
+    }
+   ]
+  },
+  {
+   "titulo": "CONFIGURACIÓN",
+   "campos": [
+    {
+     "name": "cfg",
+     "label": "Tipo de conexión",
+     "unit": "",
+     "default": "4E",
+     "row": 11,
+     "options": [
+      "4E",
+      "4ES",
+      "8ES"
+     ]
+    },
+    {
+     "name": "modo",
+     "label": "Procedimiento",
+     "unit": "",
+     "default": "No sísmico (DG4)",
+     "row": 12,
+     "options": [
+      "No sísmico (DG4)",
+      "Sísmico (AISC 358)"
+     ]
+    }
+   ]
+  },
+  {
+   "titulo": "1. VIGA",
+   "campos": [
+    {
+     "name": "vg_perfil",
+     "label": "Perfil (catálogo o ARMADO)",
+     "unit": "",
+     "default": "VK400X180X6X12",
+     "row": 14,
+     "options": [
+      "ARMADO (flejes soldados)",
+      "VK180X100X4X6",
+      "VK200X100X4X8",
+      "VK220X110X4X8",
+      "VK250X130X4X8",
+      "VK270X140X4X8",
+      "VK300X150X4X10",
+      "VK330X160X6X10",
+      "VK360X180X6X10",
+      "VK380X180X6X10",
+      "VK400X180X6X10",
+      "VK400X180X6X12",
+      "VK420X180X6X12",
+      "VK440X180X6X12",
+      "W12X26",
+      "W14X30",
+      "W16X31",
+      "W16X40",
+      "W18X35",
+      "W18X50",
+      "W21X44",
+      "W21X62",
+      "W24X55",
+      "W24X76"
+     ]
+    },
+    {
+     "name": "vg_acero",
+     "label": "Acero",
+     "unit": "",
+     "default": "A572 Gr50",
+     "row": 19,
+     "options": [
+      "A36",
+      "A572 Gr50",
+      "A992",
+      "A588 Gr50"
+     ]
+    },
+    {
+     "name": "DIS_E15",
+     "label": "Peralte d (armado)",
+     "unit": "mm",
+     "default": 400,
+     "row": 15,
+     "armado_de": "vg_perfil"
+    },
+    {
+     "name": "DIS_E16",
+     "label": "Ancho de ala bf (armado)",
+     "unit": "mm",
+     "default": 180,
+     "row": 16,
+     "armado_de": "vg_perfil"
+    },
+    {
+     "name": "DIS_E17",
+     "label": "Espesor de alma tw (armado)",
+     "unit": "mm",
+     "default": 6,
+     "row": 17,
+     "armado_de": "vg_perfil"
+    },
+    {
+     "name": "DIS_E18",
+     "label": "Espesor de ala tf (armado)",
+     "unit": "mm",
+     "default": 12,
+     "row": 18,
+     "armado_de": "vg_perfil"
+    }
+   ]
+  },
+  {
+   "titulo": "2. COLUMNA (conexión al ala)",
+   "campos": [
+    {
+     "name": "co_perfil",
+     "label": "Perfil (catálogo o ARMADO)",
+     "unit": "",
+     "default": "HA500X250X10X15",
+     "row": 24,
+     "options": [
+      "ARMADO (flejes soldados)",
+      "HA200X140X6X12",
+      "HA220X160X6X12",
+      "HA240X180X6X12",
+      "HA260X180X6X12",
+      "HA280X180X6X12",
+      "HA300X180X6X12",
+      "HA320X180X6X12",
+      "HA340X180X6X12",
+      "HA360X180X6X12",
+      "HA380X200X8X15",
+      "HA400X200X8X15",
+      "HA420X210X8X15",
+      "HA440X220X8X15",
+      "HA460X230X8X15",
+      "HA480X240X8X15",
+      "HA500X250X10X15",
+      "HA520X260X10X15",
+      "HA540X270X10X15",
+      "W10X49",
+      "W12X65",
+      "W12X96",
+      "W14X90",
+      "W14X120"
+     ]
+    },
+    {
+     "name": "co_acero",
+     "label": "Acero",
+     "unit": "",
+     "default": "A572 Gr50",
+     "row": 29,
+     "options": [
+      "A36",
+      "A572 Gr50",
+      "A992",
+      "A588 Gr50"
+     ]
+    },
+    {
+     "name": "co_kw",
+     "label": "Filete / radio alma–ala (para k)",
+     "unit": "mm",
+     "default": 6,
+     "row": 32
+    },
+    {
+     "name": "co_dtop",
+     "label": "Tope de columna → ala superior de viga",
+     "unit": "mm",
+     "default": 1000,
+     "row": 33
+    },
+    {
+     "name": "dos_lados",
+     "label": "Vigas a ambos lados (columna interior)",
+     "unit": "",
+     "default": "No",
+     "row": 34,
+     "options": [
+      "Sí",
+      "No"
+     ]
+    },
+    {
+     "name": "Mu_op",
+     "label": "Mu viga opuesta (suma en zona de panel)",
+     "unit": "Tonf·m",
+     "default": 0,
+     "row": 35
+    },
+    {
+     "name": "Pu_col",
+     "label": "Pu de la columna",
+     "unit": "Tonf",
+     "default": 20,
+     "row": 36
+    },
+    {
+     "name": "cp_usar",
+     "label": "Rigidizadores de continuidad",
+     "unit": "",
+     "default": "Sí",
+     "row": 37,
+     "options": [
+      "Sí",
+      "No"
+     ]
+    },
+    {
+     "name": "cp_t",
+     "label": "Rigidizador continuidad: espesor",
+     "unit": "mm",
+     "default": 12,
+     "row": 38,
+     "options": [
+      8,
+      10,
+      12,
+      15,
+      16,
+      19,
+      20,
+      22,
+      25,
+      28,
+      30,
+      32,
+      35,
+      38,
+      40,
+      45,
+      50,
+      55,
+      60
+     ]
+    },
+    {
+     "name": "cp_b",
+     "label": "Rigidizador continuidad: ancho (c/lado)",
+     "unit": "mm",
+     "default": 110,
+     "row": 39
+    },
+    {
+     "name": "DIS_E25",
+     "label": "Peralte d (armado)",
+     "unit": "mm",
+     "default": 500,
+     "row": 25,
+     "armado_de": "co_perfil"
+    },
+    {
+     "name": "DIS_E26",
+     "label": "Ancho de ala bf (armado)",
+     "unit": "mm",
+     "default": 250,
+     "row": 26,
+     "armado_de": "co_perfil"
+    },
+    {
+     "name": "DIS_E27",
+     "label": "Espesor de alma tw (armado)",
+     "unit": "mm",
+     "default": 10,
+     "row": 27,
+     "armado_de": "co_perfil"
+    },
+    {
+     "name": "DIS_E28",
+     "label": "Espesor de ala tf (armado)",
+     "unit": "mm",
+     "default": 15,
+     "row": 28,
+     "armado_de": "co_perfil"
+    }
+   ]
+  },
+  {
+   "titulo": "3. PLACA EXTREMA",
+   "campos": [
+    {
+     "name": "pl_acero",
+     "label": "Acero",
+     "unit": "",
+     "default": "A572 Gr50",
+     "row": 41,
+     "options": [
+      "A36",
+      "A572 Gr50",
+      "A992",
+      "A588 Gr50"
+     ]
+    },
+    {
+     "name": "pl_bp",
+     "label": "bp — ancho de placa",
+     "unit": "mm",
+     "default": 200,
+     "row": 44
+    },
+    {
+     "name": "pl_tp",
+     "label": "tp — espesor",
+     "unit": "mm",
+     "default": 25,
+     "row": 45,
+     "options": [
+      8,
+      10,
+      12,
+      15,
+      16,
+      19,
+      20,
+      22,
+      25,
+      28,
+      30,
+      32,
+      35,
+      38,
+      40,
+      45,
+      50,
+      55,
+      60
+     ]
+    },
+    {
+     "name": "pl_g",
+     "label": "g — gramil horizontal",
+     "unit": "mm",
+     "default": 110,
+     "row": 46
+    },
+    {
+     "name": "pl_pfo",
+     "label": "pfo — ala a fila exterior",
+     "unit": "mm",
+     "default": 45,
+     "row": 47
+    },
+    {
+     "name": "pl_pfi",
+     "label": "pfi — ala a fila interior",
+     "unit": "mm",
+     "default": 45,
+     "row": 48
+    },
+    {
+     "name": "pl_pb",
+     "label": "pb — entre filas (solo 8ES)",
+     "unit": "mm",
+     "default": 90,
+     "row": 49
+    },
+    {
+     "name": "pl_de",
+     "label": "de — fila exterior a borde",
+     "unit": "mm",
+     "default": 40,
+     "row": 50
+    }
+   ]
+  },
+  {
+   "titulo": "4. PERNOS (pretensados)",
+   "campos": [
+    {
+     "name": "pn_grado",
+     "label": "Grado",
+     "unit": "",
+     "default": "A325-N (roscas incl.)",
+     "row": 52,
+     "options": [
+      "A325-N (roscas incl.)",
+      "A325-X (roscas excl.)",
+      "A490-N (roscas incl.)",
+      "A490-X (roscas excl.)"
+     ]
+    },
+    {
+     "name": "pn_diam",
+     "label": "Diámetro",
+     "unit": "",
+     "default": "7/8\"",
+     "row": 55,
+     "options": [
+      "5/8\"",
+      "3/4\"",
+      "7/8\"",
+      "1\"",
+      "1-1/8\"",
+      "1-1/4\"",
+      "1-3/8\"",
+      "1-1/2\""
+     ]
+    }
+   ]
+  },
+  {
+   "titulo": "5. RIGIDIZADOR DE PLACA (4ES / 8ES)",
+   "campos": [
+    {
+     "name": "st_t",
+     "label": "Espesor ts",
+     "unit": "mm",
+     "default": 10,
+     "row": 57,
+     "options": [
+      8,
+      10,
+      12,
+      15,
+      16,
+      19,
+      20,
+      22,
+      25,
+      28,
+      30,
+      32,
+      35,
+      38,
+      40,
+      45,
+      50,
+      55,
+      60
+     ]
+    },
+    {
+     "name": "st_acero",
+     "label": "Acero",
+     "unit": "",
+     "default": "A572 Gr50",
+     "row": 58,
+     "options": [
+      "A36",
+      "A572 Gr50",
+      "A992",
+      "A588 Gr50"
+     ]
+    }
+   ]
+  },
+  {
+   "titulo": "6. SOLDADURA",
+   "campos": [
+    {
+     "name": "sd_elec",
+     "label": "Electrodo",
+     "unit": "",
+     "default": "E70XX",
+     "row": 61,
+     "options": [
+      "E60XX",
+      "E70XX"
+     ]
+    },
+    {
+     "name": "sd_wf",
+     "label": "Filete ala de viga – placa (no sísmico)",
+     "unit": "mm",
+     "default": 10,
+     "row": 62
+    },
+    {
+     "name": "sd_ww",
+     "label": "Filete alma de viga – placa (c/lado)",
+     "unit": "mm",
+     "default": 6,
+     "row": 63
+    }
+   ]
+  },
+  {
+   "titulo": "7. SÍSMICO — AISC 358-16 §6.8",
+   "campos": [
+    {
+     "name": "sis_L",
+     "label": "Luz entre ejes de columnas L",
+     "unit": "m",
+     "default": 8,
+     "row": 65
+    },
+    {
+     "name": "sis_Vg",
+     "label": "Vgrav en la rótula (1.2D + f1L + 0.2S)",
+     "unit": "Tonf",
+     "default": 3,
+     "row": 66
+    }
+   ]
+  }
+ ],
+ "combos": [
+  {
+   "nombre": "1.2D+1.6L",
+   "M": 9.5,
+   "V": 6
+  },
+  {
+   "nombre": "1.2D+1.0E+L",
+   "M": 14,
+   "V": 7
+  },
+  {
+   "nombre": "0.9D+1.0E",
+   "M": 11.5,
+   "V": 4.5
+  },
+  {
+   "nombre": "1.2D+1.0W+L",
+   "M": 8,
+   "V": 5
+  },
+  {
+   "nombre": "C5",
+   "M": null,
+   "V": null
+  },
+  {
+   "nombre": "C6",
+   "M": null,
+   "V": null
+  },
+  {
+   "nombre": "C7",
+   "M": null,
+   "V": null
+  },
+  {
+   "nombre": "C8",
+   "M": null,
+   "V": null
+  },
+  {
+   "nombre": "C9",
+   "M": null,
+   "V": null
+  },
+  {
+   "nombre": "C10",
+   "M": null,
+   "V": null
+  }
+ ]
+}
