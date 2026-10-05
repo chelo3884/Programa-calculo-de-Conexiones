@@ -20,6 +20,8 @@ from empalme_viga import engine as empalme_viga_engine
 from end_plate import engine as end_plate_engine
 from placa_base.engine import CATALOGOS, calcular
 from rodilla import engine as rodilla_engine
+import autodiseno
+import cargas
 from wuf import engine as wuf_engine
 from gusset import engine as gusset_engine
 from cortante_hss import engine as hss_engine
@@ -32,6 +34,30 @@ MODULOS_XL = {"end_plate": end_plate_engine, "bfp": bfp_engine, "rodilla": rodil
               "cortante_hss": hss_engine}
 
 WEB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "web")
+
+
+def _api_nec(d):
+    return {"combos": cargas.generar(d.get("cargas", {}), d["columnas"], float(d.get("omega0", 1) or 1),
+                                     d.get("modo_sismo", "E"), bool(d.get("invertir", True)))}
+
+
+def _api_sap_parse(d):
+    t = cargas.parse(d["texto"])
+    return {"tabla": t["tabla"], "columnas": t["columnas"], "unidades": t["unidades"], "n": len(t["filas"]),
+            "muestra": t["filas"][:6], "mapa": cargas.mapa_sugerido(t["columnas"], d.get("claves", []))}
+
+
+def _api_sap_import(d):
+    return cargas.importar(d["texto"], d.get("mapa", {}), d["claves"], d.get("nombre_col"), d.get("filtro"),
+                           d.get("fuerza", "Tonf"), d.get("longitud", "m"), int(d.get("n_max", 10)))
+
+
+def _api_auto(nombre, calc, spec, d):
+    inp = d["inputs"]
+    opciones = {c["name"]: c.get("options") for s in (spec or {}).get("secciones", []) for c in s["campos"]} if spec else None
+    if d.get("accion") == "vars":
+        return {"variables": autodiseno.variables(nombre, inp, opciones)}
+    return autodiseno.buscar(nombre, calc, inp, d.get("nombres"), d.get("lim"), opciones_campo=opciones)
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -67,8 +93,11 @@ class Handler(BaseHTTPRequestHandler):
             self._send(200, fh.read(), ctype)
 
     def do_POST(self):
-        funciones = {"/api/placa_base/calc": calcular}
+        funciones = {"/api/placa_base/calc": calcular, "/api/nec_combos": _api_nec, "/api/sap_parse": _api_sap_parse,
+                     "/api/sap_import": _api_sap_import, "/api/placa_base/auto": lambda d: _api_auto("placa_base", calcular, None, d)}
         funciones.update({f"/api/{n}/calc": e.calcular for n, e in MODULOS_XL.items()})
+        funciones.update({f"/api/{n}/auto": (lambda d, n=n, e=e: _api_auto(n, e.calcular, e.SPEC, d))
+                          for n, e in MODULOS_XL.items() if n in autodiseno.CONFIG})
         if self.path not in funciones:
             return self._send(404, {"error": "no encontrado"})
         try:
