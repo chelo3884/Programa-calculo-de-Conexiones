@@ -1,0 +1,635 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Conexiones — Placa base</title>
+<style>
+:root{
+  --bg:#f3f5f8; --card:#fff; --ink:#1b2430; --mut:#667085; --line:#d9dfe7; --acc:#1f4e8c; --acc2:#e8f0fb;
+  --ok:#1a7f4b; --okbg:#e3f5ec; --warn:#a76a00; --warnbg:#fff3d6; --bad:#b42318; --badbg:#fde7e4;
+  --steel:#8d99a8; --steelf:#cfd6df; --conc:#e7e2d8; --grout:#c9c3b4; --bolt:#444; --tens:#d92d20; --comp:#2e6fd0;
+  --input:#fff;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12161c; --card:#1b2129; --ink:#e6eaf0; --mut:#98a2b3; --line:#323b47; --acc:#6aa3f0; --acc2:#1f2d42;
+  --ok:#4cc38a; --okbg:#143324; --warn:#f0b429; --warnbg:#3a2e0c; --bad:#ff7a6b; --badbg:#3d1815;
+  --steel:#7f8b9a; --steelf:#3b4452; --conc:#3a3a35; --grout:#55524a; --bolt:#cbd2dc; --input:#12161c;}}
+:root[data-theme="dark"]{
+  --bg:#12161c; --card:#1b2129; --ink:#e6eaf0; --mut:#98a2b3; --line:#323b47; --acc:#6aa3f0; --acc2:#1f2d42;
+  --ok:#4cc38a; --okbg:#143324; --warn:#f0b429; --warnbg:#3a2e0c; --bad:#ff7a6b; --badbg:#3d1815;
+  --steel:#7f8b9a; --steelf:#3b4452; --conc:#3a3a35; --grout:#55524a; --bolt:#cbd2dc; --input:#12161c;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;padding:10px 16px;background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+header h1{font-size:16px;margin:0;font-weight:650}
+header .sub{color:var(--mut);font-size:12px}
+.badge{padding:4px 12px;border-radius:999px;font-weight:650;font-size:13px}
+.b-ok{background:var(--okbg);color:var(--ok)}.b-warn{background:var(--warnbg);color:var(--warn)}.b-bad{background:var(--badbg);color:var(--bad)}.b-na{background:var(--acc2);color:var(--mut)}
+.sp{flex:1}
+button,.btn{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:6px 12px;border-radius:7px;cursor:pointer}
+button:hover{border-color:var(--acc)} button.pri{background:var(--acc);border-color:var(--acc);color:#fff}
+nav{display:flex;gap:2px;padding:0 16px;background:var(--card);border-bottom:1px solid var(--line);overflow-x:auto}
+nav button{border:0;border-bottom:3px solid transparent;border-radius:0;padding:10px 16px;background:none;color:var(--mut);font-weight:600;white-space:nowrap}
+nav button.on{color:var(--acc);border-bottom-color:var(--acc)}
+main{padding:14px 16px;max-width:1700px;margin:0 auto}
+.tab{display:none}.tab.on{display:block}
+.grid{display:grid;grid-template-columns:minmax(300px,380px) 1fr;gap:14px;align-items:start}
+@media (max-width:980px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:12px}
+.card h2{margin:0 0 8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--acc)}
+.row{display:grid;grid-template-columns:1fr 120px 42px;gap:6px;align-items:center;margin:4px 0}
+.row label{color:var(--ink)}.row .u{color:var(--mut);font-size:12px}
+input,select{font:inherit;width:100%;padding:4px 7px;border:1px solid var(--line);border-radius:6px;background:var(--input);color:var(--ink)}
+input[type=number]{text-align:right}
+input:focus,select:focus{outline:2px solid var(--acc2);border-color:var(--acc)}
+input[readonly]{background:var(--acc2);color:var(--mut)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:1250px){.two{grid-template-columns:1fr}}
+svg{width:100%;height:auto;display:block;background:var(--card)}
+svg text{fill:var(--ink);font:11px system-ui,sans-serif}
+svg .dim{stroke:var(--mut);stroke-width:.8;fill:none}svg text.dt{fill:var(--mut);font-size:10.5px}
+table{border-collapse:collapse;width:100%}
+th,td{padding:5px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--mut);background:var(--bg);position:sticky;top:0}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+tr.grp td{background:var(--acc2);color:var(--acc);font-weight:650;font-size:12px}
+.bar{height:8px;background:var(--line);border-radius:4px;min-width:70px;position:relative;overflow:hidden}
+.bar i{display:block;height:100%}
+.st{padding:2px 8px;border-radius:999px;font-size:11.5px;font-weight:650;white-space:nowrap}
+.s-CUMPLE{background:var(--okbg);color:var(--ok)}.s-AL-LÍMITE{background:var(--warnbg);color:var(--warn)}.s-NO-CUMPLE{background:var(--badbg);color:var(--bad)}.s-N\/A{background:var(--acc2);color:var(--mut)}
+.note{color:var(--mut);font-size:12px}
+.cmb input{padding:3px 5px}.cmb td{padding:3px 4px}
+.kv{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:6px 14px}
+.kv div{display:flex;justify-content:space-between;border-bottom:1px dotted var(--line);padding:2px 0}
+.kv span:first-child{color:var(--mut)}
+iframe{width:100%;height:78vh;border:1px solid var(--line);border-radius:8px;background:#fff}
+.ucard{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.err{background:var(--badbg);color:var(--bad);padding:8px 12px;border-radius:8px;margin-bottom:10px;display:none}
+.memo td.sym{font-family:ui-monospace,Consolas,monospace;white-space:nowrap}
+details{margin-bottom:8px}summary{cursor:pointer;font-weight:600;padding:4px 0}
+</style>
+</head>
+<body>
+<header>
+  <div><h1>Conexiones metálicas · Placa base y pernos de anclaje</h1>
+  <div class="sub">AISC Design Guide 1 · AISC 360-16 (J2, J8) · ACI 318-19 cap. 17 · LRFD</div></div>
+  <span id="badge" class="badge b-na">—</span>
+  <div class="sp"></div>
+  <button id="btnOpen">Abrir…</button><button id="btnSave">Guardar proyecto</button>
+  <button id="btnTheme" title="Tema claro/oscuro">◐</button>
+  <button class="pri" id="btnReport">Reporte</button>
+  <input type="file" id="fileIn" accept=".json" hidden>
+</header>
+<nav id="tabs">
+  <button data-t="dis" class="on">Diseño</button><button data-t="car">Cargas</button>
+  <button data-t="mem">Memoria de cálculo</button><button data-t="uni">Unidades</button><button data-t="rep">Reporte</button>
+</nav>
+<main>
+<div id="err" class="err"></div>
+
+<section class="tab on" id="t-dis">
+ <div class="grid">
+  <div id="inputs"></div>
+  <div>
+    <div class="card"><h2>Geometría (se actualiza al mover los parámetros) <span class="note" id="combSelWrap"> · combinación en dibujo:
+      <select id="combSel" style="width:auto"></select></span></h2>
+      <div class="two"><div id="svgPlan"></div><div id="svgElev"></div></div></div>
+    <div class="card"><h2>Verificaciones — combinación gobernante por chequeo</h2>
+      <div style="overflow:auto"><table id="tblChecks"></table></div>
+      <div class="note" style="margin-top:6px">Ratio = demanda / capacidad de diseño. Verde ≤ límite · Ámbar entre el límite y 1.00 · Rojo &gt; 1.00.</div></div>
+  </div>
+ </div>
+</section>
+
+<section class="tab" id="t-car">
+ <div class="card"><h2>Cargas factoradas en la base (LRFD)</h2>
+  <div style="overflow:auto"><table class="cmb" id="tblCombos"></table></div>
+  <div style="margin-top:8px"><button id="addCombo">+ Agregar combinación</button></div>
+  <p class="note">Haga clic en una fila para ver su detalle y dibujarla. Pu (+) compresión, (−) tracción. Mu alrededor del eje fuerte (se usa |Mu|). Vu en la dirección N. Las filas con cargas en cero se ignoran. Importe aquí las reacciones de SAP2000 (combinaciones de resistencia).</p></div>
+ <div class="card"><h2>Detalle de la combinación seleccionada</h2><div id="detalle"></div></div>
+</section>
+
+<section class="tab" id="t-mem"><div class="card"><h2>Memoria de cálculo detallada</h2><div id="memoria"></div></div></section>
+
+<section class="tab" id="t-uni">
+ <div class="card"><h2>Sistema de unidades</h2>
+  <div class="row" style="grid-template-columns:200px 220px"><label>Preajuste</label>
+   <select id="preset"></select></div>
+  <div class="ucard" id="unitSel"></div>
+  <p class="note">Las unidades se aplican a los datos de entrada, resultados, dibujos y reporte. Internamente el cálculo se hace siempre en kgf·cm (igual que la hoja de Excel) y los valores no cambian al cambiar de unidades.</p></div>
+</section>
+
+<section class="tab" id="t-rep">
+ <div class="card"><h2>Reporte de diseño</h2>
+  <div style="margin-bottom:8px;display:flex;gap:8px;flex-wrap:wrap">
+   <button class="pri" id="repPrint">Imprimir / Guardar PDF</button><button id="repDl">Descargar HTML</button></div>
+  <iframe id="repFrame" title="Reporte"></iframe></div>
+</section>
+</main>
+
+<script>
+"use strict";
+/* ═════════════ Unidades ═════════════ */
+// factor: valor_mostrado = valor_canónico × factor
+const UNITS = {
+  F:  {label:'Fuerza', opts:{'Tonf':1,'kgf':1000,'kN':9.80665,'N':9806.65,'kip':2.204623}},
+  M:  {label:'Momento', opts:{'Tonf·m':1,'kgf·cm':1e5,'kgf·m':1000,'kN·m':9.80665,'N·mm':9.80665e6,'kip·in':86.7976,'kip·ft':7.23313}},
+  Ls: {label:'Longitud — perfil, placa, pernos (canónico mm)', opts:{'mm':1,'cm':.1,'m':.001,'in':1/25.4}},
+  Lc: {label:'Longitud — pedestal y distancias (canónico cm)', opts:{'mm':10,'cm':1,'m':.01,'in':1/2.54}},
+  S:  {label:'Esfuerzo', opts:{'kgf/cm²':1,'MPa':.0980665,'ksi':1/70.307,'Tonf/m²':10,'psi':14.2233}},
+};
+const MLLAB = {'Tonf':'Tonf·m/m','kgf':'kgf·cm/cm','kN':'kN·m/m','N':'N·mm/mm','kip':'kip·in/in'};
+const AREALAB = {'mm':['mm²',100],'cm':['cm²',1],'m':['m²',1e-4],'in':['in²',1/6.4516]};
+const PRESETS = {
+  'Tonf · m · mm (predeterminado)':{F:'Tonf',M:'Tonf·m',Ls:'mm',Lc:'cm',S:'kgf/cm²'},
+  'kgf · cm':{F:'kgf',M:'kgf·cm',Ls:'cm',Lc:'cm',S:'kgf/cm²'},
+  'SI (kN · m · mm · MPa)':{F:'kN',M:'kN·m',Ls:'mm',Lc:'mm',S:'MPa'},
+  'US (kip · in · ksi)':{F:'kip',M:'kip·in',Ls:'in',Lc:'in',S:'ksi'},
+  'Tonf · m · cm':{F:'Tonf',M:'Tonf·m',Ls:'cm',Lc:'cm',S:'kgf/cm²'},
+};
+let units = {...Object.values(PRESETS)[0]};
+function uf(q){ // factor y etiqueta de unidad para la magnitud q
+  if(q==='ML'){const u=units.F;return {f:UNITS.F.opts[u],l:MLLAB[u]};}
+  if(q==='A'){const [l,f]=AREALAB[units.Lc];return {f,l};}
+  if(UNITS[q]){const u=units[q];return {f:UNITS[q].opts[u],l:u};}
+  return {f:1,l:''};
+}
+function fmt(v,q){
+  if(v===null||v===undefined||v==='')return '—';
+  if(typeof v==='string')return v;
+  const x=q?v*uf(q).f:v, a=Math.abs(x);
+  if(!isFinite(x))return '∞';
+  if(a===0)return '0';
+  if(a>=10000)return x.toFixed(0);
+  if(a>=1000)return x.toFixed(1);
+  if(a>=100)return x.toFixed(1);
+  if(a>=1)return x.toFixed(2);
+  if(a>=0.01)return x.toFixed(3);
+  return x.toExponential(2);
+}
+const rfmt=v=>v===null||v===undefined?'—':v.toFixed(2);
+function withU(v,q){const u=uf(q);return fmt(v,q)+(u.l?' '+u.l:'');}
+
+/* ═════════════ Estado ═════════════ */
+const ARMADO='ARMADO (flejes soldados)';
+const DEFAULT = {
+  proyecto:'Galpón KUBIEC — ejemplo', elemento:'Columna interior C-1', lim_verde:0.9,
+  perfil:'HA360X180X6X12', armado:{d:350,bf:200,tw:8,tf:12},
+  placa:{acero:'A36',Fy:2530,N:600,B:400,tp:35,grout:25},
+  pernos:{material:'F1554 Gr55',diam:'1"',nfila:2,eN:50,eB:50,hef:500,arandela_lado:70,arandela_t:12,arandela_sold:'Sí',nv:4},
+  pedestal:{fc:210,Np:90,Bp:80,fisurado:'Sí',ref_borde:'Sí',hp_usar:'Sí',hp_n:4,hp_db:16,hp_fy:4200},
+  sold:{electrodo:'E70XX',wf:8,ww:6},
+  sismo:{sismo:'Sí',omega0:1},
+  combos:[
+    {nombre:'1.4D',P:9,V:0.6,M:0.8},{nombre:'1.2D+1.6L',P:12,V:1.2,M:2.5},
+    {nombre:'1.2D+1.0E+L',P:8,V:3.5,M:9},{nombre:'0.9D+1.0E',P:3,V:3.5,M:8.8},
+    {nombre:'0.9D+1.0W',P:-3.5,V:2,M:2.5}],
+};
+let S = JSON.parse(JSON.stringify(DEFAULT));
+let CAT=null, RES=null, selCombo=2, seq=0;
+
+/* ═════════════ Definición de campos ═════════════ */
+const SEC = ()=>[
+ {t:'Datos generales',f:[
+  {l:'Proyecto',p:'proyecto',k:'text'},{l:'Elemento / nudo',p:'elemento',k:'text'},
+  {l:'Límite verde / ámbar (ratio)',p:'lim_verde',k:'num',step:.05}]},
+ {t:'1. Columna',f:[
+  {l:'Perfil (catálogo o ARMADO)',p:'perfil',k:'sel',o:()=>[ARMADO,...CAT.perfiles.map(x=>x.nombre)]},
+  ...(S.perfil===ARMADO?[
+   {l:'Peralte d',p:'armado.d',q:'Ls',k:'num'},{l:'Ancho de ala bf',p:'armado.bf',q:'Ls',k:'num'},
+   {l:'Espesor de alma tw',p:'armado.tw',q:'Ls',k:'num'},{l:'Espesor de ala tf',p:'armado.tf',q:'Ls',k:'num'}]
+  :[{l:'d / bf',ro:()=>RES?`${fmt(RES.derivados.d_mm,'Ls')} / ${fmt(RES.derivados.bf_mm,'Ls')} ${uf('Ls').l}`:'',k:'ro'},
+    {l:'tw / tf',ro:()=>RES?`${fmt(RES.derivados.tw_mm,'Ls')} / ${fmt(RES.derivados.tf_mm,'Ls')} ${uf('Ls').l}`:'',k:'ro'}])]},
+ {t:'2. Placa base',f:[
+  {l:'Acero de placa',p:'placa.acero',k:'sel',o:()=>[...CAT.acero_placa.map(x=>x.nombre),'Personalizado']},
+  ...(S.placa.acero==='Personalizado'?[{l:'Fy placa',p:'placa.Fy',q:'S',k:'num'}]:
+     [{l:'Fy placa',ro:()=>{const a=CAT.acero_placa.find(x=>x.nombre===S.placa.acero);return withU(a?a.Fy:0,'S');},k:'ro'}]),
+  {l:'N — largo (dir. del momento)',p:'placa.N',q:'Ls',k:'num'},{l:'B — ancho (perpendicular)',p:'placa.B',q:'Ls',k:'num'},
+  {l:'tp — espesor',p:'placa.tp',q:'Ls',k:'num',list:'esp'},{l:'Espesor de grout (mortero)',p:'placa.grout',q:'Ls',k:'num'}]},
+ {t:'3. Pernos de anclaje',f:[
+  {l:'Material',p:'pernos.material',k:'sel',o:()=>CAT.pernos.map(x=>x.nombre)},
+  {l:'Diámetro',p:'pernos.diam',k:'sel',o:()=>CAT.diametros.map(x=>x.nombre)},
+  {l:'Pernos por fila (2 filas)',p:'pernos.nfila',k:'int'},{l:'Total de pernos',ro:()=>2*S.pernos.nfila,k:'ro'},
+  {l:'Borde perno → placa (dir. N)',p:'pernos.eN',q:'Ls',k:'num'},{l:'Borde perno → placa (dir. B)',p:'pernos.eB',q:'Ls',k:'num'},
+  {l:'Empotramiento efectivo hef',p:'pernos.hef',q:'Ls',k:'num'},
+  {l:'Arandela inf.: lado (0 = solo tuerca)',p:'pernos.arandela_lado',q:'Ls',k:'num'},
+  {l:'Arandela inf.: espesor',p:'pernos.arandela_t',q:'Ls',k:'num'},
+  {l:'Arandelas sup. soldadas a la placa',p:'pernos.arandela_sold',k:'sel',o:()=>['Sí','No']},
+  {l:'Pernos efectivos a corte',p:'pernos.nv',k:'int'}]},
+ {t:'4. Pedestal y concreto',f:[
+  {l:"f'c",p:'pedestal.fc',q:'S',k:'num'},{l:'Pedestal Np (dirección N)',p:'pedestal.Np',q:'Lc',k:'num'},
+  {l:'Pedestal Bp (dirección B)',p:'pedestal.Bp',q:'Lc',k:'num'},
+  {l:'Concreto fisurado',p:'pedestal.fisurado',k:'sel',o:()=>['Sí','No']},
+  {l:'Refuerzo de borde ≥ Ø12 (ψc,V = 1.2)',p:'pedestal.ref_borde',k:'sel',o:()=>['Sí','No']},
+  {l:'Hairpins (refuerzo de anclaje a tracción)',p:'pedestal.hp_usar',k:'sel',o:()=>['Sí','No']},
+  ...(S.pedestal.hp_usar==='Sí'?[
+   {l:'Hairpin: ramas efectivas',p:'pedestal.hp_n',k:'int'},
+   {l:'Hairpin: diámetro (mm)',p:'pedestal.hp_db',k:'sel',num:true,o:()=>CAT.varillas.map(x=>x.nombre)},
+   {l:'fy del refuerzo',p:'pedestal.hp_fy',q:'S',k:'num'}]:[])]},
+ {t:'5. Soldadura columna – placa',f:[
+  {l:'Electrodo',p:'sold.electrodo',k:'sel',o:()=>CAT.electrodos.map(x=>x.nombre)},
+  {l:'Filete en alas (w)',p:'sold.wf',q:'Ls',k:'num'},{l:'Filete en alma (w)',p:'sold.ww',q:'Ls',k:'num'}]},
+ {t:'6. Sismo — ACI 318-19 §17.10',f:[
+  {l:'Diseño sísmico (SDC C a F)',p:'sismo.sismo',k:'sel',o:()=>['Sí','No']},
+  {l:'Ω0 sobre cargas de anclajes',p:'sismo.omega0',k:'num',step:.1}]},
+];
+const getP=(o,p)=>p.split('.').reduce((a,k)=>a[k],o);
+const setP=(o,p,v)=>{const ks=p.split('.');const l=ks.pop();ks.reduce((a,k)=>a[k],o)[l]=v;};
+const R6=x=>parseFloat(x.toPrecision(6));
+
+function renderInputs(){
+  const box=document.getElementById('inputs');
+  const keep=document.activeElement&&document.activeElement.dataset.p;
+  box.innerHTML='';
+  for(const sec of SEC()){
+    const c=document.createElement('div');c.className='card';
+    c.innerHTML=`<h2>${sec.t}</h2>`;
+    for(const f of sec.f){
+      const r=document.createElement('div');r.className='row';
+      const u=f.q?uf(f.q).l:(f.k==='ro'||f.k==='text'?'':'');
+      r.innerHTML=`<label>${f.l}</label><span></span><span class="u">${u}</span>`;
+      const holder=r.children[1];let el;
+      if(f.k==='sel'){
+        el=document.createElement('select');
+        for(const o of f.o()){const op=document.createElement('option');op.value=o;op.textContent=o;el.appendChild(op);}
+        el.value=String(getP(S,f.p));
+        el.onchange=()=>{let v=el.value;if(f.num)v=Number(v);setP(S,f.p,v);
+          if(f.p==='perfil'||f.p==='placa.acero'||f.p==='pedestal.hp_usar')renderInputs();changed();};
+      }else if(f.k==='ro'){
+        el=document.createElement('input');el.readOnly=true;el.value=typeof f.ro==='function'?f.ro():'';el.dataset.ro=1;r.style.gridTemplateColumns='1fr 190px 0';
+      }else if(f.k==='text'){
+        el=document.createElement('input');el.type='text';el.value=getP(S,f.p);
+        el.oninput=()=>{setP(S,f.p,el.value);saveLocal();};
+        r.style.gridTemplateColumns='1fr 190px 0';
+      }else{
+        el=document.createElement('input');el.type='number';el.step=f.step||'any';
+        const fac=f.q?uf(f.q).f:1;
+        el.value=R6(getP(S,f.p)*fac);
+        if(f.list)el.setAttribute('list',f.list);
+        el.oninput=()=>{const v=parseFloat(el.value);if(isNaN(v))return;
+          setP(S,f.p,f.k==='int'?Math.round(v):v/fac);changed();};
+      }
+      el.dataset.p=f.p||'';holder.appendChild(el);c.appendChild(r);
+    }
+    box.appendChild(c);
+  }
+  if(CAT&&!document.getElementById('esp')){
+    const dl=document.createElement('datalist');dl.id='esp';
+    dl.innerHTML=CAT.espesores.map(e=>`<option value="${R6(e*uf('Ls').f)}">`).join('');document.body.appendChild(dl);
+  }
+  if(keep){const e=box.querySelector(`[data-p="${keep}"]`);if(e&&e.type!=='number')e.focus();}
+}
+function refreshReadonly(){
+  document.querySelectorAll('#inputs input[data-ro]').forEach(()=>{});
+  renderInputsRO();
+}
+function renderInputsRO(){ // actualiza sólo campos de lectura sin perder el foco
+  const secs=SEC();let i=0;
+  const ros=[...document.querySelectorAll('#inputs input[data-ro]')];
+  for(const sec of secs)for(const f of sec.f)if(f.k==='ro'){const el=ros[i++];if(el)el.value=f.ro();}
+}
+
+/* ═════════════ Cálculo (Python) ═════════════ */
+let timer=null;
+function changed(){saveLocal();clearTimeout(timer);timer=setTimeout(calc,110);}
+async function calc(){
+  const id=++seq;
+  try{
+    const r=await fetch('/api/placa_base/calc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(S)});
+    const j=await r.json();
+    if(id!==seq)return;
+    const err=document.getElementById('err');
+    if(!r.ok){err.style.display='block';err.textContent='Error de datos: '+j.error;return;}
+    err.style.display='none';RES=j;renderAll();
+  }catch(e){const err=document.getElementById('err');err.style.display='block';err.textContent='No se pudo contactar el servidor: '+e;}
+}
+
+/* ═════════════ Render de resultados ═════════════ */
+function renderAll(){
+  const b=document.getElementById('badge'),rs=RES.resumen;
+  const cls=rs.estado==='CUMPLE'?'b-ok':rs.estado==='CUMPLE AL LÍMITE'?'b-warn':rs.estado==='NO CUMPLE'?'b-bad':'b-na';
+  b.className='badge '+cls;
+  b.textContent=(rs.estado==='NO CUMPLE'?'✖ ':rs.estado==='SIN CARGAS'?'':rs.estado==='CUMPLE'?'✔ ':'▲ ')+rs.estado+(rs.ratio_max!=null?` — ratio máx. ${rfmt(rs.ratio_max)}`:'');
+  const sel=document.getElementById('combSel');
+  const cur=selCombo;sel.innerHTML=S.combos.map((c,i)=>`<option value="${i}">${c.nombre||'C'+(i+1)}</option>`).join('');
+  if(cur>=S.combos.length)selCombo=Math.max(0,S.combos.length-1);sel.value=selCombo;
+  renderInputsRO();
+  renderChecks();renderCombos();renderDetalle();renderMemoria();
+  document.getElementById('svgPlan').innerHTML=svgPlan();
+  document.getElementById('svgElev').innerHTML=svgElev();
+  if(document.getElementById('t-rep').classList.contains('on'))buildReport();
+}
+function bar(r){
+  if(r==null)return '';
+  const col=r>1?'var(--bad)':r>S.lim_verde?'var(--warn)':'var(--ok)';
+  return `<div class="bar"><i style="width:${Math.min(100,r*100)}%;background:${col}"></i></div>`;
+}
+function renderChecks(){
+  let h='<tr><th>Verificación</th><th>Referencia</th><th class="n">Demanda</th><th class="n">Capacidad</th><th>Unidad</th><th class="n">Ratio</th><th></th><th>Estado</th><th>Combo</th></tr>';
+  let g='';
+  for(const c of RES.checks){
+    if(c.grupo!==g){g=c.grupo;h+=`<tr class="grp"><td colspan="9">${g}</td></tr>`;}
+    const u=c.q?uf(c.q):{l:'',f:1};
+    let ul=u.l,dem=c.dem,cap=c.cap;
+    if(c.q===''&&c.dem!=null){ul='N / V';}
+    h+=`<tr><td>${c.nombre}</td><td class="note">${c.ref}</td><td class="n">${c.dem==null?'—':(c.grupo.startsWith('GEO')||c.q==='')?fmt(dem):fmt(dem,c.q)}</td>
+    <td class="n">${c.cap==null?'—':(c.grupo.startsWith('GEO')||c.q==='')?fmt(cap):fmt(cap,c.q)}</td><td class="note">${ul}</td>
+    <td class="n"><b>${c.ratio==null?'—':rfmt(c.ratio)}</b></td><td>${bar(c.ratio)}</td>
+    <td><span class="st s-${c.estado.replace(' ','-')}">${c.estado}</span></td><td class="note">${c.combo}</td></tr>`;
+  }
+  document.getElementById('tblChecks').innerHTML=h;
+}
+function renderCombos(){
+  const fF=uf('F'),fM=uf('M');
+  let h=`<tr><th>#</th><th>Combinación</th><th class="n">Pu (${fF.l})</th><th class="n">Vu (${fF.l})</th><th class="n">Mu (${fM.l})</th><th>Caso DG1</th><th class="n">Ratio máx.</th><th></th></tr>`;
+  S.combos.forEach((c,i)=>{
+    const rc=RES&&RES.combos[i];
+    h+=`<tr><td>${i+1}</td><td><input data-i="${i}" data-k="nombre" value="${c.nombre||''}"></td>
+    ${['P','V','M'].map(k=>`<td><input type="number" step="any" data-i="${i}" data-k="${k}" value="${R6((c[k]||0)*(k==='M'?fM.f:fF.f))}"></td>`).join('')}
+    <td class="note">${rc?rc.caso_txt:''}</td><td class="n">${rc&&rc.ratio_max!=null?'<b>'+rfmt(rc.ratio_max)+'</b>':'—'}</td>
+    <td><button data-del="${i}" title="Eliminar">✕</button></td></tr>`;
+  });
+  const t=document.getElementById('tblCombos');
+  if(t.contains(document.activeElement)&&document.activeElement.tagName==='INPUT'){ // actualizar sólo columnas calculadas
+    [...t.querySelectorAll('tr')].slice(1).forEach((tr,i)=>{
+      const rc=RES.combos[i];if(!rc)return;
+      tr.children[5].textContent=rc.caso_txt;tr.children[6].innerHTML=rc.ratio_max!=null?'<b>'+rfmt(rc.ratio_max)+'</b>':'—';});
+    t.querySelector('tr').innerHTML=h.match(/<tr>(.*?)<\/tr>/)[1];
+    return;
+  }
+  t.innerHTML=h;
+}
+document.addEventListener('input',e=>{
+  const el=e.target;if(el.dataset.i===undefined||el.dataset.k===undefined)return;
+  const c=S.combos[+el.dataset.i],k=el.dataset.k;
+  if(k==='nombre')c.nombre=el.value;
+  else{const v=parseFloat(el.value);c[k]=isNaN(v)?0:v/(k==='M'?uf('M').f:uf('F').f);}
+  changed();
+});
+document.addEventListener('click',e=>{
+  const tr=e.target.closest&&e.target.closest('#tblCombos tr');
+  if(tr&&tr.rowIndex>0&&e.target.dataset.del===undefined){selCombo=tr.rowIndex-1;document.getElementById('combSel').value=selCombo;
+    document.querySelectorAll('#tblCombos tr').forEach((r,i)=>r.style.background=i===tr.rowIndex?'var(--acc2)':'');
+    renderDetalle();document.getElementById('svgPlan').innerHTML=svgPlan();document.getElementById('svgElev').innerHTML=svgElev();}
+  if(e.target.dataset.del!==undefined){S.combos.splice(+e.target.dataset.del,1);renderCombos();changed();}
+});
+document.getElementById('addCombo').onclick=()=>{S.combos.push({nombre:'C'+(S.combos.length+1),P:0,V:0,M:0});renderCombos();changed();};
+document.getElementById('combSel').onchange=e=>{selCombo=+e.target.value;renderDetalle();document.getElementById('svgPlan').innerHTML=svgPlan();document.getElementById('svgElev').innerHTML=svgElev();};
+
+function renderDetalle(){
+  const c=RES.combos[selCombo],box=document.getElementById('detalle');
+  if(!c||!c.activo){box.innerHTML='<p class="note">Combinación sin cargas.</p>';return;}
+  const kv=(a,b)=>`<div><span>${a}</span><span><b>${b}</b></span></div>`;
+  box.innerHTML=`<div class="kv">
+   ${kv('Combinación',c.nombre)}${kv('Caso DG1',c.caso_txt)}
+   ${kv('Excentricidad e = Mu/Pu',c.e!=null?withU(c.e,'Lc'):'—')}${kv('Excentricidad crítica ecrit',withU(c.ecrit,'Lc'))}
+   ${kv('Longitud de apoyo Y',withU(c.Y,'Lc'))}${kv('Presión de apoyo fp',withU(c.fp,'S'))}
+   ${kv('Tracción fila de pernos Tu',withU(c.Tu,'F'))}${kv('Voladizo crítico l',withU(c.l,'Lc'))}
+   ${kv('Espesor de placa requerido',withU(c.tp_req_mm,'Ls'))}${kv('Espesor de placa provisto',withU(S.placa.tp,'Ls'))}
+   ${kv('Ratio máximo de la combinación',rfmt(c.ratio_max))}</div>`;
+}
+function memoTable(rows,title){
+  let h='',sec='';
+  for(const r of rows){
+    if(r.sec!==sec){sec=r.sec;h+=`<tr class="grp"><td colspan="4">${sec}</td></tr>`;}
+    const u=r.q?uf(r.q).l:'';
+    h+=`<tr><td class="sym">${r.sym}</td><td>${r.desc}</td><td class="n">${typeof r.val==='number'?fmt(r.val,r.q):r.val}</td><td class="note">${u}</td></tr>`;
+  }
+  return `<table class="memo"><tr><th>Símbolo</th><th>Descripción</th><th class="n">Valor</th><th>Unidad</th></tr>${h}</table>`;
+}
+function renderMemoria(){
+  let h=`<details open><summary>Parámetros y resistencias (independientes de la combinación)</summary>${memoTable(RES.memoria_global)}</details>`;
+  RES.combos.forEach(c=>{if(c.activo)h+=`<details><summary>Combinación ${c.nombre} — ${c.caso_txt} — ratio máx. ${rfmt(c.ratio_max)}</summary>${memoTable(c.trace)}</details>`;});
+  document.getElementById('memoria').innerHTML=h;
+}
+
+/* ═════════════ Dibujos SVG ═════════════ */
+function dimH(x1,x2,y,txt,off=0){return `<path class="dim" d="M${x1} ${y-4}V${y+4}M${x2} ${y-4}V${y+4}M${x1} ${y}H${x2}"/><text class="dt" x="${(x1+x2)/2}" y="${y-4+off}" text-anchor="middle">${txt}</text>`;}
+function dimV(x,y1,y2,txt){return `<path class="dim" d="M${x-4} ${y1}H${x+4}M${x-4} ${y2}H${x+4}M${x} ${y1}V${y2}"/><text class="dt" transform="translate(${x-5} ${(y1+y2)/2}) rotate(-90)" text-anchor="middle">${txt}</text>`;}
+const L=(v)=>fmt(v,'Lc'); const Lsm=(v)=>fmt(v*10,'Ls');
+function svgPlan(){
+  const g=RES.geom,c=RES.combos[selCombo];
+  const W=420,H=380,mx=46,my=40;
+  const ex=Math.max(g.Np,g.N),ey=Math.max(g.Bp,g.B);
+  const sc=Math.min((W-2*mx)/ex,(H-2*my)/ey);
+  const cx=W/2,cy=H/2+4;
+  const X=v=>cx+v*sc,Y=v=>cy+v*sc;
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Planta"><text x="8" y="16" style="font-weight:700">PLANTA</text>`;
+  // pedestal
+  s+=`<rect x="${X(-g.Np/2)}" y="${Y(-g.Bp/2)}" width="${g.Np*sc}" height="${g.Bp*sc}" fill="var(--conc)" stroke="var(--steel)" stroke-dasharray="5 3"/>`;
+  // placa
+  s+=`<rect x="${X(-g.N/2)}" y="${Y(-g.B/2)}" width="${g.N*sc}" height="${g.B*sc}" fill="var(--steelf)" stroke="var(--ink)" stroke-width="1.4"/>`;
+  // zona de compresión (lado +x) y tracción (lado −x)
+  if(c&&c.activo&&c.Y>0){
+    const y0=Math.min(c.Y,g.N);
+    s+=`<rect x="${X(g.N/2-y0)}" y="${Y(-g.B/2)}" width="${y0*sc}" height="${g.B*sc}" fill="var(--comp)" opacity=".28"/>`;
+    s+=`<text class="dt" x="${X(g.N/2-y0/2)}" y="${Y(-g.B/2)-6}" text-anchor="middle" style="fill:var(--comp)">Y=${L(c.Y)}</text>`;
+  }
+  // columna
+  const dw=g.d*sc,bw=g.bf*sc,tfw=g.tf*sc,tww=g.tw*sc;
+  s+=`<g fill="var(--steel)" stroke="var(--ink)" stroke-width="1">
+   <rect x="${X(-g.d/2)}" y="${Y(-g.bf/2)}" width="${tfw}" height="${bw}"/>
+   <rect x="${X(g.d/2-g.tf)}" y="${Y(-g.bf/2)}" width="${tfw}" height="${bw}"/>
+   <rect x="${X(-g.d/2+g.tf)}" y="${Y(-g.tw/2)}" width="${dw-2*tfw}" height="${tww}"/></g>`;
+  // pernos
+  const trac=c&&c.activo&&c.Tu>0;
+  const ys=[];for(let i=0;i<g.nf;i++)ys.push(g.nf>1?-g.xb+i*2*g.xb/(g.nf-1):0);
+  const rb=Math.max(3,g.da/2*sc);
+  for(const sx of [-1,1]){
+    const tension=trac&&sx===-1;
+    for(const yy of ys){
+      s+=`<circle cx="${X(sx*g.f)}" cy="${Y(yy)}" r="${rb}" fill="${tension?'var(--tens)':'var(--bolt)'}" stroke="var(--card)" stroke-width="1"/>`;
+      if(g.ar_lado>0)s+=`<rect x="${X(sx*g.f)-g.ar_lado*sc/2}" y="${Y(yy)-g.ar_lado*sc/2}" width="${g.ar_lado*sc}" height="${g.ar_lado*sc}" fill="none" stroke="var(--bolt)" stroke-width=".7"/>`;
+    }
+  }
+  if(trac)s+=`<text class="dt" x="${X(-g.f)}" y="${Y(-g.B/2)-6}" text-anchor="middle" style="fill:var(--tens)">fila en tracción</text>`;
+  // cotas
+  const yb=Y(g.B/2)+16;
+  s+=dimH(X(-g.N/2),X(g.N/2),yb,`N = ${Lsm(g.N)}`);
+  s+=dimH(X(-g.f),X(g.f),yb+14,`2f = ${L(2*g.f)}`);
+  s+=dimV(X(-g.N/2)-12,Y(-g.B/2),Y(g.B/2),`B = ${Lsm(g.B)}`);
+  s+=dimH(X(-g.Np/2),X(g.Np/2),Y(-g.Bp/2)-8,`Np = ${L(g.Np)}`);
+  s+=dimV(X(g.Np/2)+12,Y(-g.Bp/2),Y(g.Bp/2),`Bp = ${L(g.Bp)}`);
+  if(g.nf>1)s+=dimV(X(g.N/2)-0,Y(-g.xb),Y(g.xb),'');
+  s+=`<text class="dt" x="${W-8}" y="${H-8}" text-anchor="end">cotas: N,B placa [${uf('Ls').l}] · resto [${uf('Lc').l}]</text></svg>`;
+  return s;
+}
+function svgElev(){
+  const g=RES.geom,c=RES.combos[selCombo];
+  const W=420,H=380;
+  const colH=g.d*0.9, ped=g.hef+8;
+  const ex=Math.max(g.Np,g.N,g.d),eh=colH+g.tp+g.g+ped;
+  const sc=Math.min((W-90)/ex,(H-80)/eh);
+  const cx=W/2,top=36;
+  const X=v=>cx+v*sc;
+  let y=top;
+  const yc0=y,yc1=y+colH*sc; y=yc1;
+  const yp0=y,yp1=y+g.tp*sc; y=yp1;
+  const yg0=y,yg1=y+Math.max(g.g,0.6)*sc; y=yg1;
+  const yd0=y,yd1=y+ped*sc;
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Elevación"><text x="8" y="16" style="font-weight:700">ELEVACIÓN (dir. N)</text>`;
+  s+=`<rect x="${X(-g.Np/2)}" y="${yd0}" width="${g.Np*sc}" height="${yd1-yd0}" fill="var(--conc)" stroke="var(--steel)"/>`;
+  s+=`<rect x="${X(-g.N/2)}" y="${yg0}" width="${g.N*sc}" height="${yg1-yg0}" fill="var(--grout)" stroke="var(--steel)"/>`;
+  s+=`<rect x="${X(-g.N/2)}" y="${yp0}" width="${g.N*sc}" height="${yp1-yp0}" fill="var(--steelf)" stroke="var(--ink)" stroke-width="1.3"/>`;
+  s+=`<g fill="var(--steel)" stroke="var(--ink)"><rect x="${X(-g.d/2)}" y="${yc0}" width="${g.d*sc}" height="${yc1-yc0}" opacity=".35"/>
+   <rect x="${X(-g.d/2)}" y="${yc0}" width="${g.tf*sc}" height="${yc1-yc0}"/><rect x="${X(g.d/2-g.tf)}" y="${yc0}" width="${g.tf*sc}" height="${yc1-yc0}"/></g>`;
+  // pernos
+  const trac=c&&c.activo&&c.Tu>0;
+  for(const sx of [-1,1]){
+    const col=(trac&&sx===-1)?'var(--tens)':'var(--bolt)';
+    const bx=X(sx*g.f),bw=Math.max(2,g.da*sc);
+    s+=`<rect x="${bx-bw/2}" y="${yp0-6}" width="${bw}" height="${(yd0+g.hef*sc)-(yp0-6)}" fill="${col}"/>`;
+    s+=`<rect x="${bx-bw}" y="${yd0+g.hef*sc-3}" width="${2*bw}" height="5" fill="${col}"/>`;
+    if(g.ar_lado>0)s+=`<rect x="${bx-g.ar_lado*sc/2}" y="${yp0-g.ar_t*sc-2}" width="${g.ar_lado*sc}" height="${Math.max(2,g.ar_t*sc)}" fill="${col}"/>`;
+  }
+  // presión de apoyo (compresión a +x) y tracción
+  if(c&&c.activo&&c.Y>0){
+    const y0=Math.min(c.Y,g.N);
+    s+=`<polygon points="${X(g.N/2)},${yd0+2} ${X(g.N/2-y0)},${yd0+2} ${X(g.N/2-y0)},${yd0+22} ${X(g.N/2)},${yd0+22}" fill="var(--comp)" opacity=".35"/>`;
+    s+=`<text class="dt" x="${X(g.N/2)+5}" y="${yd0+17}" text-anchor="start" style="fill:var(--comp)">fp=${fmt(c.fp,'S')}</text>`;
+  }
+  if(trac){
+    s+=`<path d="M${X(-g.f)} ${yd0+g.hef*sc*0.55} V${yp0-30}" stroke="var(--tens)" stroke-width="2" marker-end="url(#ah)"/>
+        <text class="dt" x="${X(-g.f)-6}" y="${yp0-34}" text-anchor="end" style="fill:var(--tens)">Tu=${withU(c.Tu,'F')}</text>`;
+  }
+  s+=`<defs><marker id="ah" viewBox="0 0 8 8" refX="4" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L8 4L0 8z" fill="var(--tens)"/></marker></defs>`;
+  // cotas
+  const xr=X(Math.max(g.Np,g.N)/2)+14;
+  s+=dimV(xr,yd0,yd0+g.hef*sc,`hef = ${Lsm(g.hef)}`);
+  s+=dimV(xr+16,yp0,yp1,`tp ${Lsm(g.tp)}`);
+  s+=dimH(X(-g.d/2),X(g.d/2),yc0-6,`d = ${Lsm(g.d)}`);
+  s+=`<text class="dt" x="${X(-g.Np/2)+4}" y="${yd1-6}">Pedestal ${L(g.Np)} × ${L(g.Bp)} ${uf('Lc').l}</text></svg>`;
+  return s;
+}
+
+/* ═════════════ Reporte ═════════════ */
+function buildReport(){
+  const html=reportHTML();
+  document.getElementById('repFrame').srcdoc=html;return html;
+}
+function esc(s){return String(s).replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));}
+function reportHTML(){
+  const rs=RES.resumen,d=RES.derivados,date=new Date().toLocaleDateString('es-EC',{year:'numeric',month:'long',day:'numeric'});
+  const tbl=(rows)=>`<table>${rows.map(r=>`<tr><td>${r[0]}</td><td class="n"><b>${r[1]}</b></td></tr>`).join('')}</table>`;
+  const U=(v,q)=>withU(v,q);
+  const col=S.perfil===ARMADO?`ARMADO d=${U(S.armado.d,'Ls')}, bf=${U(S.armado.bf,'Ls')}, tw=${U(S.armado.tw,'Ls')}, tf=${U(S.armado.tf,'Ls')}`
+        :`${S.perfil} (d=${U(d.d_mm,'Ls')}, bf=${U(d.bf_mm,'Ls')}, tw=${U(d.tw_mm,'Ls')}, tf=${U(d.tf_mm,'Ls')})`;
+  let checks='',g='';
+  for(const c of RES.checks){
+    if(c.grupo!==g){g=c.grupo;checks+=`<tr class="grp"><td colspan="8">${g}</td></tr>`;}
+    const geo=c.grupo.startsWith('GEO')||c.q==='';
+    checks+=`<tr><td>${c.nombre}</td><td>${c.ref}</td><td class="n">${c.dem==null?'—':geo?fmt(c.dem):fmt(c.dem,c.q)}</td><td class="n">${c.cap==null?'—':geo?fmt(c.cap):fmt(c.cap,c.q)}</td>
+    <td>${c.q?uf(c.q).l:''}</td><td class="n"><b>${rfmt(c.ratio)}</b></td><td class="s ${c.estado.replace(' ','-')}">${c.estado}</td><td>${c.combo}</td></tr>`;
+  }
+  const fF=uf('F'),fM=uf('M');
+  let combos=`<tr><th>Combinación</th><th class="n">Pu (${fF.l})</th><th class="n">Vu (${fF.l})</th><th class="n">Mu (${fM.l})</th><th>Caso DG1</th><th class="n">Ratio máx.</th></tr>`;
+  S.combos.forEach((c,i)=>{const rc=RES.combos[i];combos+=`<tr><td>${esc(c.nombre)}</td><td class="n">${fmt(c.P,'F')}</td><td class="n">${fmt(c.V,'F')}</td><td class="n">${fmt(c.M,'M')}</td><td>${rc?rc.caso_txt:''}</td><td class="n">${rc&&rc.ratio_max!=null?rfmt(rc.ratio_max):'—'}</td></tr>`;});
+  const memo=(rows)=>{let h='',sec='';for(const r of rows){if(r.sec!==sec){sec=r.sec;h+=`<tr class="grp"><td colspan="4">${sec}</td></tr>`;}
+    h+=`<tr><td class="m">${r.sym}</td><td>${r.desc}</td><td class="n">${typeof r.val==='number'?fmt(r.val,r.q):r.val}</td><td>${r.q?uf(r.q).l:''}</td></tr>`;}
+    return `<table>${h}</table>`;};
+  let memos=`<h3>Parámetros y resistencias</h3>${memo(RES.memoria_global)}`;
+  RES.combos.forEach(c=>{if(c.activo)memos+=`<h3>Combinación ${esc(c.nombre)} — ${c.caso_txt}</h3>${memo(c.trace)}`;});
+  const css=`body{font:12px/1.4 "Segoe UI",Arial,sans-serif;color:#111;margin:22px 30px;max-width:980px}
+  h1{font-size:19px;margin:0 0 2px;color:#1f4e8c}h2{font-size:14px;border-bottom:2px solid #1f4e8c;padding-bottom:2px;margin:20px 0 8px;color:#1f4e8c}h3{font-size:12.5px;margin:12px 0 4px}
+  table{border-collapse:collapse;width:100%;margin-bottom:6px}td,th{border-bottom:1px solid #d5dbe3;padding:3px 6px;text-align:left}th{background:#eef2f7;font-size:11px}
+  .n{text-align:right;font-variant-numeric:tabular-nums}.grp td{background:#e8f0fb;font-weight:700;color:#1f4e8c}.m{font-family:Consolas,monospace;white-space:nowrap}
+  .s{font-weight:700;white-space:nowrap}.CUMPLE{color:#1a7f4b}.AL-LÍMITE{color:#a76a00}.NO-CUMPLE{color:#b42318}
+  .res{padding:8px 12px;border:2px solid;border-radius:8px;font-weight:700;margin:10px 0;display:inline-block}
+  .ok{color:#1a7f4b;border-color:#1a7f4b}.wn{color:#a76a00;border-color:#a76a00}.bd{color:#b42318;border-color:#b42318}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}.dr{display:grid;grid-template-columns:1fr 1fr;gap:10px}svg{width:100%;height:auto;background:#fff}
+  svg text{fill:#111;font:11px sans-serif}svg .dim{stroke:#667085;stroke-width:.8;fill:none}svg text.dt{fill:#667085;font-size:10.5px}
+  .note{color:#555;font-size:11px}.pb{page-break-before:always}
+  @media print{body{margin:10mm}button{display:none}}`;
+  const drawings=(svgPlan()+svgElev()).replaceAll('var(--conc)','#e7e2d8').replaceAll('var(--steelf)','#cfd6df').replaceAll('var(--steel)','#8d99a8')
+     .replaceAll('var(--grout)','#c9c3b4').replaceAll('var(--bolt)','#444').replaceAll('var(--tens)','#d92d20').replaceAll('var(--comp)','#2e6fd0')
+     .replaceAll('var(--ink)','#111').replaceAll('var(--mut)','#667085').replaceAll('var(--card)','#fff');
+  const cls=rs.estado==='CUMPLE'?'ok':rs.estado==='NO CUMPLE'?'bd':'wn';
+  return `<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Reporte placa base — ${esc(S.proyecto)}</title><style>${css}</style></head><body>
+  <h1>Memoria de cálculo — Placa base y pernos de anclaje</h1>
+  <div class="note">AISC Design Guide 1 (3.ª ed.) · AISC 360-16 (J2, J8) · ACI 318-19 cap. 17 · LRFD · ${date}</div>
+  <table style="margin-top:8px"><tr><td>Proyecto</td><td><b>${esc(S.proyecto)}</b></td><td>Elemento / nudo</td><td><b>${esc(S.elemento)}</b></td></tr></table>
+  <div class="res ${cls}">${rs.estado}${rs.ratio_max!=null?' — ratio máximo '+rfmt(rs.ratio_max):''}</div>
+  <h2>1. Datos de entrada</h2>
+  <div class="cols"><div>
+   <h3>Columna y placa</h3>${tbl([['Perfil',col],['Acero de placa / Fy',`${S.placa.acero} / ${U(d.Fy,'S')}`],
+     ['N × B × tp',`${U(S.placa.N,'Ls').replace(/ \S+$/,'')} × ${U(S.placa.B,'Ls').replace(/ \S+$/,'')} × ${U(S.placa.tp,'Ls')}`],['Grout',U(S.placa.grout,'Ls')]])}
+   <h3>Soldadura</h3>${tbl([['Electrodo',S.sold.electrodo],['Filete en alas / alma',`${U(S.sold.wf,'Ls').replace(/ \S+$/,'')} / ${U(S.sold.ww,'Ls')}`]])}
+  </div><div>
+   <h3>Pernos de anclaje</h3>${tbl([['Material (fya / futa)',`${S.pernos.material} (${fmt(d.fya,'S')} / ${U(d.futa,'S')})`],['Diámetro',S.pernos.diam],
+     ['Pernos por fila / total',`${S.pernos.nfila} / ${2*S.pernos.nfila}`],['Borde N / B',`${U(S.pernos.eN,'Ls').replace(/ \S+$/,'')} / ${U(S.pernos.eB,'Ls')}`],
+     ['hef',U(S.pernos.hef,'Ls')],['Arandela inf. (lado × espesor)',`${U(S.pernos.arandela_lado,'Ls').replace(/ \S+$/,'')} × ${U(S.pernos.arandela_t,'Ls')}`],
+     ['Arandelas sup. soldadas',S.pernos.arandela_sold],['Pernos efectivos a corte',S.pernos.nv]])}
+   <h3>Pedestal y concreto</h3>${tbl([["f'c",U(S.pedestal.fc,'S')],['Np × Bp',`${U(S.pedestal.Np,'Lc').replace(/ \S+$/,'')} × ${U(S.pedestal.Bp,'Lc')}`],
+     ['Concreto fisurado',S.pedestal.fisurado],['Refuerzo de borde',S.pedestal.ref_borde],
+     ['Hairpins',S.pedestal.hp_usar==='Sí'?`Sí (${S.pedestal.hp_n} ramas Ø${S.pedestal.hp_db} mm, fy ${U(S.pedestal.hp_fy,'S')})`:'No'],
+     ['Diseño sísmico / Ω0',`${S.sismo.sismo} / ${S.sismo.omega0}`]])}
+  </div></div>
+  <h3>Cargas factoradas (Pu + compresión)</h3><table>${combos}</table>
+  <h2>2. Geometría</h2><div class="dr">${drawings}</div>
+  <p class="note">Dibujo de la combinación: ${esc((S.combos[selCombo]||{}).nombre||'')}. Rojo: fila de pernos en tracción · Azul: zona de apoyo Y.</p>
+  <h2>3. Resumen de verificaciones</h2>
+  <table><tr><th>Verificación</th><th>Referencia</th><th class="n">Demanda</th><th class="n">Capacidad</th><th>Unidad</th><th class="n">Ratio</th><th>Estado</th><th>Combo</th></tr>${checks}</table>
+  <p>Espesor de placa requerido (gobernante): <b>${U(rs.tp_req_mm,'Ls')}</b> — provisto: <b>${U(S.placa.tp,'Ls')}</b>.</p>
+  <h2 class="pb">4. Memoria detallada</h2>${memos}
+  <h2>5. Alcance y supuestos</h2>
+  <ul class="note"><li>LRFD con cargas factoradas del análisis. Momento alrededor del eje fuerte; corte en la dirección N.</li>
+  <li>Placa rígida, pedestal concéntrico; A2 geométricamente similar a A1 (AISC J8). Voladizos m, n y λn' de DG1; momento grande por Y (ecuación cuadrática) y Tu de DG1.</li>
+  <li>Pernos colados en sitio con tuerca hex. pesada; φ Condición B (sin refuerzo suplementario) salvo hairpins (ACI §17.5.2.1).</li>
+  <li>No incluye: llave de corte, rigidizadores, fricción, flexión biaxial, pedestal a flexo-compresión.</li>
+  <li>Herramienta de apoyo: la responsabilidad del diseño es del ingeniero que la usa.</li></ul>
+  </body></html>`;
+}
+document.getElementById('btnReport').onclick=()=>tab('rep');
+document.getElementById('repPrint').onclick=()=>{const f=document.getElementById('repFrame');f.contentWindow.focus();f.contentWindow.print();};
+document.getElementById('repDl').onclick=()=>{
+  const blob=new Blob([reportHTML()],{type:'text/html'});const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download=`Reporte_PlacaBase_${(S.elemento||'').replace(/\W+/g,'_')}.html`;a.click();};
+
+/* ═════════════ Unidades UI ═════════════ */
+function renderUnits(){
+  const ps=document.getElementById('preset');
+  ps.innerHTML='<option value="">Personalizado</option>'+Object.keys(PRESETS).map(k=>`<option>${k}</option>`).join('');
+  const m=Object.keys(PRESETS).find(k=>JSON.stringify(PRESETS[k])===JSON.stringify(units));ps.value=m||'';
+  ps.onchange=()=>{if(ps.value){units={...PRESETS[ps.value]};unitsChanged();}};
+  const box=document.getElementById('unitSel');box.innerHTML='';
+  for(const q of Object.keys(UNITS)){
+    const d=document.createElement('div');d.innerHTML=`<label class="note">${UNITS[q].label}</label>`;
+    const s=document.createElement('select');
+    s.innerHTML=Object.keys(UNITS[q].opts).map(o=>`<option>${o}</option>`).join('');s.value=units[q];
+    s.onchange=()=>{units[q]=s.value;unitsChanged();};d.appendChild(s);box.appendChild(d);
+  }
+}
+function unitsChanged(){saveLocal();renderUnits();renderInputs();if(RES)renderAll();}
+
+/* ═════════════ Proyecto: guardar / abrir / tema / pestañas ═════════════ */
+function saveLocal(){try{localStorage.setItem('pb_state',JSON.stringify({S,units}));}catch(e){}}
+document.getElementById('btnSave').onclick=()=>{
+  const blob=new Blob([JSON.stringify({tipo:'placa_base',version:1,S,units},null,1)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`PlacaBase_${(S.elemento||'proyecto').replace(/\W+/g,'_')}.json`;a.click();};
+document.getElementById('btnOpen').onclick=()=>document.getElementById('fileIn').click();
+document.getElementById('fileIn').onchange=async e=>{
+  const f=e.target.files[0];if(!f)return;
+  try{const j=JSON.parse(await f.text());if(!j.S)throw new Error('formato');S=j.S;if(j.units)units=j.units;
+    renderUnits();renderInputs();calc();}catch(err){alert('Archivo no válido: '+err.message);}
+  e.target.value='';};
+document.getElementById('btnTheme').onclick=()=>{
+  const r=document.documentElement,dark=getComputedStyle(r).getPropertyValue('--bg').trim()==='#12161c';
+  r.dataset.theme=dark?'light':'dark';try{localStorage.setItem('pb_theme',r.dataset.theme);}catch(e){}};
+function tab(t){
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+  document.querySelectorAll('.tab').forEach(s=>s.classList.toggle('on',s.id==='t-'+t));
+  if(t==='rep'&&RES)buildReport();
+}
+document.getElementById('tabs').onclick=e=>{if(e.target.dataset.t)tab(e.target.dataset.t);};
+
+/* ═════════════ Inicio ═════════════ */
+(async function init(){
+  try{const th=localStorage.getItem('pb_theme');if(th)document.documentElement.dataset.theme=th;
+    const st=JSON.parse(localStorage.getItem('pb_state')||'null');if(st&&st.S){S=st.S;if(st.units)units=st.units;}}catch(e){}
+  CAT=await (await fetch('/api/placa_base/catalogos')).json();
+  renderUnits();renderInputs();calc();
+})();
+</script>
+</body>
+</html>
