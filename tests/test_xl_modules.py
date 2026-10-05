@@ -81,5 +81,9 @@ class TestRodilla(_Base, unittest.TestCase):
     modulo = "rodilla"
 
 
+class TestCortanteVV(_Base, unittest.TestCase):
+    modulo = "cortante_vv"
+
+
 if __name__ == "__main__":
     unittest.main()

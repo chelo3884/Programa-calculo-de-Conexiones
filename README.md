@@ -6,17 +6,24 @@ Programa en Python (sólo biblioteca estándar) con interfaz HTML interactiva, e
 
 Módulo 1: **placa base y pernos de anclaje** (columnas de perfil I/H y HSS rectangular/cajón) (AISC Design Guide 1, AISC 360-16 J2/J8, ACI 318-19 cap. 17, LRFD).
 
-## Uso
+## Cómo abrirlo (sin usar el cmd)
 
-    python3 app.py            # abre http://127.0.0.1:8000
-    python3 app.py --port 8123 --no-browser
+1. Instale **Python 3.9 o superior** (python.org; en Windows marque *Add Python to PATH*). No hay que instalar librerías.
+2. Descomprima **toda** la carpeta del programa (por ejemplo en `C:\\Ingenieria\\Conexiones\\`).
+3. Haga doble clic en **`Crear_acceso_directo.vbs`**: crea el icono *Conexiones Metálicas* en el Escritorio y en el menú Inicio.
+4. Desde entonces, un doble clic en ese icono abre el programa en el navegador. Aparece una ventana pequeña de control; al cerrarla se apaga el programa.
 
-* Pestaña **Diseño**: parámetros de columna, placa, pernos, pedestal, soldadura y sismo; planta y elevación se redibujan al mover cualquier dato; tabla de verificaciones con ratios.
-* Pestaña **Cargas**: combinaciones LRFD (Pu +compresión, Vu, Mu). Clic en una fila para dibujarla.
-* **Memoria de cálculo**: todos los pasos intermedios (equivalente a la hoja CALCULO del Excel).
+Alternativas: doble clic directo en `Iniciar.pyw` (mismo efecto, sin crear el icono), `Iniciar.bat` (con consola) o, en macOS/Linux, `Iniciar.command`. Por línea de comandos: `python3 app.py [--port 8000] [--no-browser]`.
+Si el programa ya está abierto, un nuevo doble clic solo vuelve a abrir el navegador.
+
+**Ejecutable (.exe) sin instalar Python:** en GitHub, pestaña *Actions → Generar ejecutable de Windows → Run workflow*; al terminar se descarga `ConexionesMetalicas_Windows.zip` (contiene el .exe, con el icono, sin consola). También puede generarse en su PC con `pip install pyinstaller && python tools/build_exe.py`.
+
+Módulos (página de inicio `/`): placa base, placa extrema 4E/4ES/8ES, BFP, rodilla y cumbrera, cortante viga–columna y cortante viga secundaria–viga principal.
+
+* Pestaña **Diseño**: parámetros; los dibujos se redibujan al mover cualquier dato; tabla de verificaciones con ratios.
+* Pestaña **Cargas** (donde aplica): combinaciones LRFD. **Memoria de cálculo**: todos los pasos intermedios.
 * **Unidades**: Tonf·m·mm (predeterminado), kgf·cm, SI, US o selección individual por magnitud.
-* **Reporte**: HTML imprimible (Imprimir → Guardar como PDF) o descargable.
-* Guardar / abrir proyecto en `.json`.
+* **Reporte**: HTML imprimible (Imprimir → Guardar como PDF) o descargable. Guardar / abrir proyecto en `.json`.
 
 ## Estructura
 
@@ -51,7 +58,12 @@ Herramienta de apoyo: la responsabilidad del diseño es del ingeniero que la usa
 ## Módulos generados desde Excel (end_plate, bfp, rodilla)
 
 * Las fórmulas se **traducen automáticamente** de las hojas de Excel (`python3 tools/xl2py.py "<hoja>.xlsx" <paquete>`), de modo que cada fila de la memoria es la de la hoja (símbolo, descripción, unidad). Para cambiar un criterio, se corrige en el Excel y se regenera.
-* Pruebas (`python3 -m unittest discover -s tests`): 20 variantes de las tres hojas (4E/4ES/8ES, sísmico y no sísmico, IMF/SMF, rodilla y cumbrera, configuraciones al ras y extendida, perfiles armados, con y sin rigidizadores) recalculadas con LibreOffice; coinciden todas las filas de CALCULO y la tabla de verificaciones.
+* Pruebas (`python3 -m unittest discover -s tests`): 26 variantes de las tres hojas (4E/4ES/8ES, sísmico y no sísmico, IMF/SMF, rodilla y cumbrera, cortante con placa simple/extendida/doble ángulo y destaje, configuraciones al ras y extendida, perfiles armados, con y sin rigidizadores) recalculadas con LibreOffice; coinciden todas las filas de CALCULO y la tabla de verificaciones.
 * Para regenerar los casos de prueba hace falta LibreOffice Calc: `python3 tools/make_fixtures.py end_plate "END_PLATE_AISC_DG4 (2).xlsx"` (ídem `bfp`, `rodilla`).
 * Los rangos de AISC 358-16 Tabla 6.1 del Excel deben confirmarse contra la norma impresa (así lo indica la hoja).
 * Los dibujos de BFP y rodilla son esquemáticos; la placa de alma del BFP y la cartela de la rodilla se dibujan sin cotas completas.
+
+## Cortante (cortante_vv y cortante_vc)
+
+* **Viga secundaria a viga principal** (`cortante_vv`): traducido de `CORTANTE_VIGA_VIGA_AISC.xlsx` (placa simple convencional o extendida, doble ángulo apernado, destaje superior o doble). Verificado contra 6 variantes recalculadas con LibreOffice.
+* **Viga a ala de columna** (`cortante_vc`): la hoja original solo cubre viga–viga, así que este módulo reutiliza la misma verificación del lado de la viga con el **ala de la columna como soporte** (su tf y su Fu reemplazan al alma de la viga principal en el aplastamiento de los pernos y en el filete mínimo, Manual Ec. 9-2/9-3; sin destaje ni viga opuesta). Verificado con AISC Design Examples v15, Ej. II.A-1A (corte de perno 35.8 kip, aplastamiento 66.7 kip, 8 pernos en corte simple 286 kip). **No incluye** flexión local del ala de columna, conexión al alma de columna ni columnas HSS.

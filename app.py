@@ -13,11 +13,14 @@ import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from bfp import engine as bfp_engine
+from cortante_vc import engine as cortante_vc_engine
+from cortante_vv import engine as cortante_vv_engine
 from end_plate import engine as end_plate_engine
 from placa_base.engine import CATALOGOS, calcular
 from rodilla import engine as rodilla_engine
 
-MODULOS_XL = {"end_plate": end_plate_engine, "bfp": bfp_engine, "rodilla": rodilla_engine}
+MODULOS_XL = {"end_plate": end_plate_engine, "bfp": bfp_engine, "rodilla": rodilla_engine,
+              "cortante_vv": cortante_vv_engine, "cortante_vc": cortante_vc_engine}
 
 WEB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "web")
 
@@ -40,8 +43,10 @@ class Handler(BaseHTTPRequestHandler):
         for nombre, eng in MODULOS_XL.items():
             if path == f"/api/{nombre}/spec":
                 return self._send(200, eng.SPEC)
+        if path == "/api/ping":
+            return self._send(200, {"app": "conexiones"})
         if path == "/favicon.ico":
-            return self._send(204, b"", "image/x-icon")
+            path = "/icon.png"
         rel = "index.html" if path in ("/", "") else path.lstrip("/")
         full = os.path.normpath(os.path.join(WEB, rel))
         if not full.startswith(WEB + os.sep) or not os.path.isfile(full):
@@ -68,13 +73,24 @@ class Handler(BaseHTTPRequestHandler):
         pass
 
 
+def crear_servidor(host="127.0.0.1", port=8000, buscar_libre=False):
+    """Crea el servidor HTTP. Con buscar_libre prueba los puertos siguientes si el indicado está ocupado."""
+    ultimo = None
+    for p in range(port, port + (20 if buscar_libre else 1)):
+        try:
+            return ThreadingHTTPServer((host, p), Handler)
+        except OSError as exc:
+            ultimo = exc
+    raise ultimo
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--port", type=int, default=8000)
     ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--no-browser", action="store_true")
     a = ap.parse_args()
-    srv = ThreadingHTTPServer((a.host, a.port), Handler)
+    srv = crear_servidor(a.host, a.port)
     url = f"http://{a.host}:{a.port}/"
     print(f"Diseño de conexiones — servidor en {url}  (Ctrl+C para salir)")
     if not a.no_browser:

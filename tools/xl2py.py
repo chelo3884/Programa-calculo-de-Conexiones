@@ -179,7 +179,7 @@ class Translator:
         simple = {"MIN": "_min", "MAX": "_max", "ABS": "abs", "ISNUMBER": "_isnum", "N": "_n",
                   "MATCH": "_match", "INDEX": "_index", "COUNT": "_count", "AND": "_and", "OR": "_or",
                   "SQRT": "_sqrt", "TAN": "math.tan", "RADIANS": "math.radians", "TEXT": "_text",
-                  "SIN": "math.sin", "COS": "math.cos", "ROUND": "round"}
+                  "SIN": "math.sin", "COS": "math.cos", "ROUND": "round", "INT": "math.floor"}
         if f in simple:
             return f"{simple[f]}({','.join(a)})"
         if f == "PI":

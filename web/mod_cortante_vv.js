@@ -1,0 +1,1 @@
+const MODULE=cortanteModule('vv');

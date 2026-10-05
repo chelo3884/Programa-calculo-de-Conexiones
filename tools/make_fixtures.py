@@ -45,6 +45,16 @@ VARIANTES = {
         "sin_rigidizadores_dos_lados": {"cp_usar": "No", "dos_lados": "Sí", "Pu_col": 60, "co_dtop": 400},
         "alma_distinta": {"w_n": 5, "w_diam": "7/8\"", "w_t": 12, "w_w": 10, "setback": 20},
     },
+    "cortante_vv": {
+        "base_placa_convencional": {},
+        "placa_extendida": {"tipo": "Placa simple extendida", "pl_tp": 10, "pl_a": 120, "pl_Leh": 50, "Ru": 8},
+        "doble_angulo": {"tipo": "Doble ángulo apernado", "n_b": 4, "Ru": 12, "Ru_op": 6, "pn_diam": "7/8\"", "an_t": 10},
+        "doble_angulo_sin_destaje": {"tipo": "Doble ángulo apernado", "destaje": "Sin destaje", "Ru": 9, "an_lb": 89, "an_ls": 89},
+        "destaje_doble": {"destaje": "Destaje doble (sup. = inf.)", "cope_dc": 25, "cope_c": 100, "Ru": 5},
+        "armado_A490_ranura": {"vg_perfil": "ARMADO (flejes soldados)", "DIS_E16": 360, "DIS_E17": 170, "DIS_E18": 7,
+                               "DIS_E19": 12, "pn_grado": "A490-N (roscas incl.)", "agujero": "SSLT (ranura corta horiz.)",
+                               "n_b": 5, "pn_s": 80, "Ru": 14, "pl_tp": 10, "pl_acero": "A572 Gr50", "destaje": "Sin destaje"},
+    },
     "rodilla": {
         "base_rodilla": {},
         "cumbrera": {"tipo": "Cumbrera (placa a placa)"},

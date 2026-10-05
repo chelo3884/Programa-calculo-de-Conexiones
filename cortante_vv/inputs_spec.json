@@ -1,0 +1,587 @@
+{
+ "secciones": [
+  {
+   "titulo": "DATOS GENERALES",
+   "campos": [
+    {
+     "name": "DIS_C7",
+     "label": "Proyecto",
+     "unit": "",
+     "default": "Edificio — ejemplo",
+     "row": 7,
+     "kind": "text"
+    },
+    {
+     "name": "DIS_C8",
+     "label": "Elemento / nudo",
+     "unit": "",
+     "default": "Vigueta V-3 a viga principal VP-1",
+     "row": 8,
+     "kind": "text"
+    },
+    {
+     "name": "lim_verde",
+     "label": "Límite verde / amarillo (ratio)",
+     "unit": "",
+     "default": 0.9,
+     "row": 9
+    }
+   ]
+  },
+  {
+   "titulo": "TIPO DE CONEXIÓN Y CARGA",
+   "campos": [
+    {
+     "name": "tipo",
+     "label": "Tipo",
+     "unit": "",
+     "default": "Placa simple convencional",
+     "row": 11,
+     "options": [
+      "Placa simple convencional",
+      "Placa simple extendida",
+      "Doble ángulo apernado"
+     ]
+    },
+    {
+     "name": "Ru",
+     "label": "Reacción factorada Ru",
+     "unit": "Tonf",
+     "default": 6,
+     "row": 12
+    },
+    {
+     "name": "Ru_op",
+     "label": "Reacción de la viga del otro lado (0 si no hay)",
+     "unit": "Tonf",
+     "default": 0,
+     "row": 13
+    }
+   ]
+  },
+  {
+   "titulo": "1. VIGA SOPORTADA",
+   "campos": [
+    {
+     "name": "vg_perfil",
+     "label": "Perfil (catálogo o ARMADO)",
+     "unit": "",
+     "default": "VK300X150X4X10",
+     "row": 15,
+     "options": [
+      "ARMADO (flejes soldados)",
+      "VK180X100X4X6",
+      "VK200X100X4X8",
+      "VK220X110X4X8",
+      "VK250X130X4X8",
+      "VK270X140X4X8",
+      "VK300X150X4X10",
+      "VK330X160X6X10",
+      "VK360X180X6X10",
+      "VK380X180X6X10",
+      "VK400X180X6X10",
+      "VK400X180X6X12",
+      "VK420X180X6X12",
+      "VK440X180X6X12",
+      "W8X18",
+      "W10X22",
+      "W12X26",
+      "W14X30",
+      "W16X31",
+      "W18X35",
+      "W18X50",
+      "W21X44",
+      "W21X62",
+      "W24X55",
+      "W24X76"
+     ]
+    },
+    {
+     "name": "DIS_E16",
+     "label": "Peralte d (armado)",
+     "unit": "mm",
+     "default": 300,
+     "row": 16,
+     "armado_de": "vg_perfil"
+    },
+    {
+     "name": "DIS_E17",
+     "label": "Ancho de ala bf (armado)",
+     "unit": "mm",
+     "default": 150,
+     "row": 17,
+     "armado_de": "vg_perfil"
+    },
+    {
+     "name": "DIS_E18",
+     "label": "Espesor de alma tw (armado)",
+     "unit": "mm",
+     "default": 5,
+     "row": 18,
+     "armado_de": "vg_perfil"
+    },
+    {
+     "name": "DIS_E19",
+     "label": "Espesor de ala tf (armado)",
+     "unit": "mm",
+     "default": 10,
+     "row": 19,
+     "armado_de": "vg_perfil"
+    },
+    {
+     "name": "vg_acero",
+     "label": "Acero",
+     "unit": "",
+     "default": "A572 Gr50",
+     "row": 20,
+     "options": [
+      "A36",
+      "A572 Gr50",
+      "A992",
+      "A588 Gr50"
+     ]
+    },
+    {
+     "name": "vg_kw",
+     "label": "Filete / radio alma–ala (para k)",
+     "unit": "mm",
+     "default": 5,
+     "row": 22
+    },
+    {
+     "name": "destaje",
+     "label": "Destaje",
+     "unit": "",
+     "default": "Destaje superior",
+     "row": 23,
+     "options": [
+      "Sin destaje",
+      "Destaje superior",
+      "Destaje doble (sup. = inf.)"
+     ]
+    },
+    {
+     "name": "cope_dc",
+     "label": "Profundidad del destaje dc",
+     "unit": "mm",
+     "default": 30,
+     "row": 24
+    },
+    {
+     "name": "cope_c",
+     "label": "Longitud del destaje c",
+     "unit": "mm",
+     "default": 90,
+     "row": 25
+    },
+    {
+     "name": "setback",
+     "label": "Holgura viga – alma de viga principal",
+     "unit": "mm",
+     "default": 15,
+     "row": 26
+    }
+   ],
+   "derivados": [
+    {
+     "row": 16,
+     "name": "vg_d_mm",
+     "label": "Peralte d",
+     "unit": "mm"
+    },
+    {
+     "row": 17,
+     "name": "vg_bf_mm",
+     "label": "Ancho de ala bf",
+     "unit": "mm"
+    },
+    {
+     "row": 18,
+     "name": "vg_tw_mm",
+     "label": "Espesor de alma tw",
+     "unit": "mm"
+    },
+    {
+     "row": 19,
+     "name": "vg_tf_mm",
+     "label": "Espesor de ala tf",
+     "unit": "mm"
+    },
+    {
+     "row": 21,
+     "name": "vg_Fy",
+     "label": "Fy / Fu",
+     "unit": "kgf/cm²"
+    },
+    {
+     "row": 21,
+     "name": "vg_Fu",
+     "label": "Fy / Fu",
+     "unit": "kgf/cm²"
+    }
+   ]
+  },
+  {
+   "titulo": "2. VIGA PRINCIPAL (soporte)",
+   "campos": [
+    {
+     "name": "vp_perfil",
+     "label": "Perfil (catálogo o ARMADO)",
+     "unit": "",
+     "default": "VK400X180X6X12",
+     "row": 28,
+     "options": [
+      "ARMADO (flejes soldados)",
+      "VK180X100X4X6",
+      "VK200X100X4X8",
+      "VK220X110X4X8",
+      "VK250X130X4X8",
+      "VK270X140X4X8",
+      "VK300X150X4X10",
+      "VK330X160X6X10",
+      "VK360X180X6X10",
+      "VK380X180X6X10",
+      "VK400X180X6X10",
+      "VK400X180X6X12",
+      "VK420X180X6X12",
+      "VK440X180X6X12",
+      "W8X18",
+      "W10X22",
+      "W12X26",
+      "W14X30",
+      "W16X31",
+      "W18X35",
+      "W18X50",
+      "W21X44",
+      "W21X62",
+      "W24X55",
+      "W24X76"
+     ]
+    },
+    {
+     "name": "DIS_E29",
+     "label": "Peralte d (armado)",
+     "unit": "mm",
+     "default": 400,
+     "row": 29,
+     "armado_de": "vp_perfil"
+    },
+    {
+     "name": "DIS_E30",
+     "label": "Ancho de ala bf (armado)",
+     "unit": "mm",
+     "default": 180,
+     "row": 30,
+     "armado_de": "vp_perfil"
+    },
+    {
+     "name": "DIS_E31",
+     "label": "Espesor de alma tw (armado)",
+     "unit": "mm",
+     "default": 6,
+     "row": 31,
+     "armado_de": "vp_perfil"
+    },
+    {
+     "name": "DIS_E32",
+     "label": "Espesor de ala tf (armado)",
+     "unit": "mm",
+     "default": 12,
+     "row": 32,
+     "armado_de": "vp_perfil"
+    },
+    {
+     "name": "vp_acero",
+     "label": "Acero",
+     "unit": "",
+     "default": "A572 Gr50",
+     "row": 33,
+     "options": [
+      "A36",
+      "A572 Gr50",
+      "A992",
+      "A588 Gr50"
+     ]
+    }
+   ],
+   "derivados": [
+    {
+     "row": 29,
+     "name": "vp_d_mm",
+     "label": "Peralte d",
+     "unit": "mm"
+    },
+    {
+     "row": 30,
+     "name": "vp_bf_mm",
+     "label": "Ancho de ala bf",
+     "unit": "mm"
+    },
+    {
+     "row": 31,
+     "name": "vp_tw_mm",
+     "label": "Espesor de alma tw",
+     "unit": "mm"
+    },
+    {
+     "row": 32,
+     "name": "vp_tf_mm",
+     "label": "Espesor de ala tf",
+     "unit": "mm"
+    },
+    {
+     "row": 34,
+     "name": "vp_Fy",
+     "label": "Fy / Fu",
+     "unit": "kgf/cm²"
+    },
+    {
+     "row": 34,
+     "name": "vp_Fu",
+     "label": "Fy / Fu",
+     "unit": "kgf/cm²"
+    }
+   ]
+  },
+  {
+   "titulo": "3. PERNOS",
+   "campos": [
+    {
+     "name": "pn_grado",
+     "label": "Grado",
+     "unit": "",
+     "default": "A325-N (roscas incl.)",
+     "row": 36,
+     "options": [
+      "A325-N (roscas incl.)",
+      "A325-X (roscas excl.)",
+      "A490-N (roscas incl.)",
+      "A490-X (roscas excl.)",
+      "A307"
+     ]
+    },
+    {
+     "name": "pn_diam",
+     "label": "Diámetro",
+     "unit": "",
+     "default": "3/4\"",
+     "row": 37,
+     "options": [
+      "5/8\"",
+      "3/4\"",
+      "7/8\"",
+      "1\"",
+      "1-1/8\""
+     ]
+    },
+    {
+     "name": "n_b",
+     "label": "Número de pernos n (1 línea vertical)",
+     "unit": "",
+     "default": 3,
+     "row": 38
+    },
+    {
+     "name": "pn_s",
+     "label": "Paso vertical s",
+     "unit": "mm",
+     "default": 75,
+     "row": 39
+    },
+    {
+     "name": "pn_top",
+     "label": "Tope de viga → primer perno",
+     "unit": "mm",
+     "default": 70,
+     "row": 40
+    },
+    {
+     "name": "pn_Lev",
+     "label": "Borde vertical en placa / ángulo Lev",
+     "unit": "mm",
+     "default": 35,
+     "row": 41
+    },
+    {
+     "name": "agujero",
+     "label": "Agujero en la placa",
+     "unit": "",
+     "default": "STD",
+     "row": 42,
+     "options": [
+      "STD",
+      "SSLT (ranura corta horiz.)"
+     ]
+    }
+   ]
+  },
+  {
+   "titulo": "4. PLACA SIMPLE",
+   "campos": [
+    {
+     "name": "pl_acero",
+     "label": "Acero",
+     "unit": "",
+     "default": "A36",
+     "row": 44,
+     "options": [
+      "A36",
+      "A572 Gr50",
+      "A992",
+      "A588 Gr50"
+     ]
+    },
+    {
+     "name": "pl_tp",
+     "label": "Espesor tp",
+     "unit": "mm",
+     "default": 8,
+     "row": 46,
+     "options": [
+      5,
+      6,
+      8,
+      10,
+      12,
+      15,
+      16,
+      19,
+      20,
+      22,
+      25
+     ]
+    },
+    {
+     "name": "pl_a",
+     "label": "a — soldadura a línea de pernos",
+     "unit": "mm",
+     "default": 65,
+     "row": 47
+    },
+    {
+     "name": "pl_Leh",
+     "label": "Leh — línea de pernos a borde de placa",
+     "unit": "mm",
+     "default": 45,
+     "row": 48
+    },
+    {
+     "name": "sd_elec",
+     "label": "Electrodo",
+     "unit": "",
+     "default": "E70XX",
+     "row": 49,
+     "options": [
+      "E60XX",
+      "E70XX"
+     ]
+    },
+    {
+     "name": "pl_w",
+     "label": "Filete placa – alma de viga principal (c/lado)",
+     "unit": "mm",
+     "default": 6,
+     "row": 50
+    }
+   ],
+   "derivados": [
+    {
+     "row": 45,
+     "name": "pl_Fy",
+     "label": "Fy / Fu",
+     "unit": "kgf/cm²"
+    },
+    {
+     "row": 45,
+     "name": "pl_Fu",
+     "label": "Fy / Fu",
+     "unit": "kgf/cm²"
+    }
+   ]
+  },
+  {
+   "titulo": "5. DOBLE ÁNGULO (apernado – apernado)",
+   "campos": [
+    {
+     "name": "an_acero",
+     "label": "Acero",
+     "unit": "",
+     "default": "A36",
+     "row": 52,
+     "options": [
+      "A36",
+      "A572 Gr50",
+      "A992",
+      "A588 Gr50"
+     ]
+    },
+    {
+     "name": "an_lb",
+     "label": "Ala contra la viga",
+     "unit": "mm",
+     "default": 76,
+     "row": 54
+    },
+    {
+     "name": "an_ls",
+     "label": "Ala contra el soporte",
+     "unit": "mm",
+     "default": 76,
+     "row": 55
+    },
+    {
+     "name": "an_t",
+     "label": "Espesor t",
+     "unit": "mm",
+     "default": 8,
+     "row": 56,
+     "options": [
+      5,
+      6,
+      8,
+      10,
+      12,
+      15,
+      16,
+      19,
+      20,
+      22,
+      25
+     ]
+    },
+    {
+     "name": "an_gb",
+     "label": "Gramil lado viga (desde el talón)",
+     "unit": "mm",
+     "default": 45,
+     "row": 57
+    },
+    {
+     "name": "an_gs",
+     "label": "Gramil lado soporte (desde el talón)",
+     "unit": "mm",
+     "default": 45,
+     "row": 58
+    }
+   ],
+   "derivados": [
+    {
+     "row": 53,
+     "name": "an_Fy",
+     "label": "Fy / Fu",
+     "unit": "kgf/cm²"
+    },
+    {
+     "row": 53,
+     "name": "an_Fu",
+     "label": "Fy / Fu",
+     "unit": "kgf/cm²"
+    }
+   ]
+  }
+ ],
+ "combos": null,
+ "notas": [],
+ "titulo": "CONEXIÓN SIMPLE A CORTANTE — VIGA SECUNDARIA A ALMA DE VIGA PRINCIPAL",
+ "norma": "AISC 360-16 (J2, J3, J4)  ·  AISC Manual 15ª ed. Parte 9 (vigas con destaje) y Parte 10 (conexiones simples)  ·  LRFD  ·  Unidades: Tonf, mm, kgf/cm²"
+}

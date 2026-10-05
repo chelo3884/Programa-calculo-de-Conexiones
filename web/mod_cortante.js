@@ -1,0 +1,93 @@
+"use strict";
+/* Dibujos y configuración comunes de las conexiones a cortante (cortante_vv: viga–viga, cortante_vc: viga–columna) */
+const dimH=(x1,x2,y,txt)=>`<path class="dim" d="M${x1} ${y-4}V${y+4}M${x2} ${y-4}V${y+4}M${x1} ${y}H${x2}"/><text class="dt" x="${(x1+x2)/2}" y="${y-5}" text-anchor="middle">${txt}</text>`;
+const dimV=(x,y1,y2,txt)=>`<path class="dim" d="M${x-4} ${y1}H${x+4}M${x-4} ${y2}H${x+4}M${x} ${y1}V${y2}"/><text class="dt" transform="translate(${x-6} ${(y1+y2)/2}) rotate(-90)" text-anchor="middle">${txt}</text>`;
+const mm=v=>fmt(v,'Ls'); // v en mm → unidad de longitud de perfiles
+function cortGeom(RES,S,col){
+  const D=RES.derivados,doble=S.tipo==='Doble ángulo apernado';
+  const g={tipo:S.tipo,doble,n:S.n_b,s:S.pn_s,top:S.pn_top,lev:S.pn_Lev,set:S.setback||0,
+    d:D.vg_d_mm,bf:D.vg_bf_mm,tw:D.vg_tw_mm,tf:D.vg_tf_mm,
+    dc:(col?0:(S.destaje==='Sin destaje'?0:S.cope_dc)),c:(col?0:(S.destaje==='Sin destaje'?0:S.cope_c)),doble_destaje:S.destaje&&S.destaje.startsWith('Destaje doble'),
+    tp:S.pl_tp,a:S.pl_a,leh:S.pl_Leh,lb:S.an_lb,ls:S.an_ls,t:S.an_t,gb:S.an_gb,gs:S.an_gs};
+  if(col){g.sd=D.co_d_mm;g.sbf=D.co_bf_mm;g.stw=D.co_tw_mm;g.stf=D.co_tf_mm;}
+  else{g.sd=D.vp_d_mm;g.sbf=D.vp_bf_mm;g.stw=D.vp_tw_mm;g.stf=D.vp_tf_mm;}
+  g.xplate=doble?g.lb:g.a+g.leh; g.xbolt=doble?g.gb:g.a;
+  g.L=2*g.lev+(g.n-1)*g.s;
+  return g;
+}
+function cortElev(RES,S,col){
+  const g=cortGeom(RES,S,col),W=440,H=420,m=34;
+  const xend=Math.max(g.xplate*2.4,g.d*1.1)+g.set,hh=Math.max(g.d,g.sd*0.6);
+  const sc=Math.min((W-2*m-90)/(xend+40),(H-2*m)/(Math.min(g.sd,g.d*1.5)+40));
+  const x0=m+78,cy=H/2+4,X=a=>x0+a*sc,Y=a=>cy-a*sc;
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Elevación"><text x="8" y="16" style="font-weight:700">ELEVACIÓN</text>`;
+  const sh=Math.min(g.sd,g.d*1.5);
+  if(col){ // columna: ala vertical con el alma hacia atrás
+    s+=`<rect x="${X(-g.stf)}" y="${Y(sh/2+10)}" width="${g.stf*sc}" height="${(sh+20)*sc}" fill="var(--steel)" stroke="var(--ink)" stroke-width="1.2"/>`;
+    s+=`<text class="dt" x="${X(-g.stf)-4}" y="${Y(sh/2+10)+10}" text-anchor="end">ala de columna</text>`;
+  }else{   // viga principal en sección: alma (vertical) y alas
+    s+=`<rect x="${X(-g.stw)}" y="${Y(sh/2)}" width="${g.stw*sc}" height="${sh*sc}" fill="var(--steel)" stroke="var(--ink)" stroke-width="1.2"/>`;
+    s+=`<rect x="${X(-g.sbf/2-g.stw/2)}" y="${Y(sh/2)}" width="${g.sbf*sc}" height="${g.stf*sc}" fill="var(--steel)" stroke="var(--ink)" opacity=".7"/><rect x="${X(-g.sbf/2-g.stw/2)}" y="${Y(-sh/2+g.stf)}" width="${g.sbf*sc}" height="${g.stf*sc}" fill="var(--steel)" stroke="var(--ink)" opacity=".7"/>`;
+    s+=`<text class="dt" x="${X(-g.stw)-4}" y="${Y(sh/2)+10}" text-anchor="end">viga principal</text>`;
+  }
+  // viga soportada: alma + alas, con destaje
+  const x1=g.set,top=g.d/2;
+  s+=`<rect x="${X(x1)}" y="${Y(top-g.tf)}" width="${(xend-x1)*sc}" height="${(g.d-2*g.tf)*sc}" fill="var(--conc)" stroke="var(--ink)" stroke-width=".8" opacity=".8"/>`;
+  s+=`<g fill="var(--steel)" stroke="var(--ink)" stroke-width="1"><rect x="${X(x1+g.c)}" y="${Y(top)}" width="${(xend-x1-g.c)*sc}" height="${g.tf*sc}"/><rect x="${X(x1+(g.doble_destaje?g.c:0))}" y="${Y(-top+g.tf)}" width="${(xend-x1-(g.doble_destaje?g.c:0))*sc}" height="${g.tf*sc}"/></g>`;
+  if(g.c>0){ // zona rebajada
+    s+=`<rect x="${X(x1)}" y="${Y(top-g.dc)}" width="${g.c*sc}" height="${g.dc*sc}" fill="var(--card)" stroke="var(--mut)" stroke-dasharray="3 2"/>`;
+    s+=dimV(X(x1)-10,Y(top),Y(top-g.dc),`dc ${mm(g.dc)}`)+dimH(X(x1),X(x1+g.c),Y(top)-8,`c ${mm(g.c)}`);}
+  // placa o ángulos
+  const yb1=top-g.top,ytop=yb1+g.lev,ybot=yb1-(g.n-1)*g.s-g.lev;
+  s+=`<rect x="${X(0)}" y="${Y(ytop)}" width="${g.xplate*sc}" height="${(ytop-ybot)*sc}" fill="var(--steelf)" stroke="var(--ink)" stroke-width="1.3" opacity=".92"/>`;
+  const rb=Math.max(3,(g.doble?19:19)/2*sc);
+  for(let k=0;k<g.n;k++)s+=`<circle cx="${X(g.xbolt)}" cy="${Y(yb1-k*g.s)}" r="${rb}" fill="var(--bolt)" stroke="var(--card)"/>`;
+  if(g.doble)s+=`<text class="dt" x="${X(g.xplate/2)}" y="${Y(ytop)+13}" text-anchor="middle">2 ángulos</text>`;
+  s+=dimV(X(g.xplate)+16,Y(ytop),Y(ybot),`L = ${mm(g.L)}`);
+  if(g.n>1)s+=dimV(X(g.xbolt)+14,Y(yb1),Y(yb1-g.s),`s ${mm(g.s)}`);
+  s+=dimH(X(0),X(g.xbolt),Y(ybot)+16,g.doble?`gb ${mm(g.xbolt)}`:`a ${mm(g.a)}`);
+  s+=dimV(X(xend)+0,Y(top),Y(-top),`d = ${mm(g.d)}`);
+  return s+`<text class="dt" x="${W-8}" y="${H-6}" text-anchor="end">cotas [${uf('Ls').l}] · ${esc(g.tipo)}</text></svg>`;
+}
+function cortPlan(RES,S,col){
+  const g=cortGeom(RES,S,col),W=440,H=420,m=34;
+  const xend=Math.max(g.xplate*2.6,120),ys=Math.max(g.sbf,2*g.lb+g.tw,180)/2;
+  const sc=Math.min((W-2*m-70)/(xend+60),(H-2*m)/(2*ys+20)),x0=m+70+60*0,cy=H/2,X=a=>x0+a*sc,Y=a=>cy-a*sc;
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Planta"><text x="8" y="16" style="font-weight:700">PLANTA (corte bajo el ala)</text>`;
+  const ts=col?g.stf:g.stw;
+  s+=`<rect x="${X(-ts)}" y="${Y(ys)}" width="${ts*sc}" height="${2*ys*sc}" fill="var(--steel)" stroke="var(--ink)" stroke-width="1.2"/>`;
+  if(col)s+=`<rect x="${X(-ts-60)}" y="${Y(g.stw/2)}" width="${60*sc}" height="${g.stw*sc}" fill="var(--steel)" stroke="var(--ink)" opacity=".5"/>`;
+  else s+=`<g fill="var(--steel)" stroke="var(--ink)" opacity=".6"><rect x="${X(-ts-40)}" y="${Y(ys)}" width="${(ts+80)*sc}" height="${g.stf*sc}"/><rect x="${X(-ts-40)}" y="${Y(-ys+g.stf)}" width="${(ts+80)*sc}" height="${g.stf*sc}"/></g>`;
+  const x1=g.set;
+  s+=`<rect x="${X(x1)}" y="${Y(g.tw/2)}" width="${(xend-x1)*sc}" height="${g.tw*sc}" fill="var(--conc)" stroke="var(--ink)" stroke-width="1"/>`;
+  s+=`<text class="dt" x="${X(xend)-4}" y="${Y(g.tw/2)-5}" text-anchor="end">alma de viga soportada</text>`;
+  if(g.doble){ // dos ángulos, uno por cada cara del alma
+    for(const sg of [1,-1]){
+      s+=`<rect x="${X(0)}" y="${Y(sg>0?g.tw/2+g.t:-g.tw/2)}" width="${g.lb*sc}" height="${g.t*sc}" fill="var(--steelf)" stroke="var(--ink)" stroke-width="1.2"/>`;
+      s+=`<rect x="${X(0)}" y="${Y(sg>0?g.tw/2+g.ls:-g.tw/2-g.t)}" width="${g.t*sc}" height="${(g.ls-g.tw/2)*sc}" fill="var(--steelf)" stroke="var(--ink)" stroke-width="1.2" transform="translate(0 0)"/>`;}
+  }else{
+    s+=`<rect x="${X(0)}" y="${Y(g.tw/2+g.tp)}" width="${g.xplate*sc}" height="${g.tp*sc}" fill="var(--steelf)" stroke="var(--ink)" stroke-width="1.3"/>`;
+    s+=`<path d="M${X(0)} ${Y(g.tw/2+g.tp)}l${-6} ${-6}v${6}z" fill="var(--tens)"/>`;
+  }
+  const yb=g.tw/2+(g.doble?g.t:g.tp);
+  s+=`<rect x="${X(g.xbolt)-2}" y="${Y(yb+6)}" width="4" height="${(2*yb+12)*sc*(g.doble?1:0.55)}" fill="var(--tens)"/>`;
+  s+=dimH(X(0),X(g.xbolt),Y(-ys)-4,g.doble?`gb ${mm(g.xbolt)}`:`a ${mm(g.a)}`);
+  if(!g.doble)s+=dimH(X(g.xbolt),X(g.xplate),Y(-ys)-18,`Leh ${mm(g.leh)}`);
+  return s+`<text class="dt" x="${W-8}" y="${H-6}" text-anchor="end">esquemático · cotas [${uf('Ls').l}]</text></svg>`;
+}
+function cortanteModule(kind){
+  const col=kind==='vc';
+  return {
+    id:col?'cortante_vc':'cortante_vv', api:'/api/'+(col?'cortante_vc':'cortante_vv'),
+    title:col?'Conexión simple a cortante — viga al ala de columna':'Conexión simple a cortante — viga secundaria a viga principal',
+    rebuild:['tipo','destaje','co_perfil','vp_perfil'],
+    visible(f,S){const n=f.name,t=S.tipo,doble=t==='Doble ángulo apernado';
+      if(['pl_acero','pl_tp','pl_a','pl_Leh','sd_elec','pl_w'].includes(n))return !doble;
+      if(['an_acero','an_lb','an_ls','an_t','an_gb','an_gs'].includes(n))return doble;
+      if(n==='Ru_op')return doble;
+      if(n==='cope_dc'||n==='cope_c')return S.destaje!=='Sin destaje';
+      return true;},
+    comboHelp:'',
+    svgs:[{id:'svgElev',fn:(R,S)=>cortElev(R,S,col)},{id:'svgPlan',fn:(R,S)=>cortPlan(R,S,col)}],
+  };
+}
