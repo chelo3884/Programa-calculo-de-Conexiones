@@ -15,7 +15,7 @@ function epFront(RES,S){
   const v=V(RES,S),W=420,H=420,m=44;
   const sc=Math.min((W-2*m)/Math.max(v.k_bp,v.k_bf+2),(H-2*m)/v.k_Hp);
   const cx=W/2,cy=H/2+6,X=a=>cx+a*sc,Y=a=>cy-a*sc;
-  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Vista frontal"><text x="8" y="16" style="font-weight:700">VISTA FRONTAL DE PLACA</text>`;
+  let s=`<svg data-sc="${sc}" data-f="10" viewBox="0 0 ${W} ${H}" role="img" aria-label="Vista frontal"><text x="8" y="16" style="font-weight:700">VISTA FRONTAL DE PLACA</text>`;
   s+=`<rect x="${X(-v.k_bp/2)}" y="${Y(v.k_Hp/2)}" width="${v.k_bp*sc}" height="${v.k_Hp*sc}" fill="var(--steelf)" stroke="var(--ink)" stroke-width="1.4"/>`;
   const d=v.k_d,tf=v.k_tf,bf=v.k_bf,tw=v.k_tw;
   s+=`<g fill="var(--steel)" stroke="var(--ink)" stroke-width="1" opacity=".85"><rect x="${X(-bf/2)}" y="${Y(d/2)}" width="${bf*sc}" height="${tf*sc}"/><rect x="${X(-bf/2)}" y="${Y(-d/2+tf)}" width="${bf*sc}" height="${tf*sc}"/><rect x="${X(-tw/2)}" y="${Y(d/2-tf)}" width="${tw*sc}" height="${(d-2*tf)*sc}"/></g>`;
@@ -35,7 +35,7 @@ function epSide(RES,S){
   const colH=Hp+14,beamL=d*1.15,tc=v.k_ctf;
   const sc=Math.min((W-2*m)/(beamL+tp+tc+8),(H-2*m)/colH);
   const xf=60,cy=H/2+4,Yc=a=>cy-a*sc;
-  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Elevación lateral"><text x="8" y="16" style="font-weight:700">ELEVACIÓN LATERAL</text>`;
+  let s=`<svg data-sc="${sc}" data-f="10" viewBox="0 0 ${W} ${H}" role="img" aria-label="Elevación lateral"><text x="8" y="16" style="font-weight:700">ELEVACIÓN LATERAL</text>`;
   const X0=xf,Xc=X0-tc*sc;
   s+=`<rect x="${Xc}" y="${Yc(colH/2)}" width="${tc*sc}" height="${colH*sc}" fill="var(--steel)" stroke="var(--ink)" stroke-width="1.2"/>`;
   s+=`<path d="M${Xc} ${Yc(colH/2)}H${Xc-26}M${Xc} ${Yc(-colH/2)}H${Xc-26}" stroke="var(--mut)" stroke-dasharray="3 3"/>`;

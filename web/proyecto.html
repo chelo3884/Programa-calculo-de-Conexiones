@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Reporte de proyecto</title>
+<link rel="icon" href="/icon.png"><link rel="stylesheet" href="/style.css">
+<style>.pg{max-width:1100px;margin:0 auto;padding:16px}.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:14px}
+.card h2{margin:0 0 10px;font-size:14px;text-transform:uppercase;letter-spacing:.04em;color:var(--acc)}
+.f{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px 14px}.f label{display:block;font-size:12px;color:var(--mut)}.f input{width:100%}
+td button{padding:2px 8px}.r{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}</style></head><body>
+<header><div><h1><a href="/" style="color:inherit;text-decoration:none">⌂</a> Reporte de proyecto</h1><div class="sub">Reúne las conexiones agregadas con «＋ Proyecto» en un solo reporte</div></div><div class="sp"></div>
+<button id="btnTheme">◐</button></header>
+<div class="pg">
+<div class="card"><h2>Datos del reporte</h2><div class="f" id="meta"></div>
+<div class="r"><label class="btn">Firma / sello (imagen) <input type="file" id="firma" accept="image/*" hidden></label><span id="firmaOk" class="note"></span><button id="firmaDel">Quitar firma</button></div></div>
+<div class="card"><h2>Conexiones del proyecto</h2><div style="overflow:auto"><table id="lista"></table></div><p class="note" id="vacio"></p>
+<div class="r"><button class="pri" id="prev">Vista previa</button><button id="print">Imprimir / Guardar PDF</button><button id="dl">Descargar HTML</button>
+<button id="save">Guardar proyecto (.json)</button><label class="btn">Abrir proyecto <input type="file" id="open" accept=".json" hidden></label><button id="clear">Vaciar</button></div></div>
+<div class="card" id="vista" hidden><h2>Vista previa</h2><iframe id="frame" title="Reporte"></iframe></div></div>
+<script src="/common.js"></script>
+<script>
+"use strict";
+initTheme();document.getElementById('btnTheme').onclick=toggleTheme;
+const KEY='cx_proyecto';
+let P={meta:{},items:[]};
+const load=()=>{try{P=JSON.parse(localStorage.getItem(KEY)||'null')||{meta:{},items:[]};}catch(e){}};
+const store=()=>{try{localStorage.setItem(KEY,JSON.stringify(P));}catch(e){alert('No se pudo guardar: sin espacio en el navegador.');}};
+const CAMPOS=[['proyecto','Proyecto'],['cliente','Cliente'],['ubicacion','Ubicación'],['ingeniero','Ingeniero responsable'],['registro','Registro profesional / SENESCYT'],
+  ['empresa','Empresa'],['revision','Revisión'],['fecha','Fecha'],['norma','Normas de referencia']];
+function renderMeta(){
+  const b=document.getElementById('meta');b.innerHTML='';
+  for(const [k,l] of CAMPOS){const d=document.createElement('div');d.innerHTML=`<label>${l}</label><input data-k="${k}">`;
+    const i=d.querySelector('input');if(P.meta[k]==null)P.meta[k]=(k==='fecha'?new Date().toISOString().slice(0,10):k==='norma'?'AISC 360-16 · AISC 358-16 · ACI 318-19 · AISC Design Guides':'');i.value=P.meta[k];
+    i.oninput=()=>{P.meta[k]=i.value;store();};b.appendChild(d);}
+  document.getElementById('firmaOk').textContent=P.meta.firma?'Firma cargada':'';
+}
+document.getElementById('firma').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,400/im.width),c=document.createElement('canvas');c.width=im.width*k;c.height=im.height*k;
+    c.getContext('2d').drawImage(im,0,0,c.width,c.height);P.meta.firma=c.toDataURL('image/png');store();renderMeta();};im.src=r.result;};r.readAsDataURL(f);};
+document.getElementById('firmaDel').onclick=()=>{delete P.meta.firma;store();renderMeta();};
+const E=s=>esc(s==null?'':s);
+function renderLista(){
+  const t=document.getElementById('lista');
+  t.innerHTML='<tr><th>#</th><th>Conexión</th><th>Tipo</th><th class="n">Ratio máx.</th><th>Estado</th><th>Gobierna</th><th></th></tr>'+P.items.map((it,i)=>
+   `<tr><td>${i+1}</td><td><input data-n="${i}" value="${E(it.etiqueta)}" style="width:100%"></td><td class="note">${E(it.titulo)}</td><td class="n"><b>${rfmt(it.ratio)}</b></td>
+    <td><span class="st s-${String(it.estado).replace(' ','-')}">${E(it.estado)}</span></td><td class="note">${it.gob?E(it.gob.nombre)+(it.gob.combo&&it.gob.combo!=='—'?' ('+E(it.gob.combo)+')':''):''}</td>
+    <td style="white-space:nowrap"><button data-up="${i}">↑</button><button data-dn="${i}">↓</button><button data-op="${i}" title="Abrir en el módulo">Abrir</button><button data-rm="${i}">✕</button></td></tr>`).join('');
+  document.getElementById('vacio').textContent=P.items.length?'':'Aún no hay conexiones. Abra un módulo, diseñe la conexión y use el botón «＋ Proyecto» de la barra superior.';
+  t.querySelectorAll('[data-n]').forEach(x=>x.oninput=()=>{P.items[+x.dataset.n].etiqueta=x.value;store();});
+  t.querySelectorAll('[data-up]').forEach(x=>x.onclick=()=>{const i=+x.dataset.up;if(i>0){[P.items[i-1],P.items[i]]=[P.items[i],P.items[i-1]];store();renderLista();}});
+  t.querySelectorAll('[data-dn]').forEach(x=>x.onclick=()=>{const i=+x.dataset.dn;if(i<P.items.length-1){[P.items[i+1],P.items[i]]=[P.items[i],P.items[i+1]];store();renderLista();}});
+  t.querySelectorAll('[data-rm]').forEach(x=>x.onclick=()=>{if(confirm('¿Quitar esta conexión del proyecto?')){P.items.splice(+x.dataset.rm,1);store();renderLista();}});
+  t.querySelectorAll('[data-op]').forEach(x=>x.onclick=()=>{const it=P.items[+x.dataset.op];
+    try{localStorage.setItem(it.modulo==='placa_base'?'pb_state':'xl_'+it.modulo,JSON.stringify(it.guardado));}catch(e){}location.href='/'+it.modulo+'.html';});
+}
+function reporte(){
+  const m=P.meta,f=m.fecha||new Date().toISOString().slice(0,10),n=P.items.length;
+  const peor=P.items.reduce((a,i)=>a==null||(i.ratio!=null&&i.ratio>a)?i.ratio:a,null);
+  const todos=P.items.every(i=>i.estado==='CUMPLE'),alguno=P.items.some(i=>i.estado==='NO CUMPLE');
+  const cls=!n?'':alguno?'bd':todos?'ok':'wn';
+  const css=(P.items[0]&&P.items[0].estilo)||'body{font:12px Arial}';
+  const extra=`.cover{min-height:240mm;display:flex;flex-direction:column;justify-content:space-between}.cover h1{font-size:28px;margin:40mm 0 6mm}
+   .cover .sub{font-size:15px;color:#444}.firma{margin-top:30mm;width:240px;border-top:1px solid #111;padding-top:4px;text-align:center;font-size:11px}.firma img{max-width:230px;max-height:90px;display:block;margin:0 auto 4px}
+   .conn{page-break-before:always}.rs td{padding:4px 6px}`;
+  const filas=P.items.map((i,k)=>`<tr><td>${k+1}</td><td>${E(i.etiqueta)}</td><td>${E(i.titulo)}</td><td class="n"><b>${rfmt(i.ratio)}</b></td><td class="s ${String(i.estado).replace(' ','-')}">${E(i.estado)}</td><td>${i.gob?E(i.gob.nombre):''}</td></tr>`).join('');
+  return `<!doctype html><html lang="es"><head><meta charset="utf-8"><title>${E(m.proyecto||'Reporte de proyecto')}</title><style>${css}${extra}</style></head><body>
+  <div class="cover"><div><h1>Memoria de cálculo de conexiones metálicas</h1><div class="sub"><b>${E(m.proyecto)}</b></div><div class="sub">${E(m.ubicacion)}</div>
+  <table style="margin-top:14mm;max-width:520px">${[['Cliente',m.cliente],['Ingeniero responsable',m.ingeniero],['Registro profesional',m.registro],['Empresa',m.empresa],['Revisión',m.revision],['Fecha',f],['Normas',m.norma]].filter(r=>r[1]).map(r=>`<tr><td>${r[0]}</td><td><b>${E(r[1])}</b></td></tr>`).join('')}</table></div>
+  <div><div class="firma">${m.firma?`<img src="${m.firma}" alt="firma">`:'<br><br>'}${E(m.ingeniero)||'Ingeniero responsable'}</div>
+  <p class="note" style="margin-top:12mm">Herramienta de apoyo: la responsabilidad del diseño es del ingeniero que la usa. Cada memoria es una copia del cálculo en la fecha indicada.</p></div></div>
+  <div class="conn"><h1>Resumen de conexiones</h1><div class="res ${cls}">${!n?'Sin conexiones':alguno?'HAY CONEXIONES QUE NO CUMPLEN':todos?'TODAS CUMPLEN':'CUMPLEN, ALGUNAS AL LÍMITE'}${peor!=null?' — ratio máximo '+rfmt(peor):''}</div>
+  <table class="rs"><tr><th>#</th><th>Conexión</th><th>Tipo</th><th class="n">Ratio máx.</th><th>Estado</th><th>Verificación gobernante</th></tr>${filas}</table>
+  <p class="note">Ratio = demanda / capacidad de diseño (o requerido / provisto). El estado «AL LÍMITE» es el ratio entre el límite verde del módulo y 1.00.</p></div>
+  ${P.items.map((i,k)=>`<section class="conn"><div class="note">Conexión ${k+1} de ${n} — ${E(i.etiqueta)}</div>${i.cuerpo}</section>`).join('')}</body></html>`;
+}
+document.getElementById('prev').onclick=()=>{document.getElementById('vista').hidden=false;document.getElementById('frame').srcdoc=reporte();document.getElementById('vista').scrollIntoView();};
+document.getElementById('print').onclick=()=>{document.getElementById('prev').click();setTimeout(()=>{const f=document.getElementById('frame');f.contentWindow.focus();f.contentWindow.print();},600);};
+const bajar=(txt,nom,tipo)=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:tipo}));a.download=nom;a.click();};
+document.getElementById('dl').onclick=()=>bajar(reporte(),`Reporte_${(P.meta.proyecto||'proyecto').replace(/\W+/g,'_')}.html`,'text/html');
+document.getElementById('save').onclick=()=>bajar(JSON.stringify({tipo:'proyecto_conexiones',version:1,P},null,0),`Proyecto_${(P.meta.proyecto||'conexiones').replace(/\W+/g,'_')}.json`,'application/json');
+document.getElementById('open').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const j=JSON.parse(await f.text());if(j.tipo!=='proyecto_conexiones')throw 0;P=j.P;store();renderMeta();renderLista();}catch(x){alert('El archivo no es un proyecto de conexiones.');}};
+document.getElementById('clear').onclick=()=>{if(confirm('¿Quitar TODAS las conexiones del proyecto?')){P.items=[];store();renderLista();}};
+load();renderMeta();renderLista();
+</script></body></html>

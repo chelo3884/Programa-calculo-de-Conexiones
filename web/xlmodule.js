@@ -283,7 +283,8 @@ document.getElementById('addCombo').onclick=()=>{if(S.combos.length>=SPEC.combos
   renderUnits();renderInputs();if(HASC())renderCombos();calc();
   await new Promise(ok=>{const sc=document.createElement('script');sc.src='/tools.js';sc.onload=ok;sc.onerror=ok;document.head.appendChild(sc);});
   if(window.Tools)Tools.install({
-    api:MODULE.api,inputs:()=>S,
+    api:MODULE.api,inputs:()=>S,modulo:MODULE.id,titulo:MODULE.title,reporte:()=>reportHTML(),res:()=>RES,state:()=>({S,units}),
+    etiqueta:()=>S.DIS_C8,archivo:'Dibujos_'+MODULE.id,
     cols:HASC()?SPEC.combos.cols.filter(c=>c.key!=='nombre').map(c=>({key:c.key,label:c.label})):[],nMax:HASC()?SPEC.combos.n:0,
     setCombos(list,modo){const base=modo==='add'?S.combos:[];S.combos=base.concat(list).slice(0,SPEC.combos.n);renderCombos();changed();},
     apply(prop){for(const k in prop)S[k]=prop[k];renderInputs();if(HASC())renderCombos();changed();}});

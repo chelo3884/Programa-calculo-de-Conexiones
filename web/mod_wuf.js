@@ -6,7 +6,7 @@ const cm2mm=v=>fmt(v*10,'Ls');
 function wufElev(RES,S){
   const v=RES.vars,W=460,H=400,m=26,colH=v.bd+60,Lb=Math.max(v.bd*1.2,v.L+25);
   const sc=Math.min((W-2*m-30)/(Lb+v.ctf+20),(H-2*m)/colH),x0=m+40+v.ctf*sc,cy=H/2+4,X=a=>x0+a*sc,Y=a=>cy-a*sc;
-  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Elevación"><text x="8" y="16" style="font-weight:700">ELEVACIÓN</text>`;
+  let s=`<svg data-sc="${sc}" data-f="10" viewBox="0 0 ${W} ${H}" role="img" aria-label="Elevación"><text x="8" y="16" style="font-weight:700">ELEVACIÓN</text>`;
   s+=`<rect x="${X(-v.ctf)}" y="${Y(colH/2)}" width="${v.ctf*sc}" height="${colH*sc}" fill="var(--steel)" stroke="var(--ink)" stroke-width="1.2"/>`;
   s+=`<path d="M${X(-v.ctf)} ${Y(colH/2)}H${X(-v.ctf)-24}M${X(-v.ctf)} ${Y(-colH/2)}H${X(-v.ctf)-24}" stroke="var(--mut)" stroke-dasharray="3 3"/>`;
   if(v.cp){const t=Math.max(v.cp_t,0.5);for(const y of [v.bd/2-v.btf/2,-v.bd/2+v.btf/2])s+=`<rect x="${X(-v.ctf)-24}" y="${Y(y)-t*sc/2}" width="24" height="${Math.max(2,t*sc)}" fill="var(--grout)" stroke="var(--ink)" stroke-width=".8"/>`;}
@@ -26,7 +26,7 @@ function wufElev(RES,S){
 function wufPlan(RES,S){
   const v=RES.vars,W=460,H=400,m=30,span=Math.max(v.cd,v.cbf)+60;
   const sc=Math.min((W-2*m)/(v.cbf+40),(H-2*m)/(v.cd+v.bd*0.9)),cx=W/2,cy=H/2,X=a=>cx+a*sc,Y=a=>cy-(a+v.cd/2)*sc;
-  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Planta"><text x="8" y="16" style="font-weight:700">PLANTA (corte a la altura del ala superior)</text>`;
+  let s=`<svg data-sc="${sc}" data-f="10" viewBox="0 0 ${W} ${H}" role="img" aria-label="Planta"><text x="8" y="16" style="font-weight:700">PLANTA (corte a la altura del ala superior)</text>`;
   const yc=-v.bd*0.45; // columna abajo, viga hacia arriba
   s+=`<g fill="var(--steel)" stroke="var(--ink)"><rect x="${X(-v.cbf/2)}" y="${Y(yc)}" width="${v.cbf*sc}" height="${v.ctf*sc}"/><rect x="${X(-v.cbf/2)}" y="${Y(yc-v.cd+v.ctf)}" width="${v.cbf*sc}" height="${v.ctf*sc}"/><rect x="${X(-v.ctw/2)}" y="${Y(yc-v.ctf)}" width="${v.ctw*sc}" height="${(v.cd-2*v.ctf)*sc}"/></g>`;
   if(v.cp)for(const sx of [-1,1])s+=`<rect x="${X(sx>0?v.ctw/2:-v.ctw/2-v.cp_b)}" y="${Y(yc-v.ctf)}" width="${v.cp_b*sc}" height="${(v.cd-2*v.ctf)*sc}" fill="var(--grout)" stroke="var(--ink)" opacity=".5"/>`;

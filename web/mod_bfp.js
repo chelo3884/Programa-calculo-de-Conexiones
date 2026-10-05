@@ -10,7 +10,7 @@ function bfpElev(RES,S){
   const nr=v.p_nr,colH=d+2*tp+16,beamL=Lp+8;
   const sc=Math.min((W-2*m-60)/(beamL+tc),(H-2*m)/colH);
   const x0=m+40+tc*sc,cy=H/2+6,X=a=>x0+a*sc,Y=a=>cy-a*sc;
-  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Elevación BFP"><text x="8" y="16" style="font-weight:700">ELEVACIÓN</text>`;
+  let s=`<svg data-sc="${sc}" data-f="10" viewBox="0 0 ${W} ${H}" role="img" aria-label="Elevación BFP"><text x="8" y="16" style="font-weight:700">ELEVACIÓN</text>`;
   s+=`<rect x="${X(-tc)}" y="${Y(colH/2)}" width="${tc*sc}" height="${colH*sc}" fill="var(--steel)" stroke="var(--ink)" stroke-width="1.2"/><path d="M${X(-tc)} ${Y(colH/2)}H${X(-tc)-26}M${X(-tc)} ${Y(-colH/2)}H${X(-tc)-26}" stroke="var(--mut)" stroke-dasharray="3 3"/>`;
   // viga: alma sombreada + alas
   s+=`<rect x="${X(sb)}" y="${Y(d/2-tf)}" width="${(beamL-sb)*sc}" height="${(d-2*tf)*sc}" fill="var(--conc)" stroke="var(--ink)" stroke-width=".8" opacity=".7"/>`;
@@ -38,7 +38,7 @@ function bfpPlan(RES,S){
   const Lp=v.p_Lp,bp=v.p_b,bf=v.b_bf,cbf=v.c_bf,nr=v.p_nr,g=v.p_g;
   const sc=Math.min((W-2*m-30)/(Lp+6),(H-2*m)/Math.max(bp,cbf*.6));
   const x0=m+22,cy=H/2,X=a=>x0+a*sc,Y=a=>cy-a*sc;
-  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Planta BFP"><text x="8" y="16" style="font-weight:700">PLANTA — PLACA DE ALA SUPERIOR</text>`;
+  let s=`<svg data-sc="${sc}" data-f="10" viewBox="0 0 ${W} ${H}" role="img" aria-label="Planta BFP"><text x="8" y="16" style="font-weight:700">PLANTA — PLACA DE ALA SUPERIOR</text>`;
   s+=`<rect x="${X(-3)}" y="${Y(cbf*.6)}" width="${3*sc}" height="${cbf*1.2*.6*sc}" fill="var(--steel)" stroke="var(--ink)"/>`;
   s+=`<rect x="${X(0)}" y="${Y(bf/2)}" width="${(Lp+4)*sc}" height="${bf*sc}" fill="none" stroke="var(--mut)" stroke-dasharray="4 3"/>`;
   s+=`<rect x="${X(0)}" y="${Y(bp/2)}" width="${Lp*sc}" height="${bp*sc}" fill="var(--steelf)" stroke="var(--ink)" stroke-width="1.3"/>`;

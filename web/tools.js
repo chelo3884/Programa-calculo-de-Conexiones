@@ -143,12 +143,38 @@ window.Tools=(()=>{
     }catch(e){q('.bd').innerHTML=`<p class="bad">${E(e.message)}</p>`;}
   }
 
+  /* ───────────── Reporte de proyecto (varias conexiones) ───────────── */
+  const KEY='cx_proyecto';
+  const leer=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'null')||{meta:{},items:[]};}catch(e){return {meta:{},items:[]};}};
+  function agregarProyecto(){
+    if(!cfg.reporte||!cfg.res())return;
+    const nombre=prompt('Nombre de esta conexión en el proyecto (si ya existe con el mismo nombre se reemplaza):',cfg.etiqueta()||cfg.titulo);
+    if(nombre===null)return;
+    const html=cfg.reporte(),st=/<style>([\s\S]*?)<\/style>/.exec(html),bd=/<body>([\s\S]*)<\/body>/.exec(html);
+    const R=cfg.res(),cs=(R.checks||[]).filter(c=>c.ratio!=null),gob=cs.reduce((a,c)=>!a||c.ratio>a.ratio?c:a,null);
+    const item={id:Date.now().toString(36),modulo:cfg.modulo,titulo:cfg.titulo,etiqueta:nombre.trim()||cfg.titulo,estado:R.resumen.estado,
+      ratio:R.resumen.ratio_max,gob:gob?{nombre:gob.nombre,combo:gob.combo}:null,estilo:st?st[1]:'',cuerpo:bd?bd[1]:'',
+      guardado:cfg.state(),fecha:new Date().toISOString().slice(0,10)};
+    const P=leer(),i=P.items.findIndex(x=>x.modulo===item.modulo&&x.etiqueta===item.etiqueta);
+    if(i>=0){item.id=P.items[i].id;P.items[i]=item;}else P.items.push(item);
+    try{localStorage.setItem(KEY,JSON.stringify(P));}
+    catch(e){alert('No hay espacio en el navegador para guardar otra conexión. Descargue el proyecto desde la página «Proyecto» y vacíelo.');return;}
+    abrir('Proyecto',`<p><b>${E(item.etiqueta)}</b> quedó guardada (${P.items.length} conexión${P.items.length>1?'es':''} en el proyecto). Es una copia fija del reporte actual: si cambia el diseño, vuelva a agregarla con el mismo nombre.</p>`,
+      '<a class="btn pri" href="/proyecto.html" style="text-decoration:none">Ir al reporte de proyecto</a>');
+  }
+
   function install(c){
     cfg=c;
     const add=document.getElementById('addCombo');
     if(add&&cfg.cols&&cfg.cols.length&&!document.getElementById('btnCargas')){
       const b=document.createElement('button');b.id='btnCargas';b.textContent='Importar SAP2000 / Generar NEC…';b.style.marginLeft='8px';b.onclick=cargas;add.after(b);}
     const th=document.getElementById('btnTheme');
+    if(th&&cfg.reporte&&!document.getElementById('btnProy')){
+      const b=document.createElement('button');b.id='btnProy';b.textContent='＋ Proyecto';b.title='Agregar esta conexión al reporte de proyecto';b.onclick=agregarProyecto;th.before(b);}
+    if(th&&!document.getElementById('btnDxf')){
+      const sc=document.createElement('script');sc.src='/dxf.js';document.head.appendChild(sc);
+      const b=document.createElement('button');b.id='btnDxf';b.textContent='Exportar DXF';b.title='Dibujos de la página en DXF (mm, 1:1)';
+      b.onclick=()=>window.DXF&&DXF.descargar((cfg.archivo||document.title.replace(/[^\w]+/g,'_'))+'.dxf');th.before(b);}
     if(th&&cfg.api&&!document.getElementById('btnAuto')){
       const b=document.createElement('button');b.id='btnAuto';b.textContent='Proponer diseño';b.onclick=auto;th.before(b);}
   }

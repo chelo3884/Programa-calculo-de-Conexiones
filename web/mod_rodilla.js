@@ -18,7 +18,7 @@ function rodFront(RES,S){
   const up=lado(S.cfg_u,1,d,tf,v.p_pfo,v.p_pfi,v.p_pb,v.p_de),dn=lado(S.cfg_d,-1,d,tf,v.p_pfo,v.p_pfi,v.p_pb,v.p_de);
   const top=up.borde,bot=dn.borde,Hp=top-bot;
   const sc=Math.min((W-2*m)/Math.max(v.p_bp,bf+2),(H-2*m)/Hp),cx=W/2,cy=H/2+4+((top+bot)/2)*sc,X=a=>cx+a*sc,Y=a=>cy-a*sc;
-  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Vista frontal"><text x="8" y="16" style="font-weight:700">VISTA FRONTAL DE PLACA</text>`;
+  let s=`<svg data-sc="${sc}" data-f="10" viewBox="0 0 ${W} ${H}" role="img" aria-label="Vista frontal"><text x="8" y="16" style="font-weight:700">VISTA FRONTAL DE PLACA</text>`;
   s+=`<rect x="${X(-v.p_bp/2)}" y="${Y(top)}" width="${v.p_bp*sc}" height="${Hp*sc}" fill="var(--steelf)" stroke="var(--ink)" stroke-width="1.4"/>`;
   s+=`<g fill="var(--steel)" stroke="var(--ink)" stroke-width="1" opacity=".85"><rect x="${X(-bf/2)}" y="${Y(d/2)}" width="${bf*sc}" height="${tf*sc}"/><rect x="${X(-bf/2)}" y="${Y(-d/2+tf)}" width="${bf*sc}" height="${tf*sc}"/><rect x="${X(-tw/2)}" y="${Y(d/2-tf)}" width="${tw*sc}" height="${(d-2*tf)*sc}"/></g>`;
   const rb=Math.max(3,v.a_db/2*sc);
@@ -41,7 +41,7 @@ function rodEsquema(RES,S){
     const top=steps.map(([x,dd])=>[dir*x*sc,-(dd/2)*sc]),bot=steps.map(([x,dd])=>[dir*x*sc,(dd/2)*sc]);
     const poly=[...top,...bot.reverse()].map(p=>p.join(',')).join(' ');
     return `<g transform="translate(${ox} ${oy-d/2*sc}) rotate(${-dir*S.theta})"><polygon points="${poly}" fill="var(--conc)" stroke="var(--ink)" stroke-width="1.2" opacity=".9"/><rect x="${-v.p_tp*sc*(dir>0?1:0)}" y="${-d/2*sc-(v.p_pfo||0)*sc*0}" width="${v.p_tp*sc}" height="${d*sc}" fill="var(--steelf)" stroke="var(--ink)" transform="translate(${dir<0?0:0} 0)"/></g>`;};
-  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Esquema"><text x="8" y="16" style="font-weight:700">ESQUEMA (${rod?'RODILLA':'CUMBRERA'}, θ = ${S.theta}°)</text>`;
+  let s=`<svg data-sc="${sc}" data-f="10" viewBox="0 0 ${W} ${H}" role="img" aria-label="Esquema"><text x="8" y="16" style="font-weight:700">ESQUEMA (${rod?'RODILLA':'CUMBRERA'}, θ = ${S.theta}°)</text>`;
   if(rod)s+=col;
   s+=beam(1);if(!rod)s+=beam(-1);
   s+=`<text class="dt" x="${ox+30}" y="${oy+60}">cartela: d = ${Lm(d)} → ${Lm(dBeam)} en ${Lm(Lh)} · esquemático</text></svg>`;

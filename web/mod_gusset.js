@@ -7,7 +7,7 @@ function gusElev(RES,S){
   const v=RES.vars,W=480,H=420,m=30,ext=Math.max(v.a,v.b)*1.5;
   const sc=Math.min((W-2*m-20)/(v.a+ext*0.5+v.cd/2),(H-2*m)/(v.b+ext*0.5+v.bd)),x0=W-m-20-(v.a+ext*0.5)*sc,yb=H-m-10-(v.bd)*sc;
   const X=q=>x0+q*sc,Y=q=>yb-q*sc;               // origen: cara de la columna (x) y ala superior de la viga (y)
-  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Elevación"><text x="8" y="16" style="font-weight:700">ELEVACIÓN DE LA CARTELA</text>`;
+  let s=`<svg data-sc="${sc}" data-f="10" viewBox="0 0 ${W} ${H}" role="img" aria-label="Elevación"><text x="8" y="16" style="font-weight:700">ELEVACIÓN DE LA CARTELA</text>`;
   const cw=Math.max(v.cd/2,12);
   s+=`<rect x="${X(-cw)}" y="${Y(v.b+ext*0.5)}" width="${cw*sc}" height="${(v.b+ext*0.5+v.bd)*sc}" fill="var(--steel)" stroke="var(--ink)" stroke-width="1.2"/>`;
   s+=`<rect x="${X(0)}" y="${Y(0)}" width="${(v.a+ext*0.5)*sc}" height="${v.bd*sc}" fill="var(--conc)" stroke="var(--ink)" opacity=".7"/>`;

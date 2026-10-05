@@ -4,7 +4,7 @@ function hssPlan(RES,S){
   S=Object.assign({tipo:'Placa simple convencional',destaje:'Sin destaje'},S);const g=cortGeom(RES,S,true),h=RES.vars.hss||{W:g.sbf,D:g.sd,t:g.stf,through:false},W=440,H=420,m=34;
   const xend=Math.max(g.xplate*2.6,120),ys=Math.max(h.W,180)/2;
   const sc=Math.min((W-2*m-70)/(xend+h.D+40),(H-2*m)/(2*ys+20)),x0=m+70+h.D*sc,cy=H/2,X=a=>x0+a*sc,Y=a=>cy-a*sc;
-  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Planta"><text x="8" y="16" style="font-weight:700">PLANTA (corte bajo el ala)</text>`;
+  let s=`<svg data-sc="${sc}" data-f="1" viewBox="0 0 ${W} ${H}" role="img" aria-label="Planta"><text x="8" y="16" style="font-weight:700">PLANTA (corte bajo el ala)</text>`;
   // HSS: rectángulo hueco (cara de conexión en x = 0, ancho W en y)
   s+=`<rect x="${X(-h.D)}" y="${Y(h.W/2)}" width="${h.D*sc}" height="${h.W*sc}" fill="var(--steel)" stroke="var(--ink)" stroke-width="1.2"/>`;
   s+=`<rect x="${X(-h.D+h.t)}" y="${Y(h.W/2-h.t)}" width="${(h.D-2*h.t)*sc}" height="${(h.W-2*h.t)*sc}" fill="var(--card)" stroke="var(--ink)" stroke-width=".8"/>`;

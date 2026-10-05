@@ -4,7 +4,7 @@ const dimH=(x1,x2,y,txt)=>`<path class="dim" d="M${x1} ${y-4}V${y+4}M${x2} ${y-4
 const dimV=(x,y1,y2,txt)=>`<path class="dim" d="M${x-4} ${y1}H${x+4}M${x-4} ${y2}H${x+4}M${x} ${y1}V${y2}"/><text class="dt" transform="translate(${x-6} ${(y1+y2)/2}) rotate(-90)" text-anchor="middle">${txt}</text>`;
 const mm=v=>fmt(v,'Ls');
 const dia=s=>({'5/8"':15.875,'3/4"':19.05,'7/8"':22.225,'1"':25.4,'1-1/8"':28.575})[s]||20;
-const svgOpen=(t,W,H)=>`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${t}"><text x="8" y="16" style="font-weight:700">${t}</text>`;
+const svgOpen=(t,W,H,sc)=>`<svg data-sc="${sc}" data-f="1" viewBox="0 0 ${W} ${H}" role="img" aria-label="${t}"><text x="8" y="16" style="font-weight:700">${t}</text>`;
 
 /* ───────────── Empalme de viga ───────────── */
 function geoViga(RES,S){
@@ -20,7 +20,7 @@ function geoViga(RES,S){
 function vigaElev(RES,S){
   const g=geoViga(RES,S),W=460,H=380,m=24,xe=Math.max(g.xe,g.wxe);
   const half=xe+30,sc=Math.min((W-2*m)/(2*half),(H-2*m-30)/(g.d+2*g.to+30)),cx=W/2,cy=H/2+8,X=a=>cx+a*sc,Y=a=>cy-a*sc;
-  let s=svgOpen('ELEVACIÓN DEL EMPALME',W,H),top=g.d/2;
+  let s=svgOpen('ELEVACIÓN DEL EMPALME',W,H,sc),top=g.d/2;
   for(const sg of [-1,1]){const x0=sg>0?g.gap/2:-half,x1=sg>0?half:-g.gap/2;
     s+=`<rect x="${X(x0)}" y="${Y(top-g.tf)}" width="${(x1-x0)*sc}" height="${(g.d-2*g.tf)*sc}" fill="var(--conc)" stroke="var(--ink)" stroke-width=".8" opacity=".8"/>`;
     s+=`<g fill="var(--steel)" stroke="var(--ink)"><rect x="${X(x0)}" y="${Y(top)}" width="${(x1-x0)*sc}" height="${g.tf*sc}"/><rect x="${X(x0)}" y="${Y(-top+g.tf)}" width="${(x1-x0)*sc}" height="${g.tf*sc}"/></g>`;
@@ -42,7 +42,7 @@ function vigaPlan(RES,S){
   const g=geoViga(RES,S),W=460,H=380,m=26,half=g.xe+20;
   const ext=Math.max(g.bo,g.bf);
   const sc=Math.min((W-2*m)/(2*half),(H-2*m-30)/ext),cx=W/2,cy=H/2,X=a=>cx+a*sc,Y=a=>cy-a*sc;
-  let s=svgOpen('PLANTA — ALA SUPERIOR',W,H);
+  let s=svgOpen('PLANTA — ALA SUPERIOR',W,H,sc);
   s+=`<rect x="${X(-half)}" y="${Y(g.bf/2)}" width="${(half-g.gap/2)*sc}" height="${g.bf*sc}" fill="var(--steel)" stroke="var(--ink)" opacity=".55"/><rect x="${X(g.gap/2)}" y="${Y(g.bf/2)}" width="${(half-g.gap/2)*sc}" height="${g.bf*sc}" fill="var(--steel)" stroke="var(--ink)" opacity=".55"/>`;
   s+=`<rect x="${X(-g.xe)}" y="${Y(g.bo/2)}" width="${2*g.xe*sc}" height="${g.bo*sc}" fill="var(--steelf)" stroke="var(--ink)" stroke-width="1.3" opacity=".9"/>`;
   if(g.inn)for(const sy of [-1,1])s+=`<rect x="${X(-g.xe)}" y="${Y(sy*(g.tw/2+2)+(sy>0?g.bi:0))}" width="${2*g.xe*sc}" height="${g.bi*sc}" fill="none" stroke="var(--mut)" stroke-dasharray="4 3"/>`;
@@ -66,7 +66,7 @@ function geoCol(RES,S){
 function colElev(RES,S){
   const g=geoCol(RES,S),W=460,H=420,m=24,half=Math.max(g.ye,g.wye)+40,dmax=Math.max(g.du,g.dl);
   const sc=Math.min((W-2*m-20)/(dmax+2*(g.t+4)),(H-2*m)/(2*half)),cx=W/2,cy=H/2,X=a=>cx+a*sc,Y=a=>cy-a*sc;
-  let s=svgOpen(g.tipo==='Placas apernadas'?'ELEVACIÓN DEL EMPALME':'ELEVACIÓN — EMPALME SOLDADO',W,H);
+  let s=svgOpen(g.tipo==='Placas apernadas'?'ELEVACIÓN DEL EMPALME':'ELEVACIÓN — EMPALME SOLDADO',W,H,sc);
   const col=(d,tf,tw,y0,y1)=>`<rect x="${X(-d/2)}" y="${Y(y1)}" width="${d*sc}" height="${(y1-y0)*sc}" fill="var(--conc)" opacity=".75" stroke="var(--ink)" stroke-width=".8"/><g fill="var(--steel)" stroke="var(--ink)"><rect x="${X(-d/2)}" y="${Y(y1)}" width="${tf*sc}" height="${(y1-y0)*sc}"/><rect x="${X(d/2-tf)}" y="${Y(y1)}" width="${tf*sc}" height="${(y1-y0)*sc}"/></g>`;
   s+=col(g.du,g.tfu,g.twu,g.gap/2,half)+col(g.dl,g.tfl,g.twl,-half,-g.gap/2);
   if(g.tipo==='Placas apernadas'){
@@ -88,7 +88,7 @@ function colElev(RES,S){
 function colSeccion(RES,S){
   const g=geoCol(RES,S),W=460,H=420,m=30,d=g.du,bf=g.bfu;
   const sc=Math.min((W-2*m)/(bf+2*g.t+40),(H-2*m)/(d+2*g.t+30)),cx=W/2,cy=H/2,X=a=>cx+a*sc,Y=a=>cy-a*sc;
-  let s=svgOpen('SECCIÓN DE LA COLUMNA (superior)',W,H);
+  let s=svgOpen('SECCIÓN DE LA COLUMNA (superior)',W,H,sc);
   s+=`<g fill="var(--steel)" stroke="var(--ink)"><rect x="${X(-bf/2)}" y="${Y(d/2)}" width="${bf*sc}" height="${g.tfu*sc}"/><rect x="${X(-bf/2)}" y="${Y(-d/2+g.tfu)}" width="${bf*sc}" height="${g.tfu*sc}"/><rect x="${X(-g.twu/2)}" y="${Y(d/2-g.tfu)}" width="${g.twu*sc}" height="${(d-2*g.tfu)*sc}"/></g>`;
   if(g.tipo==='Placas apernadas'){
     s+=`<g fill="var(--steelf)" stroke="var(--ink)" stroke-width="1.2"><rect x="${X(-g.b/2)}" y="${Y(d/2+g.t)}" width="${g.b*sc}" height="${g.t*sc}"/><rect x="${X(-g.b/2)}" y="${Y(-d/2)}" width="${g.b*sc}" height="${g.t*sc}"/></g>`;

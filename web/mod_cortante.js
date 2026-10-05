@@ -20,7 +20,7 @@ function cortElev(RES,S,col){
   const xend=Math.max(g.xplate*2.4,g.d*1.1)+g.set,hh=Math.max(g.d,g.sd*0.6);
   const sc=Math.min((W-2*m-90)/(xend+40),(H-2*m)/(Math.min(g.sd,g.d*1.5)+40));
   const x0=m+78,cy=H/2+4,X=a=>x0+a*sc,Y=a=>cy-a*sc;
-  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Elevación"><text x="8" y="16" style="font-weight:700">ELEVACIÓN</text>`;
+  let s=`<svg data-sc="${sc}" data-f="1" viewBox="0 0 ${W} ${H}" role="img" aria-label="Elevación"><text x="8" y="16" style="font-weight:700">ELEVACIÓN</text>`;
   const sh=Math.min(g.sd,g.d*1.5);
   if(col){ // columna: ala vertical con el alma hacia atrás
     s+=`<rect x="${X(-g.stf)}" y="${Y(sh/2+10)}" width="${g.stf*sc}" height="${(sh+20)*sc}" fill="var(--steel)" stroke="var(--ink)" stroke-width="1.2"/>`;
@@ -53,7 +53,7 @@ function cortPlan(RES,S,col){
   const g=cortGeom(RES,S,col),W=440,H=420,m=34;
   const xend=Math.max(g.xplate*2.6,120),ys=Math.max(g.sbf,2*g.lb+g.tw,180)/2;
   const sc=Math.min((W-2*m-70)/(xend+60),(H-2*m)/(2*ys+20)),x0=m+70+60*0,cy=H/2,X=a=>x0+a*sc,Y=a=>cy-a*sc;
-  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Planta"><text x="8" y="16" style="font-weight:700">PLANTA (corte bajo el ala)</text>`;
+  let s=`<svg data-sc="${sc}" data-f="1" viewBox="0 0 ${W} ${H}" role="img" aria-label="Planta"><text x="8" y="16" style="font-weight:700">PLANTA (corte bajo el ala)</text>`;
   const ts=col?g.stf:g.stw;
   s+=`<rect x="${X(-ts)}" y="${Y(ys)}" width="${ts*sc}" height="${2*ys*sc}" fill="var(--steel)" stroke="var(--ink)" stroke-width="1.2"/>`;
   if(col)s+=`<rect x="${X(-ts-60)}" y="${Y(g.stw/2)}" width="${60*sc}" height="${g.stw*sc}" fill="var(--steel)" stroke="var(--ink)" opacity=".5"/>`;
