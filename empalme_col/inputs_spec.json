@@ -1,0 +1,751 @@
+{
+ "secciones": [
+  {
+   "titulo": "DATOS GENERALES",
+   "campos": [
+    {
+     "name": "DIS_C7",
+     "label": "Proyecto",
+     "unit": "",
+     "default": "Edificio — ejemplo",
+     "row": 7,
+     "kind": "text"
+    },
+    {
+     "name": "DIS_C8",
+     "label": "Elemento",
+     "unit": "",
+     "default": "Columna C-4, empalme nivel 3",
+     "row": 8,
+     "kind": "text"
+    },
+    {
+     "name": "lim_verde",
+     "label": "Límite verde / amarillo (ratio)",
+     "unit": "",
+     "default": 0.9,
+     "row": 9
+    }
+   ]
+  },
+  {
+   "titulo": "TIPO DE EMPALME",
+   "campos": [
+    {
+     "name": "tipo",
+     "label": "Tipo",
+     "unit": "",
+     "default": "Placas apernadas",
+     "row": 11,
+     "options": [
+      "Placas apernadas",
+      "Soldado PJP",
+      "Soldado CJP"
+     ]
+    },
+    {
+     "name": "fresado",
+     "label": "Extremos acabados para apoyo (fresados)",
+     "unit": "",
+     "default": "Sí",
+     "row": 12,
+     "options": [
+      "Sí",
+      "No"
+     ]
+    },
+    {
+     "name": "sismico",
+     "label": "Diseño sísmico (AISC 341-16)",
+     "unit": "",
+     "default": "Sí (otros sistemas)",
+     "row": 13,
+     "options": [
+      "No",
+      "Sí (SMF)",
+      "Sí (otros sistemas)"
+     ]
+    },
+    {
+     "name": "dist_v",
+     "label": "Distancia del empalme a la viga más cercana",
+     "unit": "mm",
+     "default": 1500,
+     "row": 14
+    },
+    {
+     "name": "gap",
+     "label": "Holgura entre columnas",
+     "unit": "mm",
+     "default": 3,
+     "row": 15
+    }
+   ]
+  },
+  {
+   "titulo": "1. COLUMNA SUPERIOR",
+   "campos": [
+    {
+     "name": "cu_perfil",
+     "label": "Perfil (catálogo o ARMADO)",
+     "unit": "",
+     "default": "HA400X200X8X15",
+     "row": 17,
+     "options": [
+      "ARMADO (flejes soldados)",
+      "VK250X130X4X8",
+      "VK300X150X4X10",
+      "VK330X160X6X10",
+      "VK360X180X6X10",
+      "VK400X180X6X10",
+      "VK400X180X6X12",
+      "VK420X180X6X12",
+      "VK440X180X6X12",
+      "HA200X140X6X12",
+      "HA240X180X6X12",
+      "HA300X180X6X12",
+      "HA360X180X6X12",
+      "HA380X200X8X15",
+      "HA400X200X8X15",
+      "HA420X210X8X15",
+      "HA440X220X8X15",
+      "HA460X230X8X15",
+      "HA480X240X8X15",
+      "HA500X250X10X15",
+      "HA520X260X10X15",
+      "HA540X270X10X15",
+      "W8X31",
+      "W10X49",
+      "W12X65",
+      "W14X90",
+      "W14X120",
+      "W16X40",
+      "W18X50",
+      "W21X62",
+      "W24X76"
+     ]
+    },
+    {
+     "name": "DIS_E18",
+     "label": "Peralte d (armado)",
+     "unit": "mm",
+     "default": 400,
+     "row": 18,
+     "armado_de": "cu_perfil"
+    },
+    {
+     "name": "DIS_E19",
+     "label": "Ancho de ala bf (armado)",
+     "unit": "mm",
+     "default": 200,
+     "row": 19,
+     "armado_de": "cu_perfil"
+    },
+    {
+     "name": "DIS_E20",
+     "label": "Espesor de alma tw (armado)",
+     "unit": "mm",
+     "default": 8,
+     "row": 20,
+     "armado_de": "cu_perfil"
+    },
+    {
+     "name": "DIS_E21",
+     "label": "Espesor de ala tf (armado)",
+     "unit": "mm",
+     "default": 15,
+     "row": 21,
+     "armado_de": "cu_perfil"
+    },
+    {
+     "name": "cu_acero",
+     "label": "Acero",
+     "unit": "",
+     "default": "A572 Gr50",
+     "row": 22,
+     "options": [
+      "A36",
+      "A572 Gr50",
+      "A992",
+      "A588 Gr50"
+     ]
+    }
+   ],
+   "derivados": [
+    {
+     "row": 18,
+     "name": "cu_d_mm",
+     "label": "Peralte d",
+     "unit": "mm"
+    },
+    {
+     "row": 19,
+     "name": "cu_bf_mm",
+     "label": "Ancho de ala bf",
+     "unit": "mm"
+    },
+    {
+     "row": 20,
+     "name": "cu_tw_mm",
+     "label": "Espesor de alma tw",
+     "unit": "mm"
+    },
+    {
+     "row": 21,
+     "name": "cu_tf_mm",
+     "label": "Espesor de ala tf",
+     "unit": "mm"
+    },
+    {
+     "row": 23,
+     "name": "cu_Fy",
+     "label": "Fy / Fu",
+     "unit": "kgf/cm²"
+    },
+    {
+     "row": 23,
+     "name": "cu_Fu",
+     "label": "Fy / Fu",
+     "unit": "kgf/cm²"
+    }
+   ]
+  },
+  {
+   "titulo": "2. COLUMNA INFERIOR",
+   "campos": [
+    {
+     "name": "cl_perfil",
+     "label": "Perfil (catálogo o ARMADO)",
+     "unit": "",
+     "default": "HA420X210X8X15",
+     "row": 25,
+     "options": [
+      "ARMADO (flejes soldados)",
+      "VK250X130X4X8",
+      "VK300X150X4X10",
+      "VK330X160X6X10",
+      "VK360X180X6X10",
+      "VK400X180X6X10",
+      "VK400X180X6X12",
+      "VK420X180X6X12",
+      "VK440X180X6X12",
+      "HA200X140X6X12",
+      "HA240X180X6X12",
+      "HA300X180X6X12",
+      "HA360X180X6X12",
+      "HA380X200X8X15",
+      "HA400X200X8X15",
+      "HA420X210X8X15",
+      "HA440X220X8X15",
+      "HA460X230X8X15",
+      "HA480X240X8X15",
+      "HA500X250X10X15",
+      "HA520X260X10X15",
+      "HA540X270X10X15",
+      "W8X31",
+      "W10X49",
+      "W12X65",
+      "W14X90",
+      "W14X120",
+      "W16X40",
+      "W18X50",
+      "W21X62",
+      "W24X76"
+     ]
+    },
+    {
+     "name": "DIS_E26",
+     "label": "Peralte d (armado)",
+     "unit": "mm",
+     "default": 420,
+     "row": 26,
+     "armado_de": "cl_perfil"
+    },
+    {
+     "name": "DIS_E27",
+     "label": "Ancho de ala bf (armado)",
+     "unit": "mm",
+     "default": 210,
+     "row": 27,
+     "armado_de": "cl_perfil"
+    },
+    {
+     "name": "DIS_E28",
+     "label": "Espesor de alma tw (armado)",
+     "unit": "mm",
+     "default": 8,
+     "row": 28,
+     "armado_de": "cl_perfil"
+    },
+    {
+     "name": "DIS_E29",
+     "label": "Espesor de ala tf (armado)",
+     "unit": "mm",
+     "default": 15,
+     "row": 29,
+     "armado_de": "cl_perfil"
+    },
+    {
+     "name": "cl_acero",
+     "label": "Acero",
+     "unit": "",
+     "default": "A572 Gr50",
+     "row": 30,
+     "options": [
+      "A36",
+      "A572 Gr50",
+      "A992",
+      "A588 Gr50"
+     ]
+    }
+   ],
+   "derivados": [
+    {
+     "row": 26,
+     "name": "cl_d_mm",
+     "label": "Peralte d",
+     "unit": "mm"
+    },
+    {
+     "row": 27,
+     "name": "cl_bf_mm",
+     "label": "Ancho de ala bf",
+     "unit": "mm"
+    },
+    {
+     "row": 28,
+     "name": "cl_tw_mm",
+     "label": "Espesor de alma tw",
+     "unit": "mm"
+    },
+    {
+     "row": 29,
+     "name": "cl_tf_mm",
+     "label": "Espesor de ala tf",
+     "unit": "mm"
+    },
+    {
+     "row": 31,
+     "name": "cl_Fy",
+     "label": "Fy / Fu",
+     "unit": "kgf/cm²"
+    },
+    {
+     "row": 31,
+     "name": "cl_Fu",
+     "label": "Fy / Fu",
+     "unit": "kgf/cm²"
+    }
+   ]
+  },
+  {
+   "titulo": "3. PLACAS DE ALA (apernado)",
+   "campos": [
+    {
+     "name": "pf_acero",
+     "label": "Acero",
+     "unit": "",
+     "default": "A572 Gr50",
+     "row": 33,
+     "options": [
+      "A36",
+      "A572 Gr50",
+      "A992",
+      "A588 Gr50"
+     ]
+    },
+    {
+     "name": "pf_b",
+     "label": "Ancho de placa",
+     "unit": "mm",
+     "default": 180,
+     "row": 35
+    },
+    {
+     "name": "pf_t",
+     "label": "Espesor de placa",
+     "unit": "mm",
+     "default": 12,
+     "row": 36,
+     "options": [
+      0,
+      3,
+      5,
+      6,
+      8,
+      10,
+      12,
+      15,
+      16,
+      19,
+      20,
+      22,
+      25,
+      28,
+      30,
+      32,
+      35,
+      38
+     ]
+    }
+   ],
+   "derivados": [
+    {
+     "row": 34,
+     "name": "pf_Fy",
+     "label": "Fy / Fu",
+     "unit": "kgf/cm²"
+    },
+    {
+     "row": 34,
+     "name": "pf_Fu",
+     "label": "Fy / Fu",
+     "unit": "kgf/cm²"
+    },
+    {
+     "row": 37,
+     "name": "fill_t",
+     "label": "Relleno en columna superior (auto)",
+     "unit": "mm"
+    }
+   ]
+  },
+  {
+   "titulo": "4. PERNOS DE ALA",
+   "campos": [
+    {
+     "name": "fa_grado",
+     "label": "Grado",
+     "unit": "",
+     "default": "A325-N (roscas incl.)",
+     "row": 39,
+     "options": [
+      "A325-N (roscas incl.)",
+      "A325-X (roscas excl.)",
+      "A490-N (roscas incl.)",
+      "A490-X (roscas excl.)"
+     ]
+    },
+    {
+     "name": "fa_diam",
+     "label": "Diámetro",
+     "unit": "",
+     "default": "3/4\"",
+     "row": 40,
+     "options": [
+      "5/8\"",
+      "3/4\"",
+      "7/8\"",
+      "1\"",
+      "1-1/8\"",
+      "1-1/4\""
+     ]
+    },
+    {
+     "name": "junta",
+     "label": "Tipo de junta",
+     "unit": "",
+     "default": "Aplastamiento",
+     "row": 41,
+     "options": [
+      "Aplastamiento",
+      "Deslizamiento crítico clase A (μ = 0.30)",
+      "Deslizamiento crítico clase B (μ = 0.50)"
+     ]
+    },
+    {
+     "name": "fa_n",
+     "label": "Filas por lado (2 líneas)",
+     "unit": "",
+     "default": 3,
+     "row": 42
+    },
+    {
+     "name": "fa_g",
+     "label": "Gramil g",
+     "unit": "mm",
+     "default": 110,
+     "row": 43
+    },
+    {
+     "name": "fa_s",
+     "label": "Paso s",
+     "unit": "mm",
+     "default": 75,
+     "row": 44
+    },
+    {
+     "name": "fa_Lec",
+     "label": "Borde en columna (fila → extremo)",
+     "unit": "mm",
+     "default": 40,
+     "row": 45
+    },
+    {
+     "name": "fa_Lep",
+     "label": "Borde en placa (última fila → extremo)",
+     "unit": "mm",
+     "default": 40,
+     "row": 46
+    }
+   ]
+  },
+  {
+   "titulo": "5. PLACAS DE ALMA (2) Y PERNOS",
+   "campos": [
+    {
+     "name": "pw_acero",
+     "label": "Acero",
+     "unit": "",
+     "default": "A36",
+     "row": 48,
+     "options": [
+      "A36",
+      "A572 Gr50",
+      "A992",
+      "A588 Gr50"
+     ]
+    },
+    {
+     "name": "pw_b",
+     "label": "Ancho de placa (transversal)",
+     "unit": "mm",
+     "default": 200,
+     "row": 50
+    },
+    {
+     "name": "pw_t",
+     "label": "Espesor",
+     "unit": "mm",
+     "default": 8,
+     "row": 51,
+     "options": [
+      0,
+      3,
+      5,
+      6,
+      8,
+      10,
+      12,
+      15,
+      16,
+      19,
+      20,
+      22,
+      25,
+      28,
+      30,
+      32,
+      35,
+      38
+     ]
+    },
+    {
+     "name": "wa_grado",
+     "label": "Grado",
+     "unit": "",
+     "default": "A325-N (roscas incl.)",
+     "row": 52,
+     "options": [
+      "A325-N (roscas incl.)",
+      "A325-X (roscas excl.)",
+      "A490-N (roscas incl.)",
+      "A490-X (roscas excl.)"
+     ]
+    },
+    {
+     "name": "wa_diam",
+     "label": "Diámetro",
+     "unit": "",
+     "default": "3/4\"",
+     "row": 53,
+     "options": [
+      "5/8\"",
+      "3/4\"",
+      "7/8\"",
+      "1\"",
+      "1-1/8\"",
+      "1-1/4\""
+     ]
+    },
+    {
+     "name": "wa_nr",
+     "label": "Filas por lado (a lo largo)",
+     "unit": "",
+     "default": 2,
+     "row": 54
+    },
+    {
+     "name": "wa_nc",
+     "label": "Columnas (transversal)",
+     "unit": "",
+     "default": 2,
+     "row": 55
+    },
+    {
+     "name": "wa_sv",
+     "label": "Paso longitudinal sv",
+     "unit": "mm",
+     "default": 75,
+     "row": 56
+    },
+    {
+     "name": "wa_sh",
+     "label": "Gramil transversal sh",
+     "unit": "mm",
+     "default": 100,
+     "row": 57
+    },
+    {
+     "name": "wa_Le",
+     "label": "Borde en columna / en placa",
+     "unit": "mm",
+     "default": 40,
+     "row": 58
+    }
+   ],
+   "derivados": [
+    {
+     "row": 49,
+     "name": "pw_Fy",
+     "label": "Fy / Fu",
+     "unit": "kgf/cm²"
+    },
+    {
+     "row": 49,
+     "name": "pw_Fu",
+     "label": "Fy / Fu",
+     "unit": "kgf/cm²"
+    }
+   ]
+  },
+  {
+   "titulo": "6. SOLDADURA (PJP / CJP)",
+   "campos": [
+    {
+     "name": "sd_elec",
+     "label": "Electrodo",
+     "unit": "",
+     "default": "E70XX",
+     "row": 60,
+     "options": [
+      "E60XX",
+      "E70XX"
+     ]
+    },
+    {
+     "name": "E_f",
+     "label": "PJP: garganta efectiva en alas E",
+     "unit": "mm",
+     "default": 10,
+     "row": 61
+    },
+    {
+     "name": "E_w",
+     "label": "PJP: garganta efectiva en alma E",
+     "unit": "mm",
+     "default": 6,
+     "row": 62
+    }
+   ]
+  }
+ ],
+ "combos": {
+  "cols": [
+   {
+    "name": "cb_nom",
+    "key": "nombre",
+    "label": "Combinación"
+   },
+   {
+    "name": "cb_P",
+    "key": "P",
+    "label": "Pu (Tonf) (+) compresión"
+   },
+   {
+    "name": "cb_M",
+    "key": "M",
+    "label": "Mu (Tonf·m)"
+   },
+   {
+    "name": "cb_V",
+    "key": "V",
+    "label": "Vu (Tonf)"
+   }
+  ],
+  "filas": [
+   {
+    "M": 2,
+    "nombre": "1.2D+1.6L",
+    "P": 85,
+    "V": 1
+   },
+   {
+    "M": 9,
+    "nombre": "1.2D+Ω0E+L",
+    "P": 55,
+    "V": 4
+   },
+   {
+    "M": 8.5,
+    "nombre": "0.9D−Ω0E",
+    "P": -12,
+    "V": 4
+   },
+   {
+    "M": null,
+    "nombre": "C4",
+    "P": null,
+    "V": null
+   },
+   {
+    "M": null,
+    "nombre": "C5",
+    "P": null,
+    "V": null
+   },
+   {
+    "M": null,
+    "nombre": "C6",
+    "P": null,
+    "V": null
+   },
+   {
+    "M": null,
+    "nombre": "C7",
+    "P": null,
+    "V": null
+   },
+   {
+    "M": null,
+    "nombre": "C8",
+    "P": null,
+    "V": null
+   },
+   {
+    "M": null,
+    "nombre": "C9",
+    "P": null,
+    "V": null
+   },
+   {
+    "M": null,
+    "nombre": "C10",
+    "P": null,
+    "V": null
+   }
+  ],
+  "n": 10
+ },
+ "notas": [
+  "Fuerzas de ala con la columna superior: T = Mu/(d − tf) − Pu·Af/A ; con extremos fresados la compresión va por contacto.",
+  "Rellenos en la columna superior cuando cambia el peralte; reducción de pernos por J5.2 (aplastamiento).",
+  "Alma: corte (con excentricidad al centro del grupo) y axial proporcional al área del alma; método elástico.",
+  "PJP sísmico: 200 % de la demanda (AISC 341 D2.5b). CJP: resistencia del metal base de la columna menor.",
+  "Aviso E3.6g (amarillo): en SMF el empalme debe desarrollar la columna; revisar si no es CJP.",
+  "No incluye: placa de tope (butt plate) para peraltes muy distintos, flexión en el eje débil.",
+  "Herramienta de apoyo: la responsabilidad del diseño es del ingeniero que la usa."
+ ],
+ "titulo": "EMPALME DE COLUMNA (COLUMN SPLICE) — APERNADO, PJP O CJP",
+ "norma": "AISC 360-16 (J1.4, J2, J3, J4, J5.2, J7)  ·  AISC Manual Parte 14  ·  AISC 341-16 D2.5  ·  LRFD  ·  Unidades: Tonf, Tonf·m, mm, kgf/cm²"
+}

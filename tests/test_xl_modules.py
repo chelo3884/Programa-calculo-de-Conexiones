@@ -85,5 +85,13 @@ class TestCortanteVV(_Base, unittest.TestCase):
     modulo = "cortante_vv"
 
 
+class TestEmpalmeColumna(_Base, unittest.TestCase):
+    modulo = "empalme_col"
+
+
+class TestEmpalmeViga(_Base, unittest.TestCase):
+    modulo = "empalme_viga"
+
+
 if __name__ == "__main__":
     unittest.main()

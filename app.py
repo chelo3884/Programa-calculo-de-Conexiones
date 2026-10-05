@@ -15,12 +15,15 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from bfp import engine as bfp_engine
 from cortante_vc import engine as cortante_vc_engine
 from cortante_vv import engine as cortante_vv_engine
+from empalme_col import engine as empalme_col_engine
+from empalme_viga import engine as empalme_viga_engine
 from end_plate import engine as end_plate_engine
 from placa_base.engine import CATALOGOS, calcular
 from rodilla import engine as rodilla_engine
 
 MODULOS_XL = {"end_plate": end_plate_engine, "bfp": bfp_engine, "rodilla": rodilla_engine,
-              "cortante_vv": cortante_vv_engine, "cortante_vc": cortante_vc_engine}
+              "cortante_vv": cortante_vv_engine, "cortante_vc": cortante_vc_engine,
+              "empalme_viga": empalme_viga_engine, "empalme_col": empalme_col_engine}
 
 WEB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "web")
 

@@ -18,7 +18,7 @@ Si el programa ya está abierto, un nuevo doble clic solo vuelve a abrir el nave
 
 **Ejecutable (.exe) sin instalar Python:** en GitHub, pestaña *Actions → Generar ejecutable de Windows → Run workflow*; al terminar se descarga `ConexionesMetalicas_Windows.zip` (contiene el .exe, con el icono, sin consola). También puede generarse en su PC con `pip install pyinstaller && python tools/build_exe.py`.
 
-Módulos (página de inicio `/`): placa base, placa extrema 4E/4ES/8ES, BFP, rodilla y cumbrera, cortante viga–columna y cortante viga secundaria–viga principal.
+Módulos (página de inicio `/`): placa base, placa extrema 4E/4ES/8ES, BFP, rodilla y cumbrera, cortante viga–columna, cortante viga secundaria–viga principal, empalme de viga y empalme de columna.
 
 * Pestaña **Diseño**: parámetros; los dibujos se redibujan al mover cualquier dato; tabla de verificaciones con ratios.
 * Pestaña **Cargas** (donde aplica): combinaciones LRFD. **Memoria de cálculo**: todos los pasos intermedios.
@@ -58,7 +58,7 @@ Herramienta de apoyo: la responsabilidad del diseño es del ingeniero que la usa
 ## Módulos generados desde Excel (end_plate, bfp, rodilla)
 
 * Las fórmulas se **traducen automáticamente** de las hojas de Excel (`python3 tools/xl2py.py "<hoja>.xlsx" <paquete>`), de modo que cada fila de la memoria es la de la hoja (símbolo, descripción, unidad). Para cambiar un criterio, se corrige en el Excel y se regenera.
-* Pruebas (`python3 -m unittest discover -s tests`): 26 variantes de las tres hojas (4E/4ES/8ES, sísmico y no sísmico, IMF/SMF, rodilla y cumbrera, cortante con placa simple/extendida/doble ángulo y destaje, configuraciones al ras y extendida, perfiles armados, con y sin rigidizadores) recalculadas con LibreOffice; coinciden todas las filas de CALCULO y la tabla de verificaciones.
+* Pruebas (`python3 -m unittest discover -s tests`): 38 variantes de las tres hojas (4E/4ES/8ES, sísmico y no sísmico, IMF/SMF, rodilla y cumbrera, cortante con placa simple/extendida/doble ángulo y destaje, configuraciones al ras y extendida, perfiles armados, con y sin rigidizadores) recalculadas con LibreOffice; coinciden todas las filas de CALCULO y la tabla de verificaciones.
 * Para regenerar los casos de prueba hace falta LibreOffice Calc: `python3 tools/make_fixtures.py end_plate "END_PLATE_AISC_DG4 (2).xlsx"` (ídem `bfp`, `rodilla`).
 * Los rangos de AISC 358-16 Tabla 6.1 del Excel deben confirmarse contra la norma impresa (así lo indica la hoja).
 * Los dibujos de BFP y rodilla son esquemáticos; la placa de alma del BFP y la cartela de la rodilla se dibujan sin cotas completas.
@@ -67,3 +67,12 @@ Herramienta de apoyo: la responsabilidad del diseño es del ingeniero que la usa
 
 * **Viga secundaria a viga principal** (`cortante_vv`): traducido de `CORTANTE_VIGA_VIGA_AISC.xlsx` (placa simple convencional o extendida, doble ángulo apernado, destaje superior o doble). Verificado contra 6 variantes recalculadas con LibreOffice.
 * **Viga a ala de columna** (`cortante_vc`): la hoja original solo cubre viga–viga, así que este módulo reutiliza la misma verificación del lado de la viga con el **ala de la columna como soporte** (su tf y su Fu reemplazan al alma de la viga principal en el aplastamiento de los pernos y en el filete mínimo, Manual Ec. 9-2/9-3; sin destaje ni viga opuesta). Verificado con AISC Design Examples v15, Ej. II.A-1A (corte de perno 35.8 kip, aplastamiento 66.7 kip, 8 pernos en corte simple 286 kip). **No incluye** flexión local del ala de columna, conexión al alma de columna ni columnas HSS.
+
+## Empalmes (empalme_viga y empalme_col)
+
+* Traducidos de `EMPALME_VIGA_AISC.xlsx` y `EMPALME_COLUMNA_AISC.xlsx`; verificados contra 12 variantes recalculadas con LibreOffice (apernado con aplastamiento o deslizamiento crítico, con/sin placas interiores, reparto del momento por inercia, PJP/CJP, extremos fresados o no, columnas de distinto peralte con relleno, perfiles armados).
+* **Verificación con los AISC Design Examples v15** (`tests/test_empalmes_aisc.py`). El PDF no trae un empalme completo de viga ni de columna, así que se comparan los estados límite que comparten con los ejemplos de placas atornilladas:
+  * II.B-1 (placa de ala W18x50, 7×¾ in A36, 8 pernos Ø7/8" A325-N): pernos 194 kip, fluencia de placa 170 kip, ruptura 164 kip, bloque de cortante 320 kip, ruptura del ala de viga F13.1 318 kip-ft (el programa da ~1 % menos porque calcula Sx con la fórmula simplificada de la hoja).
+  * II.A-20 (placa de alma 12×⅜ in A36, 4 pernos): ruptura por corte 78.0 kip y bloque de cortante 80.1 kip por placa; fluencia por corte 97.2 kip.
+  * II.C-3: deslizamiento crítico de un perno Ø1" A325 clase A = 17.3 kip.
+* El grupo de pernos del alma usa el método elástico (conservador); el IC de AISC Tabla 7-6 da resistencias mayores, por lo que ese chequeo no se compara 1 a 1 con el ejemplo.

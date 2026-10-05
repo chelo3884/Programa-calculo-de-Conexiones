@@ -186,6 +186,8 @@ class Translator:
             return "math.pi"
         if f == "LEFT":
             return f"_s({a[0]})[:int({a[1]})]"
+        if f == "RIGHT":
+            return f"_s({a[0]})[-int({a[1]}):]"
         if f == "IFERROR":
             return f"_iferror(lambda: {a[0]}, lambda: {a[1]})"
         raise ValueError(f"función no soportada: {f}")
@@ -243,6 +245,8 @@ def main(xlsx, outdir):
                 validations[rng] = dv.formula1
 
     def opts(formula):
+        if formula and formula.startswith('"') and formula.endswith('"'):      # lista escrita en la celda
+            return [x.strip() for x in formula.strip('"').split(",")]
         m = re.match(r"CATALOGOS!\$([A-Z]+)\$(\d+):\$[A-Z]+\$(\d+)", formula or "")
         if not m:
             return None

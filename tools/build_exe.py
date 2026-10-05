@@ -13,7 +13,7 @@ import sys
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sep = os.pathsep
 datos = [("web", "web"), ("assets", "assets")]
-for paquete in ("placa_base", "end_plate", "bfp", "rodilla", "cortante_vv", "cortante_vc"):
+for paquete in ("placa_base", "end_plate", "bfp", "rodilla", "cortante_vv", "cortante_vc", "empalme_viga", "empalme_col"):
     for archivo in ("catalogos.json", "inputs_spec.json"):
         ruta = os.path.join(paquete, archivo)
         if os.path.exists(os.path.join(RAIZ, ruta)):

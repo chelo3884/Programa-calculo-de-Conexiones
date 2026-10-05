@@ -1,0 +1,604 @@
+{
+ "secciones": [
+  {
+   "titulo": "DATOS GENERALES",
+   "campos": [
+    {
+     "name": "DIS_C7",
+     "label": "Proyecto",
+     "unit": "",
+     "default": "Edificio — ejemplo",
+     "row": 7,
+     "kind": "text"
+    },
+    {
+     "name": "DIS_C8",
+     "label": "Elemento",
+     "unit": "",
+     "default": "Viga V-2, empalme a L/4",
+     "row": 8,
+     "kind": "text"
+    },
+    {
+     "name": "lim_verde",
+     "label": "Límite verde / amarillo (ratio)",
+     "unit": "",
+     "default": 0.9,
+     "row": 9
+    }
+   ]
+  },
+  {
+   "titulo": "1. VIGA",
+   "campos": [
+    {
+     "name": "vg_perfil",
+     "label": "Perfil (catálogo o ARMADO)",
+     "unit": "",
+     "default": "VK400X180X6X12",
+     "row": 11,
+     "options": [
+      "ARMADO (flejes soldados)",
+      "VK250X130X4X8",
+      "VK300X150X4X10",
+      "VK330X160X6X10",
+      "VK360X180X6X10",
+      "VK400X180X6X10",
+      "VK400X180X6X12",
+      "VK420X180X6X12",
+      "VK440X180X6X12",
+      "HA200X140X6X12",
+      "HA240X180X6X12",
+      "HA300X180X6X12",
+      "HA360X180X6X12",
+      "HA380X200X8X15",
+      "HA400X200X8X15",
+      "HA420X210X8X15",
+      "HA440X220X8X15",
+      "HA460X230X8X15",
+      "HA480X240X8X15",
+      "HA500X250X10X15",
+      "HA520X260X10X15",
+      "HA540X270X10X15",
+      "W8X31",
+      "W10X49",
+      "W12X65",
+      "W14X90",
+      "W14X120",
+      "W16X40",
+      "W18X50",
+      "W21X62",
+      "W24X76"
+     ]
+    },
+    {
+     "name": "DIS_E12",
+     "label": "Peralte d (armado)",
+     "unit": "mm",
+     "default": 400,
+     "row": 12,
+     "armado_de": "vg_perfil"
+    },
+    {
+     "name": "DIS_E13",
+     "label": "Ancho de ala bf (armado)",
+     "unit": "mm",
+     "default": 180,
+     "row": 13,
+     "armado_de": "vg_perfil"
+    },
+    {
+     "name": "DIS_E14",
+     "label": "Espesor de alma tw (armado)",
+     "unit": "mm",
+     "default": 6,
+     "row": 14,
+     "armado_de": "vg_perfil"
+    },
+    {
+     "name": "DIS_E15",
+     "label": "Espesor de ala tf (armado)",
+     "unit": "mm",
+     "default": 12,
+     "row": 15,
+     "armado_de": "vg_perfil"
+    },
+    {
+     "name": "vg_acero",
+     "label": "Acero",
+     "unit": "",
+     "default": "A572 Gr50",
+     "row": 16,
+     "options": [
+      "A36",
+      "A572 Gr50",
+      "A992",
+      "A588 Gr50"
+     ]
+    },
+    {
+     "name": "vg_kw",
+     "label": "Filete / radio alma–ala (para k)",
+     "unit": "mm",
+     "default": 6,
+     "row": 18
+    }
+   ],
+   "derivados": [
+    {
+     "row": 12,
+     "name": "vg_d_mm",
+     "label": "Peralte d",
+     "unit": "mm"
+    },
+    {
+     "row": 13,
+     "name": "vg_bf_mm",
+     "label": "Ancho de ala bf",
+     "unit": "mm"
+    },
+    {
+     "row": 14,
+     "name": "vg_tw_mm",
+     "label": "Espesor de alma tw",
+     "unit": "mm"
+    },
+    {
+     "row": 15,
+     "name": "vg_tf_mm",
+     "label": "Espesor de ala tf",
+     "unit": "mm"
+    },
+    {
+     "row": 17,
+     "name": "vg_Fy",
+     "label": "Fy / Fu",
+     "unit": "kgf/cm²"
+    },
+    {
+     "row": 17,
+     "name": "vg_Fu",
+     "label": "Fy / Fu",
+     "unit": "kgf/cm²"
+    }
+   ]
+  },
+  {
+   "titulo": "2. EMPALME",
+   "campos": [
+    {
+     "name": "gap",
+     "label": "Holgura entre extremos de vigas",
+     "unit": "mm",
+     "default": 10,
+     "row": 20
+    },
+    {
+     "name": "junta",
+     "label": "Tipo de junta",
+     "unit": "",
+     "default": "Aplastamiento",
+     "row": 21,
+     "options": [
+      "Aplastamiento",
+      "Deslizamiento crítico clase A (μ = 0.30)",
+      "Deslizamiento crítico clase B (μ = 0.50)"
+     ]
+    },
+    {
+     "name": "dist_M",
+     "label": "Momento tomado por el alma",
+     "unit": "",
+     "default": "No (solo alas)",
+     "row": 22,
+     "options": [
+      "No (solo alas)",
+      "Sí (por inercia)"
+     ]
+    }
+   ]
+  },
+  {
+   "titulo": "3. PLACAS DE ALA (por ala)",
+   "campos": [
+    {
+     "name": "pf_acero",
+     "label": "Acero",
+     "unit": "",
+     "default": "A572 Gr50",
+     "row": 24,
+     "options": [
+      "A36",
+      "A572 Gr50",
+      "A992",
+      "A588 Gr50"
+     ]
+    },
+    {
+     "name": "pf_bo",
+     "label": "Placa exterior: ancho",
+     "unit": "mm",
+     "default": 180,
+     "row": 26
+    },
+    {
+     "name": "pf_to",
+     "label": "Placa exterior: espesor",
+     "unit": "mm",
+     "default": 12,
+     "row": 27,
+     "options": [
+      0,
+      3,
+      5,
+      6,
+      8,
+      10,
+      12,
+      15,
+      16,
+      19,
+      20,
+      22,
+      25,
+      28,
+      30,
+      32,
+      35,
+      38
+     ]
+    },
+    {
+     "name": "pf_in",
+     "label": "Placas interiores (2, bajo el ala)",
+     "unit": "",
+     "default": "Sí",
+     "row": 28,
+     "options": [
+      "Sí",
+      "No"
+     ]
+    },
+    {
+     "name": "pf_bi",
+     "label": "Placas interiores: ancho c/u",
+     "unit": "mm",
+     "default": 70,
+     "row": 29
+    },
+    {
+     "name": "pf_ti",
+     "label": "Placas interiores: espesor",
+     "unit": "mm",
+     "default": 10,
+     "row": 30,
+     "options": [
+      0,
+      3,
+      5,
+      6,
+      8,
+      10,
+      12,
+      15,
+      16,
+      19,
+      20,
+      22,
+      25,
+      28,
+      30,
+      32,
+      35,
+      38
+     ]
+    }
+   ],
+   "derivados": [
+    {
+     "row": 25,
+     "name": "pf_Fy",
+     "label": "Fy / Fu",
+     "unit": "kgf/cm²"
+    },
+    {
+     "row": 25,
+     "name": "pf_Fu",
+     "label": "Fy / Fu",
+     "unit": "kgf/cm²"
+    }
+   ]
+  },
+  {
+   "titulo": "4. PERNOS DE ALA",
+   "campos": [
+    {
+     "name": "fa_grado",
+     "label": "Grado",
+     "unit": "",
+     "default": "A325-N (roscas incl.)",
+     "row": 32,
+     "options": [
+      "A325-N (roscas incl.)",
+      "A325-X (roscas excl.)",
+      "A490-N (roscas incl.)",
+      "A490-X (roscas excl.)"
+     ]
+    },
+    {
+     "name": "fa_diam",
+     "label": "Diámetro",
+     "unit": "",
+     "default": "3/4\"",
+     "row": 33,
+     "options": [
+      "5/8\"",
+      "3/4\"",
+      "7/8\"",
+      "1\"",
+      "1-1/8\"",
+      "1-1/4\""
+     ]
+    },
+    {
+     "name": "fa_n",
+     "label": "Filas por lado del empalme (2 líneas)",
+     "unit": "",
+     "default": 3,
+     "row": 34
+    },
+    {
+     "name": "fa_g",
+     "label": "Gramil g",
+     "unit": "mm",
+     "default": 110,
+     "row": 35
+    },
+    {
+     "name": "fa_s",
+     "label": "Paso s",
+     "unit": "mm",
+     "default": 75,
+     "row": 36
+    },
+    {
+     "name": "fa_Leb",
+     "label": "Borde en la viga (fila → extremo de viga)",
+     "unit": "mm",
+     "default": 40,
+     "row": 37
+    },
+    {
+     "name": "fa_Lep",
+     "label": "Borde en la placa (última fila → extremo)",
+     "unit": "mm",
+     "default": 40,
+     "row": 38
+    }
+   ]
+  },
+  {
+   "titulo": "5. PLACAS DE ALMA (2, una a cada lado)",
+   "campos": [
+    {
+     "name": "pw_acero",
+     "label": "Acero",
+     "unit": "",
+     "default": "A36",
+     "row": 40,
+     "options": [
+      "A36",
+      "A572 Gr50",
+      "A992",
+      "A588 Gr50"
+     ]
+    },
+    {
+     "name": "pw_h",
+     "label": "Alto de placa hp",
+     "unit": "mm",
+     "default": 280,
+     "row": 42
+    },
+    {
+     "name": "pw_t",
+     "label": "Espesor",
+     "unit": "mm",
+     "default": 8,
+     "row": 43,
+     "options": [
+      0,
+      3,
+      5,
+      6,
+      8,
+      10,
+      12,
+      15,
+      16,
+      19,
+      20,
+      22,
+      25,
+      28,
+      30,
+      32,
+      35,
+      38
+     ]
+    }
+   ],
+   "derivados": [
+    {
+     "row": 41,
+     "name": "pw_Fy",
+     "label": "Fy / Fu",
+     "unit": "kgf/cm²"
+    },
+    {
+     "row": 41,
+     "name": "pw_Fu",
+     "label": "Fy / Fu",
+     "unit": "kgf/cm²"
+    }
+   ]
+  },
+  {
+   "titulo": "6. PERNOS DE ALMA",
+   "campos": [
+    {
+     "name": "wa_grado",
+     "label": "Grado",
+     "unit": "",
+     "default": "A325-N (roscas incl.)",
+     "row": 45,
+     "options": [
+      "A325-N (roscas incl.)",
+      "A325-X (roscas excl.)",
+      "A490-N (roscas incl.)",
+      "A490-X (roscas excl.)"
+     ]
+    },
+    {
+     "name": "wa_diam",
+     "label": "Diámetro",
+     "unit": "",
+     "default": "3/4\"",
+     "row": 46,
+     "options": [
+      "5/8\"",
+      "3/4\"",
+      "7/8\"",
+      "1\"",
+      "1-1/8\"",
+      "1-1/4\""
+     ]
+    },
+    {
+     "name": "wa_nr",
+     "label": "Filas (verticales) nr",
+     "unit": "",
+     "default": 3,
+     "row": 47
+    },
+    {
+     "name": "wa_nc",
+     "label": "Columnas por lado nc",
+     "unit": "",
+     "default": 1,
+     "row": 48
+    },
+    {
+     "name": "wa_sv",
+     "label": "Paso vertical sv",
+     "unit": "mm",
+     "default": 75,
+     "row": 49
+    },
+    {
+     "name": "wa_sh",
+     "label": "Paso horizontal sh",
+     "unit": "mm",
+     "default": 75,
+     "row": 50
+    },
+    {
+     "name": "wa_Leb",
+     "label": "Borde en la viga (columna → extremo)",
+     "unit": "mm",
+     "default": 40,
+     "row": 51
+    },
+    {
+     "name": "wa_Lep",
+     "label": "Borde horizontal en la placa",
+     "unit": "mm",
+     "default": 40,
+     "row": 52
+    }
+   ]
+  }
+ ],
+ "combos": {
+  "cols": [
+   {
+    "name": "cb_nom",
+    "key": "nombre",
+    "label": "Combinación"
+   },
+   {
+    "name": "cb_M",
+    "key": "M",
+    "label": "Mu (Tonf·m)"
+   },
+   {
+    "name": "cb_V",
+    "key": "V",
+    "label": "Vu (Tonf)"
+   }
+  ],
+  "filas": [
+   {
+    "M": 9,
+    "nombre": "1.2D+1.6L",
+    "V": 5.5
+   },
+   {
+    "M": 11,
+    "nombre": "1.2D+1.0E+L",
+    "V": 4.5
+   },
+   {
+    "M": 7.5,
+    "nombre": "0.9D+1.0E",
+    "V": 3
+   },
+   {
+    "M": null,
+    "nombre": "C4",
+    "V": null
+   },
+   {
+    "M": null,
+    "nombre": "C5",
+    "V": null
+   },
+   {
+    "M": null,
+    "nombre": "C6",
+    "V": null
+   },
+   {
+    "M": null,
+    "nombre": "C7",
+    "V": null
+   },
+   {
+    "M": null,
+    "nombre": "C8",
+    "V": null
+   },
+   {
+    "M": null,
+    "nombre": "C9",
+    "V": null
+   },
+   {
+    "M": null,
+    "nombre": "C10",
+    "V": null
+   }
+  ],
+  "n": 10
+ },
+ "notas": [
+  "Empalme apernado; las alas toman el momento (o Mu − Mw si se activa el reparto por inercia) y el alma el corte.",
+  "Fuerza de ala Ff = M/(d − tf); se reparte entre placa exterior e interiores según área (resistencias sumadas).",
+  "Grupo de alma con excentricidad e al centro del grupo de un lado; método elástico.",
+  "Deslizamiento crítico: J3.8 a nivel de resistencia (φ = 1.0, agujeros estándar, hf = 1.0), más corte y aplastamiento.",
+  "No incluye: carga axial en la viga, empalmes soldados, requisitos sísmicos de AISC 341 para empalmes.",
+  "Herramienta de apoyo: la responsabilidad del diseño es del ingeniero que la usa."
+ ],
+ "titulo": "EMPALME DE VIGA APERNADO (BEAM SPLICE) — PLACAS DE ALA Y DE ALMA",
+ "norma": "AISC 360-16 (J3, J3.8, J4, J5, F13.1)  ·  AISC Manual Parte 12  ·  LRFD  ·  Unidades: Tonf, Tonf·m, mm, kgf/cm²"
+}
