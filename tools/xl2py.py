@@ -2,6 +2,8 @@
 """Traduce las fórmulas de una hoja de cálculo de conexión (DISEÑO / CALCULO / CATALOGOS) a un módulo Python.
 
 Uso:  python3 tools/xl2py.py "END_PLATE_AISC_DG4 (2).xlsx" end_plate
+      python3 tools/xl2py.py "BFP_AISC358 (2).xlsx" bfp
+      python3 tools/xl2py.py "RODILLA_CUMBRERA_GALPON (2).xlsx" rodilla
 
 Genera en el paquete de destino:
     xl_model.py        filas de fórmulas (expresiones Python con comentarios) — NO editar a mano
@@ -176,7 +178,8 @@ class Translator:
             return f"(({a[1]}) if ({a[0]}) else ({a[2] if len(a) > 2 else 'False'}))"
         simple = {"MIN": "_min", "MAX": "_max", "ABS": "abs", "ISNUMBER": "_isnum", "N": "_n",
                   "MATCH": "_match", "INDEX": "_index", "COUNT": "_count", "AND": "_and", "OR": "_or",
-                  "SQRT": "_sqrt", "TAN": "math.tan", "RADIANS": "math.radians", "TEXT": "_text"}
+                  "SQRT": "_sqrt", "TAN": "math.tan", "RADIANS": "math.radians", "TEXT": "_text",
+                  "SIN": "math.sin", "COS": "math.cos", "ROUND": "round"}
         if f in simple:
             return f"{simple[f]}({','.join(a)})"
         if f == "PI":
@@ -188,22 +191,31 @@ class Translator:
         raise ValueError(f"función no soportada: {f}")
 
 
+
+def is_formula(v):
+    return isinstance(v, str) and v.startswith("=")
+
+
 def main(xlsx, outdir):
     wb = openpyxl.load_workbook(xlsx)
-    wv = openpyxl.load_workbook(xlsx, data_only=True)
     dis, cal, cat = wb["DISEÑO"], wb["CALCULO"], wb["CATALOGOS"]
     names = {n: (d.attr_text.split("!")[0].strip("'"), d.attr_text.split("!")[1].replace("$", ""))
              for n, d in wb.defined_names.items()}
-    cell2name = {}
-    for n, (sh, cell) in names.items():
-        if ":" not in cell:
-            cell2name[(sh, cell)] = n
+    cell2name = {(sh, cell): n for n, (sh, cell) in names.items() if ":" not in cell}
+
+    # filas de CALCULO por combinación = las que tienen fórmula también en la columna E
+    combo_rows = {r for r in range(1, cal.max_row + 1) if is_formula(cal.cell(row=r, column=5).value)}
+    ncombo = 0
+    for r in combo_rows:
+        for c in range(5, cal.max_column + 1):
+            if is_formula(cal.cell(row=r, column=c).value):
+                ncombo = max(ncombo, c - 3)
 
     def cell_name(sheet, col, row, combo_col):
         if sheet == "DISEÑO":
             return cell2name.get((sheet, f"{col}{row}"), f"DIS_{col}{row}")
         if sheet == "CALCULO":
-            if row >= 109:
+            if row in combo_rows:
                 return f"r{row}"
             return cell2name.get((sheet, f"{col}{row}"), f"g{row}")
         raise ValueError(sheet)
@@ -219,13 +231,16 @@ def main(xlsx, outdir):
             catd[L] = vals
     json.dump(catd, open(os.path.join(outdir, "catalogos.json"), "w", encoding="utf-8"), ensure_ascii=False)
 
-    # ── campos de entrada de DISEÑO ──────────────────────────────────────────────
-    sections, cur = [], None
+    # ── entradas de DISEÑO (bloque izquierdo, columnas B-E) ──────────────────────────
     validations = {}
     for dv in dis.data_validations.dataValidation:
         for rng in str(dv.sqref).split():
-            validations[rng] = dv.formula1
-    derived, inputs = [], []
+            if ":" in rng:
+                (c1, r1), (c2, r2) = [re.match(r"([A-Z]+)(\d+)", x).groups() for x in rng.split(":")]
+                for rr in range(int(r1), int(r2) + 1):
+                    validations[f"{c1}{rr}"] = dv.formula1
+            else:
+                validations[rng] = dv.formula1
 
     def opts(formula):
         m = re.match(r"CATALOGOS!\$([A-Z]+)\$(\d+):\$[A-Z]+\$(\d+)", formula or "")
@@ -234,134 +249,160 @@ def main(xlsx, outdir):
         L, a, b = m.group(1), int(m.group(2)), int(m.group(3))
         return [v for v in catd[L][a - 1:b] if v is not None]
 
-    for r in range(6, 67):
+    sections, cur, derived = [], None, []
+    for r in range(6, dis.max_row + 1):
         b = dis.cell(row=r, column=2).value
-        c = dis.cell(row=r, column=3)
-        if b and c.value is None and r != 14 and not str(b).startswith("Celdas"):
+        c = dis.cell(row=r, column=3).value
+        e = dis.cell(row=r, column=5).value
+        if b is None and c is None:
+            continue
+        if b is not None and c is None and e is None and not str(b).startswith("Celdas"):
             cur = {"titulo": str(b), "campos": []}
             sections.append(cur)
             continue
-        if c.value is None or cur is None:
+        if cur is None or b is None:
             continue
-        nm = cell_name("DISEÑO", "C", r, None)
         unidad = dis.cell(row=r, column=4).value or ""
-        if isinstance(c.value, str) and c.value.startswith("="):
-            derived.append((r, nm, str(b), unidad, c.value))
-            e = dis.cell(row=r, column=5)
-            continue
-        campo = {"name": nm, "label": str(b), "unit": unidad, "default": c.value, "row": r}
-        o = opts(validations.get(f"C{r}"))
-        if o:
-            campo["options"] = o
-        elif isinstance(c.value, str):
-            campo["kind"] = "text"
-        cur["campos"].append(campo)
-        inputs.append(campo)
-        # entradas "armado" en la columna E
-        e = dis.cell(row=r, column=5)
-        if e.value is not None and not (isinstance(e.value, str) and e.value.startswith("=")) \
-                and dis.cell(row=r, column=5).value != "Armado (mm)" and isinstance(e.value, (int, float)):
-            pass
-    # columnas E (armado): filas 15-18 y 25-28
-    for r in list(range(15, 19)) + list(range(25, 29)):
-        e = dis.cell(row=r, column=5)
-        nm = f"DIS_E{r}"
-        campo = {"name": nm, "label": str(dis.cell(row=r, column=2).value) + " (armado)", "unit": "mm",
-                 "default": e.value, "row": r, "armado_de": "vg_perfil" if r < 20 else "co_perfil"}
-        for s in sections:
-            if s["campos"] and s["campos"][0]["row"] < r <= (s["campos"][-1]["row"] + 1) or \
-                    (s["campos"] and s["campos"][0]["row"] - 2 < r < s["campos"][0]["row"] + 12):
-                pass
-        inputs.append(campo)
-    # asignar armados a su sección por rango de filas
-    for campo in inputs:
-        if campo["name"].startswith("DIS_E"):
-            for s in sections:
-                rows = [c["row"] for c in s["campos"] if not c["name"].startswith("DIS_E")]
-                if rows and min(rows) <= campo["row"] <= max(rows):
-                    s["campos"].append(campo)
-                    break
-    # tabla de combinaciones
-    combos = []
-    for r in range(23, 33):
-        combos.append({"nombre": dis.cell(row=r, column=7).value, "M": dis.cell(row=r, column=8).value,
-                       "V": dis.cell(row=r, column=9).value})
+        for col, v in (("C", c), ("E", e)):
+            if v is None or str(v) in ("valor", "Armado (mm)"):
+                continue
+            nm = cell_name("DISEÑO", col, r, None)
+            if is_formula(v):
+                derived.append((r, nm, str(b), unidad, v))
+                cur.setdefault("derivados", []).append({"row": r, "name": nm, "label": str(b), "unit": unidad})
+            elif col == "C":
+                campo = {"name": nm, "label": str(b), "unit": unidad, "default": v, "row": r}
+                o = opts(validations.get(f"C{r}"))
+                if o:
+                    campo["options"] = o
+                elif isinstance(v, str):
+                    campo["kind"] = "text"
+                cur["campos"].append(campo)
+            elif is_formula(c):                      # constante en E con fórmula en C → entrada "armado"
+                m = re.search(r'IF\((\w+)="ARMADO', c)
+                cur["campos"].append({"name": nm, "label": f"{b} (armado)", "unit": "mm", "default": v, "row": r,
+                                      "armado_de": m.group(1) if m else None})
+
+    # tabla de combinaciones (nombres cb_*)
+    cb = {}
+    for n, (sh, cell) in names.items():
+        if n.startswith("cb_") and sh == "DISEÑO":
+            m = re.match(r"([A-Z]+)(\d+):([A-Z]+)(\d+)", cell)
+            cb[n] = (m.group(1), int(m.group(2)), int(m.group(4)))
+    combos = None
+    if cb:
+        r1 = min(v[1] for v in cb.values())
+        r2 = max(v[2] for v in cb.values())
+        cols = []
+        for n, (L, a, b) in sorted(cb.items(), key=lambda kv: column_index_from_string(kv[1][0])):
+            lab = dis[f"{L}{a - 1}"].value
+            key = {"cb_nom": "nombre"}.get(n, n[3:])
+            cols.append({"name": n, "key": key, "label": str(lab).replace("\n", " ") if lab else key})
+        filas = []
+        for r in range(r1, r2 + 1):
+            fila = {}
+            for n, (L, a, b) in cb.items():
+                fila[{"cb_nom": "nombre"}.get(n, n[3:])] = dis[f"{L}{r}"].value
+            filas.append(fila)
+        combos = {"cols": cols, "filas": filas, "n": r2 - r1 + 1}
     spec = {"secciones": sections, "combos": combos}
-    json.dump(spec, open(os.path.join(outdir, "inputs_spec.json"), "w", encoding="utf-8"),
-              ensure_ascii=False, indent=1)
 
     # ── traducción ───────────────────────────────────────────────────────────────
     def T(formula, sheet, col=None):
         return Translator(names, sheet, col, cell_name).tr(formula)
 
     out = ['"""Modelo generado por tools/xl2py.py — NO editar a mano (regenerar desde la hoja de Excel)."""', ""]
+    out.append(f"NCOMBO = {ncombo}\n")
     out.append("DERIVED = [  # (fila, nombre, etiqueta, unidad, expresión)  — fórmulas de la hoja DISEÑO")
     for r, nm, lab, un, f in derived:
         out.append(f"    ({r}, {nm!r}, {lab!r}, {un!r}, {T(f, 'DISEÑO')!r}),")
     out.append("]\n")
 
-    glob = []
-    for r in range(5, 107):
+    glob, comb, sec = [], [], ""
+    for r in range(4, cal.max_row + 1):
         v = cal.cell(row=r, column=4).value
         a, b, c = (cal.cell(row=r, column=k).value for k in (1, 2, 3))
+        if r in combo_rows:
+            tpl = re.sub(r"INDEX\((cb_[A-Za-z]+),1\)", r"INDEX(\1,IDX)", v)
+            tpl = re.sub(r"IF\(1=1,", "IF(IDX=1,", tpl)
+            ok = True
+            for j in range(2, ncombo + 1):
+                col = get_column_letter(3 + j)
+                esperado = cal.cell(row=r, column=3 + j).value
+                gen = re.sub(r"\bD(\d{2,3})\b", lambda m: f"{col}{m.group(1)}", tpl.replace("IDX", str(j)))
+                if gen != esperado:
+                    ok = False
+            if not ok:
+                raise ValueError(f"fila {r} de CALCULO no sigue el patrón por combinación")
+            comb.append((r, sec, str(a), str(b), str(c or ""), T(tpl.replace("IDX", "IDX_"), "CALCULO", "D")))
+            continue
         if v is None:
             if a and not b:
-                glob.append((r, "SECCION", str(a), "", None, None))
+                sec = str(a)
             continue
         nm = cell_name("CALCULO", "D", r, None)
-        code = T(v, "CALCULO") if isinstance(v, str) and v.startswith("=") else repr(v)
-        glob.append((r, str(a), str(b), str(c or ""), nm, code))
-    out.append("GLOBAL = [  # (fila, símbolo, descripción, unidad, nombre, expresión)  — hoja CALCULO, sección 1-7")
+        code = T(v, "CALCULO") if is_formula(v) else repr(v)
+        glob.append((r, sec, str(a), str(b), str(c or ""), nm, code))
+    out.append("GLOBAL = [  # (fila, sección, símbolo, descripción, unidad, nombre, expresión)  — hoja CALCULO")
     for g in glob:
         out.append(f"    {g!r},")
     out.append("]\n")
-
-    # filas por combinación (rows 110-138): se traduce la columna D y se verifica contra E..M
-    combo_rows = []
-    for r in range(110, 139):
-        v = cal.cell(row=r, column=4).value
-        a, b, c = (cal.cell(row=r, column=k).value for k in (1, 2, 3))
-        if not (isinstance(v, str) and v.startswith("=")):
-            continue
-        tpl = re.sub(r"INDEX\((cb_[A-Za-z]+),1\)", r"INDEX(\1,IDX)", v)
-        tpl = re.sub(r"IF\(1=1,", "IF(IDX=1,", tpl)
-        for j in range(2, 11):
-            col = get_column_letter(3 + j)
-            esperado = cal.cell(row=r, column=3 + j).value
-            gen = tpl.replace("IDX", str(j))
-            gen = re.sub(r"\bD(\d{3})\b", lambda m: f"{col}{m.group(1)}", gen)
-            assert gen == esperado, (r, col, gen, esperado)
-        code = T(tpl.replace("IDX", "IDX_"), "CALCULO", "D")
-        combo_rows.append((r, str(a), str(b), str(c or ""), code))
-    out.append("COMBO = [  # (fila, símbolo, descripción, unidad, expresión)  — hoja CALCULO, sección 8; IDX_ = nº de combinación")
-    for g in combo_rows:
+    out.append("COMBO = [  # (fila, sección, símbolo, descripción, unidad, expresión); IDX_ = nº de combinación")
+    for g in comb:
         out.append(f"    {g!r},")
     out.append("]\n")
 
-    # ── tabla de verificaciones (DISEÑO N..S, filas 11-44) ────────────────────────────
-    checks = []
-    for r in range(11, 45):
+    # ── tabla de verificaciones (columnas N..U de DISEÑO) ─────────────────────────────
+    hdr = next(r for r in range(1, 20) if dis.cell(row=r, column=14).value == "Verificación")
+    col_of = {}
+    for c in range(14, 24):
+        lab = str(dis.cell(row=hdr, column=c).value or "")
+        for key, pref in (("ref", "Referencia"), ("dem", "Demanda"), ("cap", "Capacidad"), ("estado", "Estado"), ("combo", "Combo")):
+            if lab.startswith(pref):
+                col_of[key] = c
+    first = hdr + 1
+    est = dis.cell(row=first + 1, column=col_of["estado"]).value
+    ratio_col = column_index_from_string(re.search(r"ISNUMBER\(([A-Z]+)\d+\)", est).group(1))
+    unit_col = next(c for c in (col_of["cap"] + 1, col_of["cap"] + 2) if c != ratio_col)
+    checks, notas, grupo_nota = [], [], False
+    blank = 0
+    for r in range(first, dis.max_row + 1):
         n = dis.cell(row=r, column=14).value
         if n is None:
+            blank += 1
+            if blank >= 2 and not grupo_nota:
+                pass
             continue
-        P = dis.cell(row=r, column=16).value
+        blank = 0
+        if str(n).upper().startswith("ALCANCE"):
+            grupo_nota = True
+            continue
+        if grupo_nota:
+            notas.append(str(n).lstrip("• ").strip())
+            continue
+        P = dis.cell(row=r, column=col_of["dem"]).value
         if P is None:
             checks.append((r, "GRUPO", str(n), "", "", None, None, None, None))
             continue
-        o = dis.cell(row=r, column=15).value
-        un = dis.cell(row=r, column=18).value
-        Q = dis.cell(row=r, column=17).value
-        S = dis.cell(row=r, column=19).value
-        U = dis.cell(row=r, column=21).value
-        tr = lambda f: T(f, "DISEÑO") if isinstance(f, str) and f.startswith("=") else repr(f)
-        checks.append((r, "CHEQUEO", str(n), str(o), str(un), tr(P), tr(Q), tr(S), tr(U) if U is not None else "'—'"))
+        cell = lambda c: dis.cell(row=r, column=c).value
+        tr = lambda f: T(f, "DISEÑO") if is_formula(f) else repr(f)
+        checks.append((r, "CHEQUEO", str(n), str(cell(col_of["ref"]) or ""), str(cell(unit_col) or ""),
+                       tr(P), tr(cell(col_of["cap"])), tr(cell(ratio_col)),
+                       tr(cell(col_of["combo"])) if "combo" in col_of and cell(col_of["combo"]) is not None else "'—'"))
+    out.append(f"RATIO_COL = {get_column_letter(ratio_col)!r}  # columna de ratio de la tabla de verificaciones")
+    out.append(f"DEM_COL, CAP_COL = {get_column_letter(col_of['dem'])!r}, {get_column_letter(col_of['cap'])!r}")
     out.append("CHECKS = [  # (fila, tipo, nombre, referencia, unidad, demanda, capacidad, ratio, combo)")
     for g in checks:
         out.append(f"    {g!r},")
     out.append("]\n")
+    spec["notas"] = notas
+    spec["titulo"] = str(dis["B2"].value or "")
+    spec["norma"] = str(dis["B3"].value or "")
+    json.dump(spec, open(os.path.join(outdir, "inputs_spec.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     with open(os.path.join(outdir, "xl_model.py"), "w", encoding="utf-8") as fh:
         fh.write("\n".join(out))
-    print(f"{len(derived)} derivadas · {len(glob)} globales · {len(combo_rows)} por combinación · {len(checks)} chequeos")
+    open(os.path.join(outdir, "__init__.py"), "a").close()
+    print(f"{len(derived)} derivadas · {len(glob)} globales · {len(comb)} por combinación (x{ncombo}) · {len(checks)} chequeos")
 
 
 if __name__ == "__main__":

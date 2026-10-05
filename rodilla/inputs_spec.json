@@ -15,7 +15,7 @@
      "name": "DIS_C8",
      "label": "Elemento / nudo",
      "unit": "",
-     "default": "Nudo viga–columna eje 2",
+     "default": "Pórtico tipo, eje 3",
      "row": 8,
      "kind": "text"
     },
@@ -29,42 +29,72 @@
    ]
   },
   {
-   "titulo": "CONFIGURACIÓN",
+   "titulo": "CONEXIÓN",
    "campos": [
     {
-     "name": "cfg",
-     "label": "Tipo de conexión",
+     "name": "tipo",
+     "label": "Tipo",
      "unit": "",
-     "default": "4E",
+     "default": "Rodilla (placa al ala de columna)",
      "row": 11,
      "options": [
-      "4E",
-      "4ES",
-      "8ES"
+      "Rodilla (placa al ala de columna)",
+      "Cumbrera (placa a placa)"
      ]
     },
     {
-     "name": "modo",
-     "label": "Procedimiento",
+     "name": "cfg_u",
+     "label": "Configuración lado superior",
      "unit": "",
-     "default": "No sísmico (DG4)",
+     "default": "Extendida — 1+1 (4E)",
      "row": 12,
      "options": [
-      "No sísmico (DG4)",
-      "Sísmico (AISC 358)"
+      "Al ras — 1 fila (2 pernos)",
+      "Al ras — 2 filas (4 pernos)",
+      "Extendida — 1+1 (4E)"
+     ]
+    },
+    {
+     "name": "cfg_d",
+     "label": "Configuración lado inferior",
+     "unit": "",
+     "default": "Al ras — 1 fila (2 pernos)",
+     "row": 13,
+     "options": [
+      "Al ras — 1 fila (2 pernos)",
+      "Al ras — 2 filas (4 pernos)",
+      "Extendida — 1+1 (4E)"
+     ]
+    },
+    {
+     "name": "theta",
+     "label": "Pendiente de la viga θ",
+     "unit": "°",
+     "default": 10,
+     "row": 14
+    },
+    {
+     "name": "sd_tipo",
+     "label": "Soldadura ala – placa",
+     "unit": "",
+     "default": "Filete (ambos lados)",
+     "row": 15,
+     "options": [
+      "Filete (ambos lados)",
+      "CJP"
      ]
     }
    ]
   },
   {
-   "titulo": "1. VIGA",
+   "titulo": "1. VIGA (RAFTER)",
    "campos": [
     {
      "name": "vg_perfil",
      "label": "Perfil (catálogo o ARMADO)",
      "unit": "",
      "default": "VK400X180X6X12",
-     "row": 14,
+     "row": 17,
      "options": [
       "ARMADO (flejes soldados)",
       "VK180X100X4X6",
@@ -83,45 +113,40 @@
       "W12X26",
       "W14X30",
       "W16X31",
-      "W16X40",
       "W18X35",
-      "W18X50",
-      "W21X44",
-      "W21X62",
-      "W24X55",
-      "W24X76"
+      "W21X44"
      ]
     },
     {
-     "name": "DIS_E15",
+     "name": "DIS_E18",
      "label": "Peralte d (armado)",
      "unit": "mm",
      "default": 400,
-     "row": 15,
+     "row": 18,
      "armado_de": "vg_perfil"
     },
     {
-     "name": "DIS_E16",
+     "name": "DIS_E19",
      "label": "Ancho de ala bf (armado)",
      "unit": "mm",
      "default": 180,
-     "row": 16,
+     "row": 19,
      "armado_de": "vg_perfil"
     },
     {
-     "name": "DIS_E17",
+     "name": "DIS_E20",
      "label": "Espesor de alma tw (armado)",
      "unit": "mm",
      "default": 6,
-     "row": 17,
+     "row": 20,
      "armado_de": "vg_perfil"
     },
     {
-     "name": "DIS_E18",
+     "name": "DIS_E21",
      "label": "Espesor de ala tf (armado)",
      "unit": "mm",
      "default": 12,
-     "row": 18,
+     "row": 21,
      "armado_de": "vg_perfil"
     },
     {
@@ -129,69 +154,77 @@
      "label": "Acero",
      "unit": "",
      "default": "A572 Gr50",
-     "row": 19,
+     "row": 22,
      "options": [
       "A36",
       "A572 Gr50",
       "A992",
       "A588 Gr50"
      ]
+    },
+    {
+     "name": "vg_dh",
+     "label": "Peralte con cartela en la placa (0 = sin)",
+     "unit": "mm",
+     "default": 600,
+     "row": 24
+    },
+    {
+     "name": "vg_Lh",
+     "label": "Largo de la cartela (dibujo)",
+     "unit": "mm",
+     "default": 1500,
+     "row": 25
     }
    ],
    "derivados": [
     {
-     "row": 15,
+     "row": 18,
      "name": "vg_d_mm",
      "label": "Peralte d",
      "unit": "mm"
     },
     {
-     "row": 16,
+     "row": 19,
      "name": "vg_bf_mm",
      "label": "Ancho de ala bf",
      "unit": "mm"
     },
     {
-     "row": 17,
+     "row": 20,
      "name": "vg_tw_mm",
      "label": "Espesor de alma tw",
      "unit": "mm"
     },
     {
-     "row": 18,
+     "row": 21,
      "name": "vg_tf_mm",
      "label": "Espesor de ala tf",
      "unit": "mm"
     },
     {
-     "row": 20,
+     "row": 23,
      "name": "vg_Fy",
-     "label": "Fy",
+     "label": "Fy / Fu",
      "unit": "kgf/cm²"
     },
     {
-     "row": 21,
+     "row": 23,
      "name": "vg_Fu",
-     "label": "Fu",
+     "label": "Fy / Fu",
      "unit": "kgf/cm²"
-    },
-    {
-     "row": 22,
-     "name": "vg_Ry",
-     "label": "Ry (AISC 341)",
-     "unit": ""
     }
    ]
   },
   {
-   "titulo": "2. COLUMNA (conexión al ala)",
+   "titulo": "2. COLUMNA (solo rodilla)",
    "campos": [
     {
      "name": "co_perfil",
      "label": "Perfil (catálogo o ARMADO)",
      "unit": "",
      "default": "HA500X250X10X15",
-     "row": 24,
+     "row": 27,
      "options": [
       "ARMADO (flejes soldados)",
       "HA200X140X6X12",
@@ -214,41 +247,39 @@
       "HA540X270X10X15",
       "W10X49",
       "W12X65",
-      "W12X96",
-      "W14X90",
-      "W14X120"
+      "W14X90"
      ]
     },
     {
-     "name": "DIS_E25",
+     "name": "DIS_E28",
      "label": "Peralte d (armado)",
      "unit": "mm",
      "default": 500,
-     "row": 25,
+     "row": 28,
      "armado_de": "co_perfil"
     },
     {
-     "name": "DIS_E26",
+     "name": "DIS_E29",
      "label": "Ancho de ala bf (armado)",
      "unit": "mm",
      "default": 250,
-     "row": 26,
+     "row": 29,
      "armado_de": "co_perfil"
     },
     {
-     "name": "DIS_E27",
+     "name": "DIS_E30",
      "label": "Espesor de alma tw (armado)",
      "unit": "mm",
      "default": 10,
-     "row": 27,
+     "row": 30,
      "armado_de": "co_perfil"
     },
     {
-     "name": "DIS_E28",
+     "name": "DIS_E31",
      "label": "Espesor de ala tf (armado)",
      "unit": "mm",
      "default": 15,
-     "row": 28,
+     "row": 31,
      "armado_de": "co_perfil"
     },
     {
@@ -256,7 +287,7 @@
      "label": "Acero",
      "unit": "",
      "default": "A572 Gr50",
-     "row": 29,
+     "row": 32,
      "options": [
       "A36",
       "A572 Gr50",
@@ -269,30 +300,12 @@
      "label": "Filete / radio alma–ala (para k)",
      "unit": "mm",
      "default": 6,
-     "row": 32
+     "row": 34
     },
     {
      "name": "co_dtop",
      "label": "Tope de columna → ala superior de viga",
      "unit": "mm",
-     "default": 1000,
-     "row": 33
-    },
-    {
-     "name": "dos_lados",
-     "label": "Vigas a ambos lados (columna interior)",
-     "unit": "",
-     "default": "No",
-     "row": 34,
-     "options": [
-      "Sí",
-      "No"
-     ]
-    },
-    {
-     "name": "Mu_op",
-     "label": "Mu viga opuesta (suma en zona de panel)",
-     "unit": "Tonf·m",
      "default": 0,
      "row": 35
     },
@@ -300,7 +313,7 @@
      "name": "Pu_col",
      "label": "Pu de la columna",
      "unit": "Tonf",
-     "default": 20,
+     "default": 10,
      "row": 36
     },
     {
@@ -316,11 +329,13 @@
     },
     {
      "name": "cp_t",
-     "label": "Rigidizador continuidad: espesor",
+     "label": "Rigid. continuidad: espesor",
      "unit": "mm",
      "default": 12,
      "row": 38,
      "options": [
+      0,
+      6,
       8,
       10,
       12,
@@ -335,56 +350,78 @@
       32,
       35,
       38,
-      40,
-      45,
-      50,
-      55,
-      60
+      40
      ]
     },
     {
      "name": "cp_b",
-     "label": "Rigidizador continuidad: ancho (c/lado)",
+     "label": "Rigid. continuidad: ancho (c/lado)",
      "unit": "mm",
      "default": 110,
      "row": 39
+    },
+    {
+     "name": "dp_t",
+     "label": "Placa de refuerzo del alma (doubler)",
+     "unit": "mm",
+     "default": 0,
+     "row": 40,
+     "options": [
+      0,
+      6,
+      8,
+      10,
+      12,
+      15,
+      16,
+      19,
+      20,
+      22,
+      25,
+      28,
+      30,
+      32,
+      35,
+      38,
+      40
+     ]
     }
    ],
    "derivados": [
     {
-     "row": 25,
+     "row": 28,
      "name": "co_d_mm",
      "label": "Peralte d",
      "unit": "mm"
     },
     {
-     "row": 26,
+     "row": 29,
      "name": "co_bf_mm",
      "label": "Ancho de ala bf",
      "unit": "mm"
     },
     {
-     "row": 27,
+     "row": 30,
      "name": "co_tw_mm",
      "label": "Espesor de alma tw",
      "unit": "mm"
     },
     {
-     "row": 28,
+     "row": 31,
      "name": "co_tf_mm",
      "label": "Espesor de ala tf",
      "unit": "mm"
     },
     {
-     "row": 30,
+     "row": 33,
      "name": "co_Fy",
-     "label": "Fy",
+     "label": "Fy / Fu",
      "unit": "kgf/cm²"
     },
     {
-     "row": 31,
+     "row": 33,
      "name": "co_Fu",
-     "label": "Fu",
+     "label": "Fy / Fu",
      "unit": "kgf/cm²"
     }
    ]
@@ -397,7 +434,7 @@
      "label": "Acero",
      "unit": "",
      "default": "A572 Gr50",
-     "row": 41,
+     "row": 42,
      "options": [
       "A36",
       "A572 Gr50",
@@ -419,6 +456,8 @@
      "default": 25,
      "row": 45,
      "options": [
+      0,
+      6,
       8,
       10,
       12,
@@ -433,44 +472,40 @@
       32,
       35,
       38,
-      40,
-      45,
-      50,
-      55,
-      60
+      40
      ]
     },
     {
      "name": "pl_g",
-     "label": "g — gramil horizontal",
+     "label": "g — gramil",
      "unit": "mm",
      "default": 110,
      "row": 46
     },
     {
      "name": "pl_pfo",
-     "label": "pfo — ala a fila exterior",
+     "label": "pfo — ala a fila exterior (extendida)",
      "unit": "mm",
-     "default": 45,
+     "default": 50,
      "row": 47
     },
     {
      "name": "pl_pfi",
-     "label": "pfi — ala a fila interior",
+     "label": "pfi — ala a primera fila interior",
      "unit": "mm",
-     "default": 45,
+     "default": 50,
      "row": 48
     },
     {
      "name": "pl_pb",
-     "label": "pb — entre filas (solo 8ES)",
+     "label": "pb — entre filas interiores (al ras 2 filas)",
      "unit": "mm",
      "default": 90,
      "row": 49
     },
     {
      "name": "pl_de",
-     "label": "de — fila exterior a borde",
+     "label": "de — fila exterior a borde (extendida)",
      "unit": "mm",
      "default": 40,
      "row": 50
@@ -478,15 +513,15 @@
    ],
    "derivados": [
     {
-     "row": 42,
+     "row": 43,
      "name": "pl_Fy",
-     "label": "Fy",
+     "label": "Fy / Fu",
      "unit": "kgf/cm²"
     },
     {
      "row": 43,
      "name": "pl_Fu",
-     "label": "Fu",
+     "label": "Fy / Fu",
      "unit": "kgf/cm²"
     }
    ]
@@ -512,16 +547,14 @@
      "label": "Diámetro",
      "unit": "",
      "default": "7/8\"",
-     "row": 55,
+     "row": 54,
      "options": [
       "5/8\"",
       "3/4\"",
       "7/8\"",
       "1\"",
       "1-1/8\"",
-      "1-1/4\"",
-      "1-3/8\"",
-      "1-1/2\""
+      "1-1/4\""
      ]
     }
    ],
@@ -529,80 +562,26 @@
     {
      "row": 53,
      "name": "pn_Fnt",
-     "label": "Fnt",
+     "label": "Fnt / Fnv",
      "unit": "kgf/cm²"
     },
     {
-     "row": 54,
+     "row": 53,
      "name": "pn_Fnv",
-     "label": "Fnv",
+     "label": "Fnt / Fnv",
      "unit": "kgf/cm²"
     }
    ]
   },
   {
-   "titulo": "5. RIGIDIZADOR DE PLACA (4ES / 8ES)",
-   "campos": [
-    {
-     "name": "st_t",
-     "label": "Espesor ts",
-     "unit": "mm",
-     "default": 10,
-     "row": 57,
-     "options": [
-      8,
-      10,
-      12,
-      15,
-      16,
-      19,
-      20,
-      22,
-      25,
-      28,
-      30,
-      32,
-      35,
-      38,
-      40,
-      45,
-      50,
-      55,
-      60
-     ]
-    },
-    {
-     "name": "st_acero",
-     "label": "Acero",
-     "unit": "",
-     "default": "A572 Gr50",
-     "row": 58,
-     "options": [
-      "A36",
-      "A572 Gr50",
-      "A992",
-      "A588 Gr50"
-     ]
-    }
-   ],
-   "derivados": [
-    {
-     "row": 59,
-     "name": "st_Fy",
-     "label": "Fys",
-     "unit": "kgf/cm²"
-    }
-   ]
-  },
-  {
-   "titulo": "6. SOLDADURA",
+   "titulo": "5. SOLDADURA",
    "campos": [
     {
      "name": "sd_elec",
      "label": "Electrodo",
      "unit": "",
      "default": "E70XX",
-     "row": 61,
+     "row": 56,
      "options": [
       "E60XX",
       "E70XX"
@@ -610,36 +589,17 @@
     },
     {
      "name": "sd_wf",
-     "label": "Filete ala de viga – placa (no sísmico)",
+     "label": "Filete ala – placa (si no es CJP)",
      "unit": "mm",
      "default": 10,
-     "row": 62
+     "row": 57
     },
     {
      "name": "sd_ww",
-     "label": "Filete alma de viga – placa (c/lado)",
+     "label": "Filete alma – placa (c/lado)",
      "unit": "mm",
      "default": 6,
-     "row": 63
-    }
-   ]
-  },
-  {
-   "titulo": "7. SÍSMICO — AISC 358-16 §6.8",
-   "campos": [
-    {
-     "name": "sis_L",
-     "label": "Luz entre ejes de columnas L",
-     "unit": "m",
-     "default": 8,
-     "row": 65
-    },
-    {
-     "name": "sis_Vg",
-     "label": "Vgrav en la rótula (1.2D + f1L + 0.2S)",
-     "unit": "Tonf",
-     "default": 3,
-     "row": 66
+     "row": 58
     }
    ]
   }
@@ -654,78 +614,92 @@
    {
     "name": "cb_M",
     "key": "M",
-    "label": "Mu (Tonf·m)"
+    "label": "Mu (Tonf·m) (−) tracc. arriba"
    },
    {
     "name": "cb_V",
     "key": "V",
     "label": "Vu (Tonf)"
+   },
+   {
+    "name": "cb_P",
+    "key": "P",
+    "label": "Pu (Tonf) (+) tracción"
    }
   ],
   "filas": [
    {
-    "M": 9.5,
-    "nombre": "1.2D+1.6L",
-    "V": 6
+    "M": -16,
+    "nombre": "1.2D+1.6Lr",
+    "P": -4,
+    "V": 6.5
    },
    {
-    "M": 14,
-    "nombre": "1.2D+1.0E+L",
-    "V": 7
+    "M": -8,
+    "nombre": "1.2D+0.5Lr+1.0W",
+    "P": -2,
+    "V": 3.5
    },
    {
-    "M": 11.5,
-    "nombre": "0.9D+1.0E",
-    "V": 4.5
+    "M": 6.5,
+    "nombre": "0.9D+1.0W (succión)",
+    "P": 1.5,
+    "V": -2.8
    },
    {
-    "M": 8,
-    "nombre": "1.2D+1.0W+L",
-    "V": 5
+    "M": -13,
+    "nombre": "1.2D+1.0E+Lr",
+    "P": -3.5,
+    "V": 5.5
    },
    {
     "M": null,
     "nombre": "C5",
+    "P": null,
     "V": null
    },
    {
     "M": null,
     "nombre": "C6",
+    "P": null,
     "V": null
    },
    {
     "M": null,
     "nombre": "C7",
+    "P": null,
     "V": null
    },
    {
     "M": null,
     "nombre": "C8",
+    "P": null,
     "V": null
    },
    {
     "M": null,
     "nombre": "C9",
+    "P": null,
     "V": null
    },
    {
     "M": null,
     "nombre": "C10",
+    "P": null,
     "V": null
    }
   ],
   "n": 10
  },
  "notas": [
-  "No sísmico: procedimiento DG4 (placa gruesa, sin palanca) con φ de AISC 360-16 (DG4 2003 usaba φ de LRFD 1999).",
-  "Sísmico: AISC 358-16 Cap. 6 con Mf = Mpe + Vu·Sh; φd = 1.00 (dúctil) y φn = 0.90 (no dúctil).",
-  "Placa extendida arriba y abajo (momento reversible); pernos pretensados; conexión al ala de la columna.",
-  "Yp, Yc: AISC 358-16 Tablas 6.2, 6.5 y 6.6 (mismo modelo de líneas de fluencia de DG4).",
-  "Sísmico no incluye: columna fuerte–viga débil, zona de panel según AISC 341, arriostramiento lateral.",
-  "No incluye placas de refuerzo en zona de panel (doublers) ni conexión al alma de la columna.",
-  "Rangos de Tabla 6.1 en CATALOGOS: confirmar contra la norma impresa.",
+  "Placa gruesa (DG16/DG4): tp ≥ tp,req para 1.11·γr·φMnp; los pernos no tienen efecto palanca.",
+  "Momento reversible: cada lado usa su configuración; se revisan todas las combinaciones.",
+  "Pendiente: placa vertical, distancias a lo largo de la placa (dp = d/cosθ); axial y corte proyectados de forma conservadora.",
+  "Carga axial de tracción aumenta la fuerza en el ala; la compresión axial se desprecia (conservador).",
+  "Ala de columna: 4E con líneas de fluencia (AISC 358 Tablas 6.5/6.6); al ras con J10.1.",
+  "No incluye: método de placa delgada con palanca (DG16), placa tapa de columna, pandeo de la cartela.",
   "Herramienta de apoyo: la responsabilidad del diseño es del ingeniero que la usa."
  ],
- "titulo": "CONEXIÓN DE MOMENTO CON PLACA EXTREMA EXTENDIDA (END PLATE) — 4E · 4ES · 8ES",
- "norma": "AISC Design Guide 4 (2da ed.)  ·  AISC 358-16 Cap. 6  ·  AISC 360-16 (J2, J3, J4, J10)  ·  LRFD  ·  Unidades: Tonf, Tonf·m, mm, kgf/cm²"
+ "titulo": "GALPÓN — CONEXIÓN DE RODILLA Y CUMBRERA CON PLACA EXTREMA",
+ "norma": "AISC Design Guide 16 y Design Guide 4 (placa gruesa)  ·  AISC 358-16 Tabla 6.2/6.5 (4E)  ·  AISC 360-16 (J2, J3, J4, J10)  ·  LRFD  ·  Unidades: Tonf, Tonf·m, mm, kgf/cm²"
 }

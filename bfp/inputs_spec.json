@@ -1,0 +1,686 @@
+{
+ "secciones": [
+  {
+   "titulo": "DATOS GENERALES",
+   "campos": [
+    {
+     "name": "DIS_C7",
+     "label": "Proyecto",
+     "unit": "",
+     "default": "Edificio — ejemplo",
+     "row": 7,
+     "kind": "text"
+    },
+    {
+     "name": "DIS_C8",
+     "label": "Elemento / nudo",
+     "unit": "",
+     "default": "Pórtico eje B, nivel 2",
+     "row": 8,
+     "kind": "text"
+    },
+    {
+     "name": "lim_verde",
+     "label": "Límite verde / amarillo (ratio)",
+     "unit": "",
+     "default": 0.9,
+     "row": 9
+    },
+    {
+     "name": "sistema",
+     "label": "Sistema resistente",
+     "unit": "",
+     "default": "IMF",
+     "row": 10,
+     "options": [
+      "SMF",
+      "IMF"
+     ]
+    }
+   ]
+  },
+  {
+   "titulo": "1. VIGA",
+   "campos": [
+    {
+     "name": "vg_perfil",
+     "label": "Perfil (catálogo o ARMADO)",
+     "unit": "",
+     "default": "VK400X180X6X12",
+     "row": 12,
+     "options": [
+      "ARMADO (flejes soldados)",
+      "VK300X150X4X10",
+      "VK330X160X6X10",
+      "VK360X180X6X10",
+      "VK380X180X6X10",
+      "VK400X180X6X10",
+      "VK400X180X6X12",
+      "VK420X180X6X12",
+      "VK440X180X6X12",
+      "W14X30",
+      "W16X40",
+      "W18X50",
+      "W21X62",
+      "W24X76",
+      "W27X94",
+      "W30X108"
+     ]
+    },
+    {
+     "name": "DIS_E13",
+     "label": "Peralte d (armado)",
+     "unit": "mm",
+     "default": 400,
+     "row": 13,
+     "armado_de": "vg_perfil"
+    },
+    {
+     "name": "DIS_E14",
+     "label": "Ancho de ala bf (armado)",
+     "unit": "mm",
+     "default": 180,
+     "row": 14,
+     "armado_de": "vg_perfil"
+    },
+    {
+     "name": "DIS_E15",
+     "label": "Espesor de alma tw (armado)",
+     "unit": "mm",
+     "default": 6,
+     "row": 15,
+     "armado_de": "vg_perfil"
+    },
+    {
+     "name": "DIS_E16",
+     "label": "Espesor de ala tf (armado)",
+     "unit": "mm",
+     "default": 12,
+     "row": 16,
+     "armado_de": "vg_perfil"
+    },
+    {
+     "name": "vg_acero",
+     "label": "Acero",
+     "unit": "",
+     "default": "A572 Gr50 (plancha)",
+     "row": 17,
+     "options": [
+      "A36 (plancha)",
+      "A572 Gr50 (plancha)",
+      "A36 (laminado)",
+      "A572 Gr50 (laminado)",
+      "A992"
+     ]
+    },
+    {
+     "name": "L_m",
+     "label": "Luz entre ejes de columnas L",
+     "unit": "m",
+     "default": 8,
+     "row": 20
+    },
+    {
+     "name": "Vgrav",
+     "label": "Vgrav en la rótula (1.2D + f1L + 0.2S)",
+     "unit": "Tonf",
+     "default": 3,
+     "row": 21
+    }
+   ],
+   "derivados": [
+    {
+     "row": 13,
+     "name": "vg_d_mm",
+     "label": "Peralte d",
+     "unit": "mm"
+    },
+    {
+     "row": 14,
+     "name": "vg_bf_mm",
+     "label": "Ancho de ala bf",
+     "unit": "mm"
+    },
+    {
+     "row": 15,
+     "name": "vg_tw_mm",
+     "label": "Espesor de alma tw",
+     "unit": "mm"
+    },
+    {
+     "row": 16,
+     "name": "vg_tf_mm",
+     "label": "Espesor de ala tf",
+     "unit": "mm"
+    },
+    {
+     "row": 18,
+     "name": "vg_Fy",
+     "label": "Fy / Fu",
+     "unit": "kgf/cm²"
+    },
+    {
+     "row": 18,
+     "name": "vg_Fu",
+     "label": "Fy / Fu",
+     "unit": "kgf/cm²"
+    },
+    {
+     "row": 19,
+     "name": "vg_Ry",
+     "label": "Ry / Rt",
+     "unit": ""
+    },
+    {
+     "row": 19,
+     "name": "vg_Rt",
+     "label": "Ry / Rt",
+     "unit": ""
+    }
+   ]
+  },
+  {
+   "titulo": "2. COLUMNA (conexión al ala)",
+   "campos": [
+    {
+     "name": "co_perfil",
+     "label": "Perfil (catálogo o ARMADO)",
+     "unit": "",
+     "default": "HA500X250X10X15",
+     "row": 23,
+     "options": [
+      "ARMADO (flejes soldados)",
+      "HA360X180X6X12",
+      "HA400X200X8X15",
+      "HA440X220X8X15",
+      "HA480X240X8X15",
+      "HA500X250X10X15",
+      "HA520X260X10X15",
+      "HA540X270X10X15",
+      "W14X90",
+      "W14X120",
+      "W14X159",
+      "W24X131"
+     ]
+    },
+    {
+     "name": "DIS_E24",
+     "label": "Peralte d (armado)",
+     "unit": "mm",
+     "default": 500,
+     "row": 24,
+     "armado_de": "co_perfil"
+    },
+    {
+     "name": "DIS_E25",
+     "label": "Ancho de ala bf (armado)",
+     "unit": "mm",
+     "default": 250,
+     "row": 25,
+     "armado_de": "co_perfil"
+    },
+    {
+     "name": "DIS_E26",
+     "label": "Espesor de alma tw (armado)",
+     "unit": "mm",
+     "default": 10,
+     "row": 26,
+     "armado_de": "co_perfil"
+    },
+    {
+     "name": "DIS_E27",
+     "label": "Espesor de ala tf (armado)",
+     "unit": "mm",
+     "default": 15,
+     "row": 27,
+     "armado_de": "co_perfil"
+    },
+    {
+     "name": "co_acero",
+     "label": "Acero",
+     "unit": "",
+     "default": "A572 Gr50 (plancha)",
+     "row": 28,
+     "options": [
+      "A36 (plancha)",
+      "A572 Gr50 (plancha)",
+      "A36 (laminado)",
+      "A572 Gr50 (laminado)",
+      "A992"
+     ]
+    },
+    {
+     "name": "co_kw",
+     "label": "Filete / radio alma–ala (para k)",
+     "unit": "mm",
+     "default": 6,
+     "row": 31
+    },
+    {
+     "name": "co_dtop",
+     "label": "Tope de columna → placa superior",
+     "unit": "mm",
+     "default": 1000,
+     "row": 32
+    },
+    {
+     "name": "dos_lados",
+     "label": "Vigas a ambos lados",
+     "unit": "",
+     "default": "No",
+     "row": 33,
+     "options": [
+      "Sí",
+      "No"
+     ]
+    },
+    {
+     "name": "Pu_col",
+     "label": "Pu de la columna (compresión)",
+     "unit": "Tonf",
+     "default": 20,
+     "row": 34
+    },
+    {
+     "name": "cp_usar",
+     "label": "Rigidizadores de continuidad",
+     "unit": "",
+     "default": "Sí",
+     "row": 35,
+     "options": [
+      "Sí",
+      "No"
+     ]
+    },
+    {
+     "name": "cp_t",
+     "label": "Rigid. continuidad: espesor",
+     "unit": "mm",
+     "default": 15,
+     "row": 36,
+     "options": [
+      0,
+      6,
+      8,
+      10,
+      12,
+      15,
+      16,
+      19,
+      20,
+      22,
+      25,
+      28,
+      30,
+      32,
+      35,
+      38,
+      40,
+      45,
+      50
+     ]
+    },
+    {
+     "name": "cp_b",
+     "label": "Rigid. continuidad: ancho (c/lado)",
+     "unit": "mm",
+     "default": 110,
+     "row": 37
+    },
+    {
+     "name": "dp_t",
+     "label": "Placa de refuerzo del alma (doubler)",
+     "unit": "mm",
+     "default": 6,
+     "row": 38,
+     "options": [
+      0,
+      6,
+      8,
+      10,
+      12,
+      15,
+      16,
+      19,
+      20,
+      22,
+      25,
+      28,
+      30,
+      32,
+      35,
+      38,
+      40,
+      45,
+      50
+     ]
+    }
+   ],
+   "derivados": [
+    {
+     "row": 24,
+     "name": "co_d_mm",
+     "label": "Peralte d",
+     "unit": "mm"
+    },
+    {
+     "row": 25,
+     "name": "co_bf_mm",
+     "label": "Ancho de ala bf",
+     "unit": "mm"
+    },
+    {
+     "row": 26,
+     "name": "co_tw_mm",
+     "label": "Espesor de alma tw",
+     "unit": "mm"
+    },
+    {
+     "row": 27,
+     "name": "co_tf_mm",
+     "label": "Espesor de ala tf",
+     "unit": "mm"
+    },
+    {
+     "row": 29,
+     "name": "co_Fy",
+     "label": "Fy / Fu",
+     "unit": "kgf/cm²"
+    },
+    {
+     "row": 29,
+     "name": "co_Fu",
+     "label": "Fy / Fu",
+     "unit": "kgf/cm²"
+    },
+    {
+     "row": 30,
+     "name": "co_Ry",
+     "label": "Ry / Rt",
+     "unit": ""
+    },
+    {
+     "row": 30,
+     "name": "co_Rt",
+     "label": "Ry / Rt",
+     "unit": ""
+    }
+   ]
+  },
+  {
+   "titulo": "3. PLACAS DE ALA Y PERNOS",
+   "campos": [
+    {
+     "name": "pl_acero",
+     "label": "Acero de placa",
+     "unit": "",
+     "default": "A572 Gr50 (plancha)",
+     "row": 40,
+     "options": [
+      "A36 (plancha)",
+      "A572 Gr50 (plancha)",
+      "A36 (laminado)",
+      "A572 Gr50 (laminado)",
+      "A992"
+     ]
+    },
+    {
+     "name": "pl_tp",
+     "label": "tp — espesor de placa",
+     "unit": "mm",
+     "default": 25,
+     "row": 42,
+     "options": [
+      0,
+      6,
+      8,
+      10,
+      12,
+      15,
+      16,
+      19,
+      20,
+      22,
+      25,
+      28,
+      30,
+      32,
+      35,
+      38,
+      40,
+      45,
+      50
+     ]
+    },
+    {
+     "name": "pl_bfp",
+     "label": "bfp — ancho de placa",
+     "unit": "mm",
+     "default": 200,
+     "row": 43
+    },
+    {
+     "name": "n_b",
+     "label": "Pernos por ala n (2 líneas)",
+     "unit": "",
+     "default": 8,
+     "row": 44,
+     "options": [
+      4,
+      6,
+      8,
+      10,
+      12,
+      14,
+      16,
+      18,
+      20
+     ]
+    },
+    {
+     "name": "pn_grado",
+     "label": "Grado",
+     "unit": "",
+     "default": "A490-X (roscas excl.)",
+     "row": 45,
+     "options": [
+      "A490-X (roscas excl.)",
+      "F2280-X (roscas excl.)",
+      "A490-N (roscas incl.)",
+      "A325-X (roscas excl.)",
+      "A325-N (roscas incl.)"
+     ]
+    },
+    {
+     "name": "pn_diam",
+     "label": "Diámetro",
+     "unit": "",
+     "default": "7/8\"",
+     "row": 46,
+     "options": [
+      "5/8\"",
+      "3/4\"",
+      "7/8\"",
+      "1\"",
+      "1-1/8\"",
+      "1-1/4\""
+     ]
+    },
+    {
+     "name": "pl_g",
+     "label": "g — gramil (entre líneas)",
+     "unit": "mm",
+     "default": 110,
+     "row": 47
+    },
+    {
+     "name": "pl_S1",
+     "label": "S1 — cara de columna a 1ª fila",
+     "unit": "mm",
+     "default": 70,
+     "row": 48
+    },
+    {
+     "name": "pl_s",
+     "label": "s — paso entre filas",
+     "unit": "mm",
+     "default": 75,
+     "row": 49
+    },
+    {
+     "name": "pl_Le",
+     "label": "Borde extremo de placa (última fila)",
+     "unit": "mm",
+     "default": 45,
+     "row": 50
+    },
+    {
+     "name": "setback",
+     "label": "Holgura viga – cara de columna",
+     "unit": "mm",
+     "default": 15,
+     "row": 51
+    }
+   ],
+   "derivados": [
+    {
+     "row": 41,
+     "name": "pl_Fy",
+     "label": "Fy / Fu",
+     "unit": "kgf/cm²"
+    },
+    {
+     "row": 41,
+     "name": "pl_Fu",
+     "label": "Fy / Fu",
+     "unit": "kgf/cm²"
+    }
+   ]
+  },
+  {
+   "titulo": "4. CONEXIÓN DE ALMA (placa simple)",
+   "campos": [
+    {
+     "name": "w_n",
+     "label": "Pernos (1 línea vertical)",
+     "unit": "",
+     "default": 4,
+     "row": 53
+    },
+    {
+     "name": "w_grado",
+     "label": "Grado",
+     "unit": "",
+     "default": "A325-N (roscas incl.)",
+     "row": 54,
+     "options": [
+      "A490-X (roscas excl.)",
+      "F2280-X (roscas excl.)",
+      "A490-N (roscas incl.)",
+      "A325-X (roscas excl.)",
+      "A325-N (roscas incl.)"
+     ]
+    },
+    {
+     "name": "w_diam",
+     "label": "Diámetro",
+     "unit": "",
+     "default": "3/4\"",
+     "row": 55,
+     "options": [
+      "5/8\"",
+      "3/4\"",
+      "7/8\"",
+      "1\"",
+      "1-1/8\"",
+      "1-1/4\""
+     ]
+    },
+    {
+     "name": "w_s",
+     "label": "Paso vertical",
+     "unit": "mm",
+     "default": 75,
+     "row": 56
+    },
+    {
+     "name": "w_ev",
+     "label": "Borde vertical",
+     "unit": "mm",
+     "default": 40,
+     "row": 57
+    },
+    {
+     "name": "w_t",
+     "label": "Espesor de placa de cortante",
+     "unit": "mm",
+     "default": 10,
+     "row": 58,
+     "options": [
+      0,
+      6,
+      8,
+      10,
+      12,
+      15,
+      16,
+      19,
+      20,
+      22,
+      25,
+      28,
+      30,
+      32,
+      35,
+      38,
+      40,
+      45,
+      50
+     ]
+    },
+    {
+     "name": "w_acero",
+     "label": "Acero placa de cortante",
+     "unit": "",
+     "default": "A36 (plancha)",
+     "row": 59,
+     "options": [
+      "A36 (plancha)",
+      "A572 Gr50 (plancha)",
+      "A36 (laminado)",
+      "A572 Gr50 (laminado)",
+      "A992"
+     ]
+    },
+    {
+     "name": "sd_elec",
+     "label": "Electrodo",
+     "unit": "",
+     "default": "E70XX",
+     "row": 60,
+     "options": [
+      "E60XX",
+      "E70XX"
+     ]
+    },
+    {
+     "name": "w_w",
+     "label": "Filete placa de cortante – columna (c/lado)",
+     "unit": "mm",
+     "default": 8,
+     "row": 61
+    }
+   ]
+  }
+ ],
+ "combos": null,
+ "notas": [
+  "Diseño por capacidad: la demanda sale de Mpr (no de combinaciones del análisis).",
+  "Viga igual en ambos extremos del vano; Lh = L − dc − 2Sh.",
+  "Rigidizadores y zona de panel con Ff y ΣMf; se desprecia el cortante de columna Vc (conservador).",
+  "Conexión de alma sin excentricidad; ranuras horizontales no consideradas.",
+  "Herramienta de apoyo: la responsabilidad del diseño es del ingeniero que la usa."
+ ],
+ "titulo": "CONEXIÓN DE MOMENTO PRECALIFICADA — BOLTED FLANGE PLATE (BFP)",
+ "norma": "AISC 358-16 Cap. 7  ·  AISC 341-16 (SMF / IMF)  ·  AISC 360-16 (J3, J4, J10, E)  ·  Diseño por capacidad LRFD  ·  Unidades: Tonf, Tonf·m, mm, kgf/cm²"
+}

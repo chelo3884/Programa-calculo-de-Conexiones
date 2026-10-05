@@ -1,7 +1,5 @@
-"""Motor de cálculo — conexión de momento con placa extrema extendida (4E / 4ES / 8ES).
+"""Motor de cálculo del módulo 'rodilla': evalúa el modelo generado desde la hoja de Excel (tools/xl2py.py, xlcore.py).
 
-Evalúa el modelo generado desde END_PLATE_AISC_DG4.xlsx (AISC Design Guide 4, 2.ª ed.;
-AISC 358-16 cap. 6; AISC 360-16 J2, J3, J4, J10; LRFD). Ver tools/xl2py.py y xlcore.py.
 Unidades canónicas de entrada y salida: Tonf · Tonf·m · mm · m · kgf/cm².
 """
 import os
