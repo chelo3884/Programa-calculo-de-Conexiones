@@ -311,3 +311,33 @@ def _respuesta(ok, vs, idx, d, rm, c, n, base, lim, r, agotado=False):
             "agotado": agotado,
             "mensaje": ("Se encontró un diseño que cumple con el ratio objetivo." if ok else
                         "No se encontró un diseño que cumpla con las variables seleccionadas; se muestra el de menor ratio evaluado.")}
+
+
+def barrido(calcular, inp, name, valores, top=5, lim=None):
+    """Ratio máximo (y de las verificaciones más críticas) al variar un parámetro, con el resto fijo."""
+    base = copy.deepcopy(inp)
+    lim = float(lim if lim is not None else base.get("lim_verde", 0.9))
+    res = []
+    for v in valores:
+        d = copy.deepcopy(base)
+        _set(d, name, v)
+        try:
+            res.append(calcular(d))
+        except (ValueError, KeyError, TypeError, ZeroDivisionError):
+            res.append(None)
+    rmax, gob, mapa = [], [], {}
+    for k, r in enumerate(res):
+        if r is None:
+            rmax.append(None)
+            gob.append(None)
+            continue
+        cs = [c for c in r["checks"] if c.get("ratio") is not None]
+        g = max(cs, key=lambda c: c["ratio"], default=None)
+        rmax.append(r["resumen"].get("ratio_max"))
+        gob.append(g["nombre"] if g else None)
+        for c in cs:
+            mapa.setdefault(c["nombre"], [None] * len(valores))[k] = c["ratio"]
+    orden = sorted(mapa, key=lambda n: -max((x for x in mapa[n] if x is not None), default=0))[:top]
+    return {"variable": name, "valores": list(valores), "ratio_max": rmax, "gobierna": gob, "lim": lim,
+            "series": [{"nombre": n, "ratios": mapa[n]} for n in orden],
+            "actual": _get(base, name)}

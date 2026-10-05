@@ -26,7 +26,7 @@ from xlcore import XlModule  # noqa: E402
 
 from cortante_vv import xl_model  # noqa: E402
 
-PERSONALIZADO = "Personalizado"
+PERSONALIZADO = "ARMADO (flejes soldados)"   # misma etiqueta que los demás módulos: habilita los campos manuales
 HSS = {p["nombre"]: p for p in CATALOGOS["hss"]}
 ACEROS_HSS = ["A500 Gr B", "A500 Gr C"]
 CONEX = ["Placa simple soldada a la pared", "Placa pasante (through-plate)"]
@@ -45,12 +45,12 @@ SPEC["titulo"] = "CONEXIÓN SIMPLE A CORTANTE — VIGA A COLUMNA HSS (PLACA SIMP
 SPEC["norma"] = ("AISC 360-16 (J2, J3, J4)  ·  AISC Manual 15ª ed. Partes 9 y 10  ·  Design Examples K.6 / K.7  ·  LRFD  ·  "
                  "Unidades: Tonf, mm, kgf/cm²  ·  Soporte: pared de HSS")
 _COL_CAMPOS = [
-    {"name": "hss_perfil", "label": "Perfil HSS (catálogo o personalizado)", "unit": "", "default": "HSS6X6X3/8",
+    {"name": "hss_perfil", "label": "Perfil HSS (catálogo o ARMADO)", "unit": "", "default": "HSS6X6X3/8",
      "row": 28, "options": [PERSONALIZADO] + list(HSS)},
     {"name": "hss_cara", "label": "Cara de la conexión (catálogo)", "unit": "", "default": "H", "row": 29, "options": ["H", "B"]},
-    {"name": "hss_W", "label": "Ancho de la cara de conexión (personalizado)", "unit": "mm", "default": 152.4, "row": 30, "armado_de": "hss_perfil"},
-    {"name": "hss_D", "label": "Profundidad en la dirección de la placa (personalizado)", "unit": "mm", "default": 152.4, "row": 31, "armado_de": "hss_perfil"},
-    {"name": "hss_t", "label": "Espesor de diseño t (personalizado)", "unit": "mm", "default": 8.86, "row": 32, "armado_de": "hss_perfil"},
+    {"name": "hss_W", "label": "Ancho de la cara de conexión (armado)", "unit": "mm", "default": 152.4, "row": 30, "armado_de": "hss_perfil"},
+    {"name": "hss_D", "label": "Profundidad en la dirección de la placa (armado)", "unit": "mm", "default": 152.4, "row": 31, "armado_de": "hss_perfil"},
+    {"name": "hss_t", "label": "Espesor de diseño t (armado)", "unit": "mm", "default": 8.86, "row": 32, "armado_de": "hss_perfil"},
     {"name": "co_acero", "label": "Acero", "unit": "", "default": "A500 Gr C", "row": 33, "options": ACEROS_HSS},
     {"name": "hss_conex", "label": "Tipo de conexión", "unit": "", "default": CONEX[0], "row": 34, "options": CONEX},
 ]

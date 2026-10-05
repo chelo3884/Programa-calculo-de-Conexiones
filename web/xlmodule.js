@@ -83,8 +83,17 @@ function renderInputs(){
         el.oninput=()=>{const v=parseFloat(el.value);if(isNaN(v))return;S[f.name]=v/fac;changed();};
       }else if(f.options){
         el=document.createElement('select');
-        el.innerHTML=f.options.map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join('');el.value=S[f.name];
-        el.onchange=()=>{S[f.name]=el.value;rebuild();changed();};
+        const armF=SPEC.secciones.flatMap(x=>x.campos).filter(x=>x.armado_de===f.name);
+        const loc=(armF.length&&window.PerfilesLocales)?PerfilesLocales.opciones(f.name.startsWith('hss')?'HSS':'I'):[];
+        el.innerHTML=f.options.map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join('')+
+          (loc.length?`<optgroup label="Perfiles locales">${loc.map(o=>`<option value="${esc(o.value)}">${esc(o.text)}</option>`).join('')}</optgroup>`:'');
+        el.value=S[f.name];
+        el.onchange=()=>{
+          if(el.value.startsWith('LOCAL:')){const p=PerfilesLocales.dims(el.value);
+            if(p){S[f.name]=ARMADO;const v=f.name.startsWith('hss')?[p.d,p.bf,p.tf]:[p.d,p.bf,p.tw,p.tf];
+              armF.forEach((a,i)=>{if(v[i]!=null)S[a.name]=v[i];});}
+            renderInputs();changed();return;}
+          S[f.name]=el.value;rebuild();changed();};
       }else if(f.kind==='text'){
         el=document.createElement('input');el.type='text';el.value=S[f.name];
         el.oninput=()=>{S[f.name]=el.value;saveLocal();};r.style.gridTemplateColumns='1fr 215px 0';
@@ -275,13 +284,14 @@ document.getElementById('tabs').onclick=e=>{if(e.target.dataset.t)tab(e.target.d
 document.getElementById('addCombo').onclick=()=>{if(S.combos.length>=SPEC.combos.n)return;const c={nombre:'C'+(S.combos.length+1)};for(const col of SPEC.combos.cols)if(col.key!=='nombre')c[col.key]=0;S.combos.push(c);renderCombos();changed();};
 (async function init(){
   initTheme();
+  await new Promise(ok=>{const sc=document.createElement('script');sc.src='/tools.js';sc.onload=ok;sc.onerror=ok;document.head.appendChild(sc);});
+  if(window.PerfilesLocales)await PerfilesLocales.cargar();
   SPEC=await (await fetch(MODULE.api+'/spec')).json();
   document.getElementById('norma').textContent=SPEC.norma||'';
   S=defaultState();
   try{const st=JSON.parse(localStorage.getItem(SKEY())||'null');if(st&&st.S){S={...S,...st.S};if(st.units)units={...units,...st.units};}}catch(e){}
   if(!HASC()){document.getElementById('tabCar').style.display='none';}
   renderUnits();renderInputs();if(HASC())renderCombos();calc();
-  await new Promise(ok=>{const sc=document.createElement('script');sc.src='/tools.js';sc.onload=ok;sc.onerror=ok;document.head.appendChild(sc);});
   if(window.Tools)Tools.install({
     api:MODULE.api,inputs:()=>S,modulo:MODULE.id,titulo:MODULE.title,reporte:()=>reportHTML(),res:()=>RES,state:()=>({S,units}),
     etiqueta:()=>S.DIS_C8,archivo:'Dibujos_'+MODULE.id,

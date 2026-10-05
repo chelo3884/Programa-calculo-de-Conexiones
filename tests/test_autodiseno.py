@@ -71,3 +71,16 @@ class TestAuto(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestBarrido(unittest.TestCase):
+    def test_wuf_pl_t(self):
+        inp = _def(wuf)
+        inp["combos"] = [{"nombre": "c", "M": 14, "V": 8}]
+        r = autodiseno.barrido(wuf.calcular, inp, "pl_t", [6, 9.5, 12, 19])
+        self.assertEqual(len(r["ratio_max"]), 4)
+        self.assertTrue(all(x is not None for x in r["ratio_max"]))
+        self.assertTrue(r["series"] and len(r["series"][0]["ratios"]) == 4)
+        # la serie de mayor ratio nunca supera al ratio máximo global
+        for k in range(4):
+            self.assertLessEqual(max(s["ratios"][k] for s in r["series"] if s["ratios"][k] is not None), r["ratio_max"][k] + 1e-9)

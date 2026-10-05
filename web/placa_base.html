@@ -200,13 +200,13 @@ const SEC = ()=>[
  {t:'1. Columna',f:[
   {l:'Tipo de columna',p:'tipo_col',k:'sel',o:()=>['I','HSS'],lab:{I:'Perfil I / H',HSS:'HSS / cajón'}},
   ...(S.tipo_col==='HSS'?[
-   {l:'Perfil HSS',p:'perfil_hss',k:'sel',o:()=>['Personalizado',...CAT.hss.map(x=>x.nombre)]},
+   {l:'Perfil HSS',p:'perfil_hss',k:'sel',o:()=>['Personalizado',...CAT.hss.map(x=>x.nombre)],loc:'HSS'},
    ...(S.perfil_hss==='Personalizado'?[
     {l:'H — dimensión en dir. N',p:'hss.H',q:'Ls',k:'num'},{l:'Bc — dimensión perpendicular',p:'hss.Bc',q:'Ls',k:'num'},
     {l:'t — espesor de pared (de diseño)',p:'hss.t',q:'Ls',k:'num'}]
    :[{l:'H × Bc × t',ro:()=>RES?`${fmt(RES.derivados.d_mm,'Ls')} × ${fmt(RES.derivados.bf_mm,'Ls')} × ${fmt(RES.derivados.tf_mm,'Ls')} ${uf('Ls').l}`:'',k:'ro'}])]
   :[
-  {l:'Perfil (catálogo o ARMADO)',p:'perfil',k:'sel',o:()=>[ARMADO,...CAT.perfiles.map(x=>x.nombre)]},
+  {l:'Perfil (catálogo o ARMADO)',p:'perfil',k:'sel',o:()=>[ARMADO,...CAT.perfiles.map(x=>x.nombre)],loc:'I'},
   ...(S.perfil===ARMADO?[
    {l:'Peralte d',p:'armado.d',q:'Ls',k:'num'},{l:'Ancho de ala bf',p:'armado.bf',q:'Ls',k:'num'},
    {l:'Espesor de alma tw',p:'armado.tw',q:'Ls',k:'num'},{l:'Espesor de ala tf',p:'armado.tf',q:'Ls',k:'num'}]
@@ -274,8 +274,13 @@ function renderInputs(){
       if(f.k==='sel'){
         el=document.createElement('select');
         for(const o of f.o()){const op=document.createElement('option');op.value=o;op.textContent=f.lab?f.lab[o]:o;el.appendChild(op);}
+        const loc=(f.loc&&window.PerfilesLocales)?PerfilesLocales.opciones(f.loc):[];
+        if(loc.length){const og=document.createElement('optgroup');og.label='Perfiles locales';for(const o of loc){const op=document.createElement('option');op.value=o.value;op.textContent=o.text;og.appendChild(op);}el.appendChild(og);}
         el.value=String(getP(S,f.p));
-        el.onchange=()=>{let v=el.value;if(f.num)v=Number(v);setP(S,f.p,v);
+        el.onchange=()=>{let v=el.value;
+          if(v.startsWith('LOCAL:')){const p=PerfilesLocales.dims(v);
+            if(p){if(f.loc==='HSS'){S.perfil_hss='Personalizado';S.hss={H:p.d,Bc:p.bf,t:p.tf};}else{S.perfil=ARMADO;S.armado={d:p.d,bf:p.bf,tw:p.tw,tf:p.tf};}}
+            renderInputs();changed();return;}if(f.num)v=Number(v);setP(S,f.p,v);
           if(['perfil','placa.acero','pedestal.hp_usar','tipo_col','perfil_hss','corte.friccion','llave.usar'].includes(f.p))renderInputs();changed();};
       }else if(f.k==='ro'){
         el=document.createElement('input');el.readOnly=true;el.value=typeof f.ro==='function'?f.ro():'';el.dataset.ro=1;r.style.gridTemplateColumns='1fr 190px 0';
@@ -654,6 +659,7 @@ document.getElementById('tabs').onclick=e=>{if(e.target.dataset.t)tab(e.target.d
   try{const th=localStorage.getItem('pb_theme');if(th)document.documentElement.dataset.theme=th;
     const st=JSON.parse(localStorage.getItem('pb_state')||'null');if(st&&st.S){S=mergeDef(DEFAULT,st.S);if(st.units)units=st.units;}}catch(e){}
   CAT=await (await fetch('/api/placa_base/catalogos')).json();
+  if(window.PerfilesLocales)await PerfilesLocales.cargar();
   renderUnits();renderInputs();calc();
   if(window.Tools)Tools.install({
     api:'/api/placa_base',inputs:()=>S,nMax:12,modulo:'placa_base',titulo:'Placa base y pernos de anclaje',reporte:()=>reportHTML(),res:()=>RES,

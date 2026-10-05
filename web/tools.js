@@ -22,7 +22,7 @@ window.Tools=(()=>{
     .tl textarea{width:100%;min-height:130px;font:12px ui-monospace,Consolas,monospace;box-sizing:border-box}
     .tl table{font-size:13px}.tl .r{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:6px 0}
     .tl .warn{background:var(--warnbg);color:var(--warn);padding:8px 10px;border-radius:8px;font-size:12.5px;margin:8px 0}
-    .tl .ok{color:var(--ok)}.tl .bad{color:var(--bad)}`;
+    .tl input[type=radio],.tl input[type=checkbox]{width:auto}.tl .ok{color:var(--ok)}.tl .bad{color:var(--bad)}`;
     document.head.appendChild(s);
   }
   function abrir(titulo,cuerpo,pie){
@@ -143,6 +143,61 @@ window.Tools=(()=>{
     }catch(e){q('.bd').innerHTML=`<p class="bad">${E(e.message)}</p>`;}
   }
 
+  /* ───────────── Barrido de parámetros ───────────── */
+  const COL=['var(--acc)','#e07b00','#2e9e6b','#9b59b6','#c0392b','#808080'];
+  async function barrido(){
+    abrir('Barrido de parámetros','<p class="note">Cargando variables…</p>');
+    try{
+      const j=await post(cfg.api+'/auto',{accion:'vars',inputs:cfg.inputs()});
+      q('.bd').innerHTML=`<p class="note">Varía un parámetro con todo lo demás fijo y grafica el ratio máximo y el de las verificaciones más críticas, para ver cuánto margen hay y cuándo cambia lo que gobierna.</p>
+        <div class="r"><label>Variable <select id="bvar">${j.variables.map((v,i)=>`<option value="${i}">${E(v.label)} (actual: ${E(v.actual)})</option>`).join('')}</select></label>
+        <label><input type="radio" name="bmod" value="c" checked> candidatos</label>
+        <label><input type="radio" name="bmod" value="r"> rango <input id="bmin" type="number" step="any" style="width:80px"> a <input id="bmax" type="number" step="any" style="width:80px"> en <input id="bn" type="number" value="9" min="3" max="40" style="width:56px"> puntos</label>
+        <button class="pri" id="bgo">Calcular</button><span id="bmsg" class="note"></span></div><div id="bres"></div>`;
+      const sel=()=>j.variables[+q('#bvar').value];
+      const ini=()=>{const v=sel(),num=typeof v.actual==='number';q('#bmin').disabled=q('#bmax').disabled=q('#bn').disabled=!num;
+        if(num){q('#bmin').value=Math.max(0,v.actual*0.5);q('#bmax').value=v.actual*1.5;}else q('input[name=bmod][value=c]').checked=true;};
+      q('#bvar').onchange=ini;ini();
+      q('#bgo').onclick=async()=>{
+        const v=sel();let vals=v.cands;
+        if(q('input[name=bmod]:checked').value==='r'){const a=parseFloat(q('#bmin').value),b=parseFloat(q('#bmax').value),n=Math.max(3,Math.min(40,parseInt(q('#bn').value)||9));
+          if(!(b>a)){q('#bmsg').textContent='El máximo debe ser mayor que el mínimo.';return;}
+          vals=Array.from({length:n},(_,i)=>R6(a+(b-a)*i/(n-1)));
+          if(Number.isInteger(v.actual))vals=[...new Set(vals.map(Math.round))];}
+        q('#bmsg').textContent='Calculando…';
+        try{const r=await post(cfg.api+'/barrido',{inputs:cfg.inputs(),variable:v.name,valores:vals,top:5});q('#bmsg').textContent='';grafica(r,v);}
+        catch(e){q('#bmsg').innerHTML=`<span class="bad">${E(e.message)}</span>`;}
+      };
+    }catch(e){q('.bd').innerHTML=`<p class="bad">${E(e.message)}</p>`;}
+  }
+  function grafica(r,v){
+    const W=720,H=300,ml=46,mr=14,mt=14,mb=38,n=r.valores.length;
+    const todos=[...r.ratio_max,...r.series.flatMap(s=>s.ratios)].filter(x=>x!=null&&isFinite(x));
+    const ymax=Math.max(1.2,Math.min(3,Math.max(...todos)*1.05)),X=i=>ml+(n>1?i*(W-ml-mr)/(n-1):0),Y=y=>mt+(H-mt-mb)*(1-Math.min(y,ymax)/ymax);
+    const linea=(arr,col,w,dash)=>{let d='',pen=false;arr.forEach((y,i)=>{if(y==null){pen=false;return;}d+=(pen?'L':'M')+X(i).toFixed(1)+' '+Y(y).toFixed(1);pen=true;});
+      return `<path d="${d}" fill="none" stroke="${col}" stroke-width="${w}" ${dash?`stroke-dasharray="${dash}"`:''}/>`;};
+    let g=`<svg viewBox="0 0 ${W} ${H}" style="background:var(--card)">`;
+    for(let t=0;t<=ymax+1e-9;t+=0.25)g+=`<line x1="${ml}" x2="${W-mr}" y1="${Y(t)}" y2="${Y(t)}" stroke="var(--line)"/><text x="${ml-6}" y="${Y(t)+4}" text-anchor="end" style="font-size:10px;fill:var(--mut)">${t.toFixed(2)}</text>`;
+    g+=`<line x1="${ml}" x2="${W-mr}" y1="${Y(1)}" y2="${Y(1)}" stroke="var(--bad)" stroke-dasharray="5 3"/><line x1="${ml}" x2="${W-mr}" y1="${Y(r.lim)}" y2="${Y(r.lim)}" stroke="var(--warn)" stroke-dasharray="2 3"/>`;
+    const ia=r.valores.findIndex(x=>x===r.actual);if(ia>=0)g+=`<line x1="${X(ia)}" x2="${X(ia)}" y1="${mt}" y2="${H-mb}" stroke="var(--mut)" stroke-dasharray="3 3"/>`;
+    r.series.forEach((s,k)=>g+=linea(s.ratios,COL[k+1],1.3,'4 2'));
+    g+=linea(r.ratio_max,COL[0],2.6);
+    r.ratio_max.forEach((y,i)=>{if(y!=null)g+=`<circle cx="${X(i)}" cy="${Y(y)}" r="3.5" fill="${y>1?'var(--bad)':y>r.lim?'var(--warn)':'var(--ok)'}"/>`;});
+    const paso=Math.ceil(n/12);r.valores.forEach((x,i)=>{if(i%paso===0)g+=`<text x="${X(i)}" y="${H-mb+16}" text-anchor="middle" style="font-size:10px;fill:var(--mut)">${E(typeof x==='number'?R6(x):x)}</text>`;});
+    g+=`<text x="${(ml+W-mr)/2}" y="${H-4}" text-anchor="middle" style="font-size:11px;fill:var(--ink)">${E(v.label)}</text></svg>`;
+    const leyenda=`<div class="r" style="font-size:12px"><span><b style="color:${COL[0]}">━</b> ratio máximo</span>${r.series.map((s,k)=>`<span><b style="color:${COL[k+1]}">╌</b> ${E(s.nombre)}</span>`).join('')}<span class="bad">┄ 1.00</span><span style="color:var(--warn)">┄ objetivo ${r.lim}</span><span class="note">┆ valor actual</span></div>`;
+    const tab=`<table><tr><th>${E(v.label)}</th><th class="n">Ratio máx.</th><th>Gobierna</th><th></th></tr>${r.valores.map((x,i)=>`<tr><td>${E(typeof x==='number'?R6(x):x)}${x===r.actual?' <span class="note">(actual)</span>':''}</td><td class="n"><b>${r.ratio_max[i]==null?'—':r.ratio_max[i].toFixed(2)}</b></td><td class="note">${E(r.gobierna[i]||'')}</td><td><button data-use="${i}">Usar</button></td></tr>`).join('')}</table>`;
+    q('#bres').innerHTML=g+leyenda+tab;
+    q('#bres').querySelectorAll('[data-use]').forEach(b=>b.onclick=()=>{cfg.apply({[r.variable]:r.valores[+b.dataset.use]});dlg.close();});
+  }
+
+  /* ───────────── Perfiles locales ───────────── */
+  function locales(){return window.LOCALES||[];}
+  // opciones para un selector de perfil: tipo 'I' o 'HSS'
+  function opcionesLocales(tipo){return locales().filter(p=>p.tipo===tipo).map(p=>({value:'LOCAL:'+p.nombre,text:'★ '+p.nombre}));}
+  function dimsLocal(valor){const n=valor.slice(6),p=locales().find(x=>x.nombre===n);return p||null;}
+  window.PerfilesLocales={opciones:opcionesLocales,dims:dimsLocal,cargar:async()=>{try{window.LOCALES=(await (await fetch('/api/perfiles')).json()).perfiles||[];}catch(e){window.LOCALES=[];}}};
+
   /* ───────────── Reporte de proyecto (varias conexiones) ───────────── */
   const KEY='cx_proyecto';
   const leer=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'null')||{meta:{},items:[]};}catch(e){return {meta:{},items:[]};}};
@@ -169,6 +224,8 @@ window.Tools=(()=>{
     if(add&&cfg.cols&&cfg.cols.length&&!document.getElementById('btnCargas')){
       const b=document.createElement('button');b.id='btnCargas';b.textContent='Importar SAP2000 / Generar NEC…';b.style.marginLeft='8px';b.onclick=cargas;add.after(b);}
     const th=document.getElementById('btnTheme');
+    if(th&&cfg.api&&!document.getElementById('btnBar')){
+      const b=document.createElement('button');b.id='btnBar';b.textContent='Barrido';b.title='Gráfica del ratio al variar un parámetro';b.onclick=barrido;th.before(b);}
     if(th&&cfg.reporte&&!document.getElementById('btnProy')){
       const b=document.createElement('button');b.id='btnProy';b.textContent='＋ Proyecto';b.title='Agregar esta conexión al reporte de proyecto';b.onclick=agregarProyecto;th.before(b);}
     if(th&&!document.getElementById('btnDxf')){

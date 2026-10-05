@@ -22,6 +22,7 @@ from placa_base.engine import CATALOGOS, calcular
 from rodilla import engine as rodilla_engine
 import autodiseno
 import cargas
+import perfiles_usuario
 from wuf import engine as wuf_engine
 from gusset import engine as gusset_engine
 from cortante_hss import engine as hss_engine
@@ -52,6 +53,10 @@ def _api_sap_import(d):
                            d.get("fuerza", "Tonf"), d.get("longitud", "m"), int(d.get("n_max", 10)))
 
 
+def _api_barrido(nombre, calc, spec, d):
+    return autodiseno.barrido(calc, d["inputs"], d["variable"], d["valores"], int(d.get("top", 5)), d.get("lim"))
+
+
 def _api_auto(nombre, calc, spec, d):
     inp = d["inputs"]
     opciones = {c["name"]: c.get("options") for s in (spec or {}).get("secciones", []) for c in s["campos"]} if spec else None
@@ -78,6 +83,8 @@ class Handler(BaseHTTPRequestHandler):
         for nombre, eng in MODULOS_XL.items():
             if path == f"/api/{nombre}/spec":
                 return self._send(200, eng.SPEC)
+        if path == "/api/perfiles":
+            return self._send(200, {"perfiles": perfiles_usuario.leer(), "ruta": perfiles_usuario.ruta()})
         if path == "/api/ping":
             return self._send(200, {"app": "conexiones"})
         if path == "/favicon.ico":
@@ -94,8 +101,13 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         funciones = {"/api/placa_base/calc": calcular, "/api/nec_combos": _api_nec, "/api/sap_parse": _api_sap_parse,
-                     "/api/sap_import": _api_sap_import, "/api/placa_base/auto": lambda d: _api_auto("placa_base", calcular, None, d)}
+                     "/api/sap_import": _api_sap_import,
+                     "/api/perfiles": lambda d: {"perfiles": perfiles_usuario.guardar(d["perfiles"])},
+                     "/api/perfiles_importar": lambda d: {"perfiles": perfiles_usuario.parse_texto(d["texto"])},
+                     "/api/placa_base/barrido": lambda d: _api_barrido("placa_base", calcular, None, d), "/api/placa_base/auto": lambda d: _api_auto("placa_base", calcular, None, d)}
         funciones.update({f"/api/{n}/calc": e.calcular for n, e in MODULOS_XL.items()})
+        funciones.update({f"/api/{n}/barrido": (lambda d, n=n, e=e: _api_barrido(n, e.calcular, e.SPEC, d))
+                          for n, e in MODULOS_XL.items() if n in autodiseno.CONFIG})
         funciones.update({f"/api/{n}/auto": (lambda d, n=n, e=e: _api_auto(n, e.calcular, e.SPEC, d))
                           for n, e in MODULOS_XL.items() if n in autodiseno.CONFIG})
         if self.path not in funciones:

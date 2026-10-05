@@ -21,7 +21,7 @@ function hssPlan(RES,S){
 }
 const MODULE={id:'cortante_hss',api:'/api/cortante_hss',title:'Conexión simple a cortante — viga a columna HSS',
   rebuild:['hss_perfil','hss_conex'],
-  visible(f,S){const n=f.name,cat=S.hss_perfil!=='Personalizado';
+  visible(f,S){const n=f.name,cat=S.hss_perfil!==ARMADO;
     if(n==='hss_cara')return cat;
     if(['hss_W','hss_D','hss_t'].includes(n))return !cat;
     return true;},

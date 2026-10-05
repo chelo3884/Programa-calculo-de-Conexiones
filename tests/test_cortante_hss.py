@@ -10,7 +10,7 @@ IN, KIP = 25.4, 0.45359237
 
 
 def _inp(**kw):
-    inp = {"hss_perfil": "Personalizado", "hss_W": 6 * IN, "hss_D": 6 * IN, "hss_t": 0.349 * IN, "co_acero": "A500 Gr C",
+    inp = {"hss_perfil": "ARMADO (flejes soldados)", "hss_W": 6 * IN, "hss_D": 6 * IN, "hss_t": 0.349 * IN, "co_acero": "A500 Gr C",
            "Ru": 39.0 * KIP, "pl_tp": 5 / 16 * IN, "pl_a": 3 * IN, "pl_Leh": 2 * IN, "pl_w": 0.25 * IN, "n_b": 3,
            "pn_s": 3 * IN, "pn_Lev": 1.25 * IN, "pn_top": 3 * IN, "vg_perfil": "ARMADO (flejes soldados)",
            "DIS_E16": 17.7 * IN, "DIS_E17": 6 * IN, "DIS_E18": 0.3 * IN, "DIS_E19": 0.425 * IN,

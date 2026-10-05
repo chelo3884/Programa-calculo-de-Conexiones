@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Perfiles locales</title>
+<link rel="icon" href="/icon.png"><link rel="stylesheet" href="/style.css">
+<style>.pg{max-width:1100px;margin:0 auto;padding:16px}.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:14px}
+.card h2{margin:0 0 10px;font-size:14px;text-transform:uppercase;letter-spacing:.04em;color:var(--acc)}td input,td select{width:100%;padding:3px 5px}.r{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center}
+textarea{width:100%;min-height:110px;font:12px ui-monospace,Consolas,monospace}.bad{color:var(--bad)}.ok{color:var(--ok)}</style></head><body>
+<header><div><h1><a href="/" style="color:inherit;text-decoration:none">⌂</a> Perfiles locales</h1><div class="sub">Catálogo propio (DIPAC, Novacero, etc.) para usar en todos los módulos</div></div><div class="sp"></div><button id="btnTheme">◐</button></header>
+<div class="pg">
+<div class="card"><h2>Mis perfiles</h2>
+<p class="note">Dimensiones en <b>mm</b>. <b>I</b>: d peralte, bf ancho de ala, tw espesor de alma, tf espesor de ala. <b>HSS</b>: d = H, bf = B, tf = t de <u>diseño</u> (0.93·tnom en tubo soldado por resistencia eléctrica); tw se ignora.
+En los módulos aparecen en el selector de perfil bajo «Perfiles locales» (★) y se aplican como perfil armado: las dimensiones se copian a los campos manuales.</p>
+<div style="overflow:auto"><table id="t"></table></div>
+<div class="r"><button id="add">+ Agregar perfil</button><button class="pri" id="save">Guardar</button><button id="csv">Exportar CSV</button><span id="msg" class="note"></span></div>
+<p class="note" id="ruta"></p></div>
+<div class="card"><h2>Importar desde Excel / CSV</h2>
+<p class="note">Copie las celdas de Excel (con la fila de encabezados) y péguelas aquí. Encabezados reconocidos: <i>nombre</i> (o perfil), <i>tipo</i> (I/HSS, opcional), <i>d</i> (o H, peralte), <i>bf</i> (o B, ancho), <i>tw</i>, <i>tf</i> (o t, espesor), <i>peso</i> (kg/m), <i>proveedor</i>. Si no hay columna «tipo», con tw es I y sin tw es HSS. Acepta coma decimal.</p>
+<textarea id="txt" placeholder="nombre&#9;tipo&#9;d&#9;bf&#9;tw&#9;tf&#9;peso&#10;IPE 300 local&#9;I&#9;300&#9;150&#9;7.1&#9;10.7&#9;42.2&#10;TC 150x150x4&#9;HSS&#9;150&#9;150&#9;&#9;3.7&#9;17.7"></textarea>
+<div class="r"><button id="imp" class="pri">Agregar a la lista</button></div></div></div>
+<script src="/common.js"></script>
+<script>
+"use strict";
+initTheme();document.getElementById('btnTheme').onclick=toggleTheme;
+let L=[];const $=id=>document.getElementById(id),msg=(t,c)=>{$('msg').className='note '+(c||'');$('msg').textContent=t;};
+const COLS=['nombre','tipo','d','bf','tw','tf','peso','proveedor'];
+function pinta(){
+  $('t').innerHTML='<tr><th>Nombre</th><th>Tipo</th><th class="n">d / H</th><th class="n">bf / B</th><th class="n">tw</th><th class="n">tf / t</th><th class="n">kg/m</th><th>Proveedor</th><th></th></tr>'+
+  L.map((p,i)=>`<tr>${COLS.map(c=>c==='tipo'?`<td><select data-i="${i}" data-c="tipo"><option${p.tipo==='I'?' selected':''}>I</option><option${p.tipo==='HSS'?' selected':''}>HSS</option></select></td>`
+    :`<td><input data-i="${i}" data-c="${c}" value="${esc(p[c]==null?'':p[c])}" ${c==='tw'&&p.tipo==='HSS'?'disabled':''}></td>`).join('')}<td><button data-del="${i}">✕</button></td></tr>`).join('');
+  $('t').querySelectorAll('[data-c]').forEach(x=>x.oninput=x.onchange=()=>{L[+x.dataset.i][x.dataset.c]=x.value;if(x.dataset.c==='tipo')pinta();});
+  $('t').querySelectorAll('[data-del]').forEach(x=>x.onclick=()=>{L.splice(+x.dataset.del,1);pinta();});
+}
+async function api(u,b){const r=await fetch(u,b?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}:{});const j=await r.json();if(!r.ok)throw new Error(j.error);return j;}
+$('add').onclick=()=>{L.push({nombre:'',tipo:'I',d:'',bf:'',tw:'',tf:'',peso:'',proveedor:''});pinta();};
+$('save').onclick=async()=>{try{const j=await api('/api/perfiles',{perfiles:L});L=j.perfiles;pinta();msg(`Guardado: ${L.length} perfiles.`,'ok');}catch(e){msg(e.message,'bad');}};
+$('imp').onclick=async()=>{try{const j=await api('/api/perfiles_importar',{texto:$('txt').value});
+  const nombres=new Set(j.perfiles.map(p=>p.nombre.toLowerCase()));L=L.filter(p=>!nombres.has(String(p.nombre).toLowerCase())).concat(j.perfiles);pinta();msg(`${j.perfiles.length} perfiles agregados (los de igual nombre se reemplazaron). Falta presionar Guardar.`,'ok');}catch(e){msg(e.message,'bad');}};
+$('csv').onclick=()=>{const t=['nombre;tipo;d;bf;tw;tf;peso;proveedor',...L.map(p=>COLS.map(c=>p[c]==null?'':p[c]).join(';'))].join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['﻿'+t],{type:'text/csv'}));a.download='perfiles_locales.csv';a.click();};
+api('/api/perfiles').then(j=>{L=j.perfiles;pinta();$('ruta').textContent='Archivo: '+j.ruta;});
+</script></body></html>
