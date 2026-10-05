@@ -82,3 +82,9 @@ Herramienta de apoyo: la responsabilidad del diseño es del ingeniero que la usa
 * Módulo escrito a mano sobre `aisc.py` (biblioteca de estados límite AISC 360-16) y `handmod.py` (estructura de hoja/combinaciones/verificaciones). Alas con soldadura CJP; alma con placa simple soldada a la columna y apernada a la viga (o solo soldada).
 * Verifica viga (φMp, φVn), columna (J10.1 flexión local del ala, J10.2 fluencia local del alma, J10.3 aplastamiento, J10.4 pandeo, J10.6 zona de panel, placas de continuidad) y la placa de alma (grupo de pernos, fluencia/ruptura por corte, bloque de cortante, filetes, ruptura del ala de columna).
 * Comprobado con AISC Design Examples v15, Ej. II.B-1 (68.9, 73.1, 72.9, 58.8, 70.0, 100.2, 410.7 y 171.1 kip) en `tests/test_wuf.py` y `tests/test_aisc_lib.py`.
+
+## Cartela de arriostramiento (gusset, UFM)
+
+* Módulo escrito a mano (`gusset/`): fuerzas de interfaz por el Método de Fuerza Uniforme (Manual Parte 13), con θ medido desde la horizontal y α = (β̄ + eb)/tanθ − ec; ancho de Whitmore (fluencia/pandeo), bloque de cortante, pernos de la diagonal, soldaduras a viga y columna (método elástico, conservador) y cargas concentradas en viga/columna.
+* Comprobado en `tests/test_gusset.py`: equilibrio (Hb + Hc = P·cosθ, Vb + Vc = P·senθ) y estados límite de la cartela del ejemplo II.C-3 (Whitmore 19.4 in, fluencia 473 kip, bloque de cortante 480 kip). **El PDF no trae un ejemplo numérico del UFM**, por eso las fuerzas de interfaz solo se validan por equilibrio y fórmulas del Manual.
+* No verifica la diagonal en sí ni su conexión en el otro extremo.

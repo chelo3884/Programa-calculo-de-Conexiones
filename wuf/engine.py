@@ -41,7 +41,7 @@ SPEC = spec(
                                     campo("lim_verde", "Límite verde / amarillo (ratio)", 0.9)]),
         seccion("1. VIGA", _perfil_campos("vg", "Viga", "VK400X180X6X12", VIGAS, (400, 180, 6, 12)) +
                 [campo("vg_acero", "Acero", "A572 Gr50", options=ACEROS)],
-                [{"name": n, "label": "d / bf / tw / tf", "unit": "mm"} for n in ("vg_d_mm", "vg_bf_mm", "vg_tw_mm", "vg_tf_mm")]),
+                [{"name": f"vg_{k}_mm", "label": lab, "unit": "mm"} for k, lab in (("d", "Peralte d"), ("bf", "Ancho de ala bf"), ("tw", "Espesor de alma tw"), ("tf", "Espesor de ala tf"))]),
         seccion("2. COLUMNA (conexión al ala)",
                 _perfil_campos("co", "Columna", "HA500X250X10X15", COLS, (500, 250, 10, 15)) +
                 [campo("co_acero", "Acero", "A572 Gr50", options=ACEROS),
@@ -54,7 +54,7 @@ SPEC = spec(
                  campo("cp_t", "Rigidizador: espesor", 15, "mm"),
                  campo("cp_b", "Rigidizador: ancho (c/lado)", 110, "mm"),
                  campo("dp_t", "Placa de refuerzo del alma (doubler): espesor", 0, "mm")],
-                [{"name": n, "label": "d / bf / tw / tf", "unit": "mm"} for n in ("co_d_mm", "co_bf_mm", "co_tw_mm", "co_tf_mm")]),
+                [{"name": f"co_{k}_mm", "label": lab, "unit": "mm"} for k, lab in (("d", "Peralte d"), ("bf", "Ancho de ala bf"), ("tw", "Espesor de alma tw"), ("tf", "Espesor de ala tf"))]),
         seccion("3. PLACA SIMPLE DE ALMA", [
             campo("pl_acero", "Acero de placa", "A36", options=ACEROS),
             campo("pl_t", "Espesor de placa tp", 9.5, "mm"),
