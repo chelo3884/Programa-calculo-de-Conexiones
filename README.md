@@ -94,3 +94,9 @@ Herramienta de apoyo: la responsabilidad del diseño es del ingeniero que la usa
 * Opción «Llave de corte» en la sección 6 de la página de placa base (`placa_base/engine.py`): la llave toma todo el corte (pernos sin corte, sin fricción), aplastamiento del concreto 0.80·f'c·A1, flexión del voladizo Ml = V(G + d/2), corte del concreto frente a la llave 4·0.75·√f'c·Av y soldadura llave–placa.
 * Comprobada con AISC Design Guide 1 (2.ª ed.) Ej. 4.9: A requerida 11.5 in², t requerido 1.18 in, Vn del concreto 39.2 kip, y que el filete de 5/16 in no basta y el de 3/8 in sí. **La demanda de soldadura del ejemplo (7.98 kip/in) no pude reproducirla con el texto impreso**; el programa usa un modelo propio (dos filetes separados t + w, resultante de corte y del par) que da ≈7.5 kip/in en ese caso. Revise esa verificación con su criterio.
 * No se dibuja la llave en el esquema y no se incluye la contribución de los pernos 1.2(Ny − Pa).
+
+## Cortante a columna HSS (cortante_hss)
+
+* Placa simple soldada a la pared de un HSS rectangular, o placa pasante. Reutiliza la verificación de `cortante_vv` con la pared del HSS como soporte (espesor de **diseño** t, 0.93·tnom) y agrega: pared no esbelta (b/t ≤ 1.40√(E/Fy)), punzonamiento (Manual Ec. 10-7a), y para placa pasante la soldadura de la línea cercana a los pernos (Vfu = Ru(B + a)/B) y fluencia/ruptura por corte de las dos paredes.
+* Comprobado en `tests/test_cortante_hss.py` con Design Examples v15 K.6 (b/t 14.2 < 33.7; Ru·e 117 < 235 kip-in; tmín 0.199 in) y K.7 (Vfu 34.7 kip; fluencia 59.2 kip; ruptura 55.0 kip; pared esbelta).
+* **No incluye** doble ángulo soldado al HSS (K.3), asientos (K.4/K.5) ni flexión local de la pared por cargas concentradas (K.1/K.2).
