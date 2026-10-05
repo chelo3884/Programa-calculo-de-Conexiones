@@ -180,3 +180,55 @@ class TestFriccion(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestLlaveDeCorteDG1(unittest.TestCase):
+    """AISC DG1 2.ª ed., Ej. 4.9: llave de corte 9 in de ancho, d = 1.5 in, Fy = 36 ksi, grout 2 in,
+    pedestal de 20 in, f'c = 4 ksi, Vu = 36.8 kips (el ejemplo supone la llave de 1 in en el cálculo de Av)."""
+    inch, kip, ksi = 25.4, 0.45359237, 70.307
+
+    def _inp(self, t_in):
+        inch, kip, ksi = self.inch, self.kip, self.ksi
+        return {
+            "perfil": "ARMADO (flejes soldados)",
+            "armado": {"d": 10.1 * inch, "bf": 8.02 * inch, "tw": 0.35 * inch, "tf": 0.62 * inch},
+            "placa": {"acero": "Personalizado", "Fy": 36 * ksi, "N": 14 * inch, "B": 14 * inch, "tp": 1.25 * inch,
+                      "grout": 2 * inch},
+            "pernos": {"material": "F1554 Gr55", "diam": '3/4"', "nfila": 2, "eN": 50, "eB": 50,
+                       "hef": 300, "arandela_lado": 0, "arandela_t": 0, "arandela_sold": "No", "nv": 4},
+            "pedestal": {"fc": 4 * ksi, "Np": 20 * 2.54, "Bp": 20 * 2.54, "fisurado": "Sí",
+                         "ref_borde": "No", "hp_usar": "No", "hp_n": 0, "hp_db": 16, "hp_fy": 4200},
+            "sold": {"electrodo": "E70XX", "wf": 8, "ww": 6},
+            "sismo": {"sismo": "No", "omega0": 1},
+            "llave": {"usar": "Sí", "b": 9 * inch, "d": 1.5 * inch, "t": t_in * inch, "fy": 36 * ksi, "w": 5 / 16 * inch},
+            "combos": [{"nombre": "1.6L", "P": 0, "V": 36.8 * kip, "M": 0}],
+        }
+
+    def _cap(self, res, nom):
+        c = next(c for c in res["checks"] if c["nombre"].startswith(nom))
+        return c["cap"] / self.kip, c["dem"], c["ratio"]
+
+    def test_requerido_y_espesor(self):
+        res = calcular(self._inp(1.25))
+        cap, dem, _ = self._cap(res, "Aplastamiento del concreto (0.80")
+        self.assertAlmostEqual(dem / self.kip, 36.8, places=3)
+        self.assertAlmostEqual(36.8 * self.kip * 1000 / (0.8 * 4 * self.ksi), 11.5 * 6.4516, delta=0.5)   # A req'd = 11.5 in²
+        # Ml = 36.8·(2 + 1.5/2) = 101.2 kip-in; espesor requerido = 1.18 in → ratio de flexión con t = 1.25 in
+        _, _, r = self._cap(res, "Flexión de la llave")
+        self.assertAlmostEqual(r, (1.18 / 1.25) ** 2, delta=0.01)
+
+    def test_corte_del_concreto(self):
+        res = calcular(self._inp(1.0))
+        cap, _, _ = self._cap(res, "Corte del concreto frente a la llave")
+        self.assertAlmostEqual(cap, 39.2, delta=0.1)
+
+    def test_soldadura_falla_5_16_y_pasa_3_8(self):
+        r1 = calcular(self._inp(1.25))
+        self.assertGreater(self._cap(r1, "Soldadura llave")[2], 1.0)
+        inp = self._inp(1.25)
+        inp["llave"]["w"] = 3 / 8 * self.inch
+        self.assertLess(self._cap(calcular(inp), "Soldadura llave")[2], 1.0)
+
+    def test_pernos_no_toman_corte(self):
+        res = calcular(self._inp(1.25))
+        self.assertEqual(res["combos"][0]["ratios"]["vsa"], 0.0)

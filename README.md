@@ -88,3 +88,9 @@ Herramienta de apoyo: la responsabilidad del diseño es del ingeniero que la usa
 * Módulo escrito a mano (`gusset/`): fuerzas de interfaz por el Método de Fuerza Uniforme (Manual Parte 13), con θ medido desde la horizontal y α = (β̄ + eb)/tanθ − ec; ancho de Whitmore (fluencia/pandeo), bloque de cortante, pernos de la diagonal, soldaduras a viga y columna (método elástico, conservador) y cargas concentradas en viga/columna.
 * Comprobado en `tests/test_gusset.py`: equilibrio (Hb + Hc = P·cosθ, Vb + Vc = P·senθ) y estados límite de la cartela del ejemplo II.C-3 (Whitmore 19.4 in, fluencia 473 kip, bloque de cortante 480 kip). **El PDF no trae un ejemplo numérico del UFM**, por eso las fuerzas de interfaz solo se validan por equilibrio y fórmulas del Manual.
 * No verifica la diagonal en sí ni su conexión en el otro extremo.
+
+## Placa base con llave de corte
+
+* Opción «Llave de corte» en la sección 6 de la página de placa base (`placa_base/engine.py`): la llave toma todo el corte (pernos sin corte, sin fricción), aplastamiento del concreto 0.80·f'c·A1, flexión del voladizo Ml = V(G + d/2), corte del concreto frente a la llave 4·0.75·√f'c·Av y soldadura llave–placa.
+* Comprobada con AISC Design Guide 1 (2.ª ed.) Ej. 4.9: A requerida 11.5 in², t requerido 1.18 in, Vn del concreto 39.2 kip, y que el filete de 5/16 in no basta y el de 3/8 in sí. **La demanda de soldadura del ejemplo (7.98 kip/in) no pude reproducirla con el texto impreso**; el programa usa un modelo propio (dos filetes separados t + w, resultante de corte y del par) que da ≈7.5 kip/in en ese caso. Revise esa verificación con su criterio.
+* No se dibuja la llave en el esquema y no se incluye la contribución de los pernos 1.2(Ny − Pa).

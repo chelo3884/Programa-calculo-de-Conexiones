@@ -36,6 +36,7 @@ _OUT = {
     "Ls": 10.0,      # cm → mm
     "Lc": 1.0,
     "A": 1.0,
+    "FL": 1.0,       # kgf/cm (fuerza por longitud)
     "": 1.0,
 }
 
@@ -151,6 +152,10 @@ def calcular(inp: dict) -> dict:
     cor = inp.get("corte", {})
     friccion = _si(cor.get("friccion", "No"))
     mu_fr = float(cor.get("mu", 0.55))
+    lg = inp.get("llave", {})
+    llave = _si(lg.get("usar", "No"))
+    lg_b, lg_d, lg_t = float(lg.get("b", 150)) / 10, float(lg.get("d", 60)) / 10, float(lg.get("t", 20)) / 10
+    lg_fy, lg_w = float(lg.get("fy", 2530)), float(lg.get("w", 8)) / 10
     sis = inp.get("sismo", {})
     sismo = _si(sis.get("sismo", "No"))
     omega0 = float(sis.get("omega0", 1))
@@ -312,6 +317,27 @@ def calcular(inp: dict) -> dict:
     T.add(S4, "φRn,ala", ("0.75·0.6·FEXX·0.707·w·Bc·1.5 (pared traccionada, θ = 90°, Ec. J2-5)" if hss else "0.75·0.6·FEXX·0.707·w·(2bf − tw)·1.5 (θ = 90°, Ec. J2-5)"), phiRf, "F")
     T.add(S4, "φRn,alma", ("0.75·0.6·FEXX·0.707·w·2(H − 2t) (paredes paralelas al corte, θ = 0°)" if hss else "0.75·0.6·FEXX·0.707·w·2(d − 2tf) (θ = 0°)"), phiRw, "F")
 
+    # ───────────────────── 4b. Llave de corte (DG1 §3.5.2, Ej. 4.9) ─────────────────────
+    S4b = "4b. LLAVE DE CORTE — DG1 §3.5.2 / ACI 349 Ap. B"
+    sq_fc_l = math.sqrt(fc * 14.2233)
+    lg_A = lg_b * lg_d
+    phiPbr = 0.80 * fc * lg_A
+    phiMl = 0.90 * lg_fy * lg_b * lg_t ** 2 / 4
+    lg_ev = Np / 2 - lg_t / 2                                     # lado de la llave → cara del pedestal (llave centrada)
+    lg_Wp = min(Bp, lg_b + 2 * (lg_d + lg_ev))
+    lg_Av = max(lg_Wp * (lg_d + lg_ev) - lg_b * lg_d, 0.0)
+    phiVcs = 4 * 0.75 * sq_fc_l * (lg_Av / 6.4516) * 0.453592
+    lg_arm = g + lg_d / 2
+    phiRw_l = 0.75 * 0.6 * FEXX * 0.707 * lg_w                    # por cm de soldadura
+    if llave:
+        T.add(S4b, "A1", "Área embebida de la llave: b·d", lg_A, "A")
+        T.add(S4b, "φPbr", "Aplastamiento del concreto: 0.80·f'c·A1 (DG1 Ec. 3.5.2)", phiPbr, "F")
+        T.add(S4b, "φMl", "Flexión de la llave: 0.90·Fy·b·t²/4", phiMl, "M")
+        T.add(S4b, "Av", "Plano de falla a 45° al borde del pedestal: Wp·(d + e) − b·d", lg_Av, "A")
+        T.add(S4b, "φVcs", "Corte del concreto frente a la llave: 4·0.75·√f'c·Av", phiVcs, "F")
+        T.add(S4b, "G + d/2", "Brazo del voladizo: grout + d/2", lg_arm, "Lc")
+        T.add(S4b, "φrw", "Resistencia de soldadura por longitud: 0.75·0.6·FEXX·0.707·w", phiRw_l, "FL")
+
     # ───────────────────── 5. Verificación por combinación ─────────────────────
     combos_out = []
     for cb in inp.get("combos", []):
@@ -386,7 +412,12 @@ def calcular(inp: dict) -> dict:
         dem_sb, cap_sb = (Nua_g, phiNsbgF) if r_sbF >= r_sbS else (Nua, phiNsbS)
         # DG1 §3.5.1: φVn = φ·µ·Pu ≤ 0.2·f'c·Ac (φ = 0.75), sólo con Pu > 0 de la misma combinación
         Vfr = min(0.75 * mu_fr * Pu, 0.2 * fc * N * B) if (friccion and Pu > 0) else 0.0
-        Vua = max(0.0, Vu - Vfr) * omega0
+        Vua = 0.0 if llave else max(0.0, Vu - Vfr) * omega0
+        Vlug = Vu * omega0 if llave else 0.0
+        Ml = Vlug * lg_arm
+        fv_l = Vlug / (2 * lg_b)
+        fm_l = Ml / (lg_b * (lg_t + lg_w))
+        f_l = math.hypot(fv_l, fm_l)
         r_vsa = Vua / nv / phiVsa
         r_vA = 0.0 if arand_sold else Vua * nf / n_pern / vA_phi
         r_vB = Vua / vB_phi
@@ -403,6 +434,8 @@ def calcular(inp: dict) -> dict:
             "ap": r_ap, "pc": r_pc, "pt": r_pt, "sa": r_sa, "arr": r_arr, "pull": r_pull,
             "sb": r_sb, "vsa": r_vsa, "vcb": r_vcb, "pry": r_pry, "int": r_int,
             "wf": r_wf, "ww": r_ww,
+            "lbr": Vlug / phiPbr if llave else 0.0, "lfl": Ml / phiMl if llave else 0.0,
+            "lcs": Vlug / phiVcs if llave and phiVcs > 0 else 0.0, "lw": f_l / phiRw_l if llave else 0.0,
         }
         det = {
             "ap": (dem_ap, cap_ap, dem_ap_q), "pc": (Mpl_c, phiMn, "ML"), "pt": (Mpl_t, phiMn, "ML"),
@@ -410,6 +443,7 @@ def calcular(inp: dict) -> dict:
             "sb": (dem_sb, cap_sb, "F"), "vsa": (Vua / nv, phiVsa, "F"),
             "vcb": (dem_vcb, cap_vcb, "F"), "pry": (Vua, phiVcpg, "F"),
             "int": (r_t, r_v, ""), "wf": (Tala, phiRf, "F"), "ww": (Vu, phiRw, "F"),
+            "lbr": (Vlug, phiPbr, "F"), "lfl": (Ml, phiMl, "M"), "lcs": (Vlug, phiVcs, "F"), "lw": (f_l, phiRw_l, "FL"),
         }
         tr.add(C, "e", "Mu/Pu (si Pu > 0)", e, "Lc")
         tr.add(C, "ecrit", "N/2 − Pu/(2·qmax)", ecrit, "Lc")
@@ -426,6 +460,10 @@ def calcular(inp: dict) -> dict:
         tr.add(C, "Nua", "Tracción por perno · Ω0", Nua, "F")
         tr.add(C, "Nua,g", "Tracción de la fila · Ω0", Nua_g, "F")
         tr.add(C, "ψec,N", "Caso 3: 1/(1 + e'N/(1.5h'ef))", psi_ec, "")
+        if llave:
+            tr.add(C, "Vlug", "Corte tomado por la llave (todo Vu·Ω0; sin fricción ni pernos)", Vlug, "F")
+            tr.add(C, "Ml", "Momento en la raíz de la llave: V·(G + d/2)", Ml, "M")
+            tr.add(C, "f soldadura", "Resultante por cm: √((V/2b)² + (Ml/(b·(t + w)))²)", f_l, "FL")
         if friccion:
             tr.add(C, "φVfric", "Fricción DG1 §3.5.1: min(0.75·µ·Pu ; 0.2·f'c·N·B)", Vfr, "F")
         tr.add(C, "Vua", "Corte en pernos = (Vu − fricción) · Ω0", Vua, "F")
@@ -485,6 +523,13 @@ def calcular(inp: dict) -> dict:
         chk("SOLDADURA COLUMNA – PLACA", ("Filete en alas (tracción de ala)" if not hss else "Filete en pared traccionada"), "AISC J2.4 · Ec. J2-5", "wf"),
         chk("SOLDADURA COLUMNA – PLACA", ("Filete en alma (corte)" if not hss else "Filete en paredes paralelas al corte"), "AISC J2.4", "ww"),
     ]
+    if llave:
+        checks += [
+            chk("LLAVE DE CORTE", "Aplastamiento del concreto (0.80·f'c·A1)", "DG1 §3.5.2", "lbr"),
+            chk("LLAVE DE CORTE", "Flexión de la llave (voladizo)", "DG1 Ej. 4.9", "lfl"),
+            chk("LLAVE DE CORTE", "Corte del concreto frente a la llave", "ACI 349 B.4.5 · DG1 §3.5.2", "lcs"),
+            chk("LLAVE DE CORTE", "Soldadura llave–placa (resultante por cm)", "AISC J2.4", "lw"),
+        ]
     # geometría y detalles (requerido / provisto) — ratio = requerido / provisto
     ped_ok = max(N / Np, B / Bp)
     sep_prov = min(s_pern, 2 * f) if nf > 1 else 2 * f

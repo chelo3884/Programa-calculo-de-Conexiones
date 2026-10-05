@@ -182,6 +182,7 @@ const DEFAULT = {
   pedestal:{fc:210,Np:90,Bp:80,fisurado:'Sí',ref_borde:'Sí',hp_usar:'Sí',hp_n:4,hp_db:16,hp_fy:4200},
   sold:{electrodo:'E70XX',wf:8,ww:6},
   sismo:{sismo:'Sí',omega0:1}, corte:{friccion:'No',mu:0.55},
+  llave:{usar:'No',b:150,d:60,t:20,fy:2530,w:8},
   combos:[
     {nombre:'1.4D',P:9,V:0.6,M:0.8},{nombre:'1.2D+1.6L',P:12,V:1.2,M:2.5},
     {nombre:'1.2D+1.0E+L',P:8,V:3.5,M:9},{nombre:'0.9D+1.0E',P:3,V:3.5,M:8.8},
@@ -241,7 +242,10 @@ const SEC = ()=>[
   {l:'Filete en alas (w)',p:'sold.wf',q:'Ls',k:'num'},{l:'Filete en alma (w)',p:'sold.ww',q:'Ls',k:'num'}]},
  {t:'6. Transferencia de corte — DG1 §3.5',f:[
   {l:'Considerar fricción (φ·μ·Pu)',p:'corte.friccion',k:'sel',o:()=>['No','Sí']},
-  ...(S.corte.friccion==='Sí'?[{l:'μ (0.55 grout · 0.70 concreto)',p:'corte.mu',k:'num',step:.05}]:[])]},
+  ...(S.corte.friccion==='Sí'?[{l:'μ (0.55 grout · 0.70 concreto)',p:'corte.mu',k:'num',step:.05}]:[]),
+  {l:'Llave de corte (toma todo el corte)',p:'llave.usar',k:'sel',o:()=>['No','Sí']},
+  ...(S.llave.usar==='Sí'?[{l:'Ancho de la llave (b)',p:'llave.b',q:'Ls',k:'num'},{l:'Empotramiento en el concreto (d)',p:'llave.d',q:'Ls',k:'num'},
+   {l:'Espesor de la llave (t)',p:'llave.t',q:'Ls',k:'num'},{l:'Fy de la llave',p:'llave.fy',q:'S',k:'num'},{l:'Filete llave–placa (w, c/lado)',p:'llave.w',q:'Ls',k:'num'}]:[])]},
  {t:'7. Sismo — ACI 318-19 §17.10',f:[
   {l:'Diseño sísmico (SDC C a F)',p:'sismo.sismo',k:'sel',o:()=>['Sí','No']},
   {l:'Ω0 sobre cargas de anclajes',p:'sismo.omega0',k:'num',step:.1}]},
@@ -271,7 +275,7 @@ function renderInputs(){
         for(const o of f.o()){const op=document.createElement('option');op.value=o;op.textContent=f.lab?f.lab[o]:o;el.appendChild(op);}
         el.value=String(getP(S,f.p));
         el.onchange=()=>{let v=el.value;if(f.num)v=Number(v);setP(S,f.p,v);
-          if(['perfil','placa.acero','pedestal.hp_usar','tipo_col','perfil_hss','corte.friccion'].includes(f.p))renderInputs();changed();};
+          if(['perfil','placa.acero','pedestal.hp_usar','tipo_col','perfil_hss','corte.friccion','llave.usar'].includes(f.p))renderInputs();changed();};
       }else if(f.k==='ro'){
         el=document.createElement('input');el.readOnly=true;el.value=typeof f.ro==='function'?f.ro():'';el.dataset.ro=1;r.style.gridTemplateColumns='1fr 190px 0';
       }else if(f.k==='text'){
@@ -582,7 +586,8 @@ function reportHTML(){
    <h3>Pedestal y concreto</h3>${tbl([["f'c",U(S.pedestal.fc,'S')],['Np × Bp',`${U(S.pedestal.Np,'Lc').replace(/ \S+$/,'')} × ${U(S.pedestal.Bp,'Lc')}`],
      ['Concreto fisurado',S.pedestal.fisurado],['Refuerzo de borde',S.pedestal.ref_borde],
      ['Hairpins',S.pedestal.hp_usar==='Sí'?`Sí (${S.pedestal.hp_n} ramas Ø${S.pedestal.hp_db} mm, fy ${U(S.pedestal.hp_fy,'S')})`:'No'],
-     ['Fricción (DG1 §3.5.1)',S.corte.friccion==='Sí'?`Sí, μ = ${S.corte.mu}`:'No'],['Diseño sísmico / Ω0',`${S.sismo.sismo} / ${S.sismo.omega0}`]])}
+     ['Fricción (DG1 §3.5.1)',S.corte.friccion==='Sí'?`Sí, μ = ${S.corte.mu}`:'No'],
+     ['Llave de corte',S.llave.usar==='Sí'?`Sí: b ${U(S.llave.b,'Ls')} · d ${U(S.llave.d,'Ls')} · t ${U(S.llave.t,'Ls')} · Fy ${U(S.llave.fy,'S')} · w ${U(S.llave.w,'Ls')}`:'No'],['Diseño sísmico / Ω0',`${S.sismo.sismo} / ${S.sismo.omega0}`]])}
   </div></div>
   <h3>Cargas factoradas (Pu + compresión)</h3><table>${combos}</table>
   <h2>2. Geometría</h2><div class="dr">${drawings}</div>
@@ -595,7 +600,8 @@ function reportHTML(){
   <ul class="note"><li>LRFD con cargas factoradas del análisis. Momento alrededor del eje fuerte; corte en la dirección N.</li>
   <li>Placa rígida, pedestal concéntrico; A2 geométricamente similar a A1 (AISC J8). Voladizos m, n y λn' de DG1 (HSS: m y n a 0.95·H y 0.95·Bc, sin n' ni λ); momento grande por Y (ecuación cuadrática) y Tu de DG1.</li>
   <li>Pernos colados en sitio con tuerca hex. pesada; φ Condición B (sin refuerzo suplementario) salvo hairpins (ACI §17.5.2.1).</li>
-  <li>No incluye: llave de corte, rigidizadores, fricción, flexión biaxial, pedestal a flexo-compresión.</li>
+  <li>Llave de corte (opcional): DG1 §3.5.2 / Ej. 4.9 — la llave toma todo el corte (los pernos no trabajan a corte ni se descuenta la fricción); se supone centrada en el pedestal y con corte en la dirección N. El plano de falla del concreto es Wp·(d + e) − b·d, con Wp = mín(Bp ; b + 2(d + e)).</li>
+  <li>No incluye: rigidizadores, flexión biaxial, pedestal a flexo-compresión, aporte de pernos a la llave (1.2(Ny − Pa)).</li>
   <li>Herramienta de apoyo: la responsabilidad del diseño es del ingeniero que la usa.</li></ul>
   </body></html>`;
 }
