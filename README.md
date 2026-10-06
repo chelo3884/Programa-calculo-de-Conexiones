@@ -128,3 +128,14 @@ En la pestaña **Cargas** de cada módulo (y en la de placa base) hay un botón 
 * **Diferencias con la guía, esperadas:** la guía usa AISC 360-05 (agujero estándar de 1 in = 1-1/16 in; Fnv de A325-N = 48 ksi) y el programa usa 360-16 (1-1/8 in y 54 ksi). Por eso los valores que dependen del agujero o del perno difieren unos pocos % (p. ej. ruptura de la placa 316 vs 320 kip; aplastamiento 567 vs 584 kip) y las pruebas los comparan con tolerancia. La placa simple de corte **no se verificó contra la Tabla 10-9a** de la guía (no hay ejemplo numérico completo).
 * El área y el módulo del HSS (solo para Qf) están aproximados sin radios de esquina. No incluye interacción entre el corte de la placa y las alas en la misma pared.
 * **Diafragma externo**: DG24 solo lo cita como una de las siete configuraciones del Manual; no trae ecuaciones ni ejemplo. No está implementado a la espera de la referencia que usted busque.
+
+## Placa de recorte / diafragma externo (hss_diafragma)
+
+* Fuente: el cálculo Tedds «HSS column – cutout plate wide-flange beam moment connection» (AISC 360-10), `544846613-HSS-WIDE-FLANGE-EXTERNAL-DIAPHRAGM-CONNECTION.pdf` (W10×68 en HSS10×0.500, Mr = 209 kip-ft). **Es una hoja de cálculo de un proyecto, no una guía de diseño**, y tiene problemas que conviene conocer:
+  * multiplica por **2.00** (el Ω de ASD) las resistencias de aplastamiento y de bloque de cortante, en lugar de aplicar φ = 0.75: esos «PASS» están inflados ×2.67;
+  * su bloque de cortante usa un solo plano de cortante con dos filas de pernos (conservador, y distinto del DG24 Ej. 4.2);
+  * su tracción de placa cuenta el ancho del recorte (B + 2·ws) y su compresión de la franja sale «FAIL» en la propia hoja;
+  * **no verifica la soldadura de la placa al HSS ni la pared del HSS**, que son lo esencial de un diafragma externo.
+* Lo que el programa toma de ella y reproduce: la fuerza Pr = Mr/(d + tp) = 224.9 kip, corte de pernos 254.5 kip, y las resistencias nominales de aplastamiento (733.9 kip) y de bloque de cortante por plano (`tests/test_hss_diafragma.py`; con la opción de agujero «AISC 360-10» para igualar su 1-1/16 in).
+* Lo que el programa agrega con **criterio propio simplificado, sin respaldo de una referencia**: solo las franjas de placa junto al HSS (2·ws·tp) en tracción y compresión, la soldadura de la placa al perímetro del HSS (un cordón, θ = 0°) y el corte de las dos paredes del HSS paralelas a la viga. **No incluye** la flexión local de las paredes perpendiculares a la viga, ni diseño sísmico. Contraste esta parte con CIDECT DG9, AIJ o ensayos antes de usarla.
+* Resultado con los datos del documento: **no cumple** (franjas de 2 in a compresión), igual que su propia hoja.
