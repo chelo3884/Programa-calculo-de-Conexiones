@@ -123,12 +123,13 @@ details{margin-bottom:8px}summary{cursor:pointer;font-weight:600;padding:4px 0}
 <section class="tab" id="t-rep">
  <div class="card"><h2>Reporte de diseño</h2>
   <div style="margin-bottom:8px;display:flex;gap:8px;flex-wrap:wrap">
-   <button class="pri" id="repPrint">Imprimir / Guardar PDF</button><button id="repDl">Descargar HTML</button></div>
+   <button class="pri" id="repPrint">Imprimir / Guardar PDF</button><button id="repDl">Descargar HTML</button>
+   <button id="repDocx">Descargar Word (.docx)</button><label class="note"><input type="checkbox" id="repMem"> incluir memoria detallada</label><span id="repMsg" class="note"></span></div>
   <iframe id="repFrame" title="Reporte"></iframe></div>
 </section>
 </main>
 
-<script src="/tools.js"></script>
+<script src="/proy.js"></script><script src="/docx.js"></script><script src="/dxf.js"></script><script src="/tools.js"></script>
 <script>
 "use strict";
 /* ═════════════ Unidades ═════════════ */
@@ -613,6 +614,9 @@ function reportHTML(){
 }
 document.getElementById('btnReport').onclick=()=>tab('rep');
 document.getElementById('repPrint').onclick=()=>{const f=document.getElementById('repFrame');f.contentWindow.focus();f.contentWindow.print();};
+document.getElementById('repDocx').onclick=async()=>{const m=document.getElementById('repMsg');m.textContent='Generando…';
+  try{await Docx.descargar(reportHTML(),'Reporte_PlacaBase_'+(S.elemento||'').replace(/\W+/g,'_'),{memoria:document.getElementById('repMem').checked,titulo:'Placa base y pernos de anclaje'});m.textContent='';}
+  catch(e){m.textContent='Error: '+e.message;}};
 document.getElementById('repDl').onclick=()=>{
   const blob=new Blob([reportHTML()],{type:'text/html'});const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);a.download=`Reporte_PlacaBase_${(S.elemento||'').replace(/\W+/g,'_')}.html`;a.click();};
@@ -657,13 +661,15 @@ document.getElementById('tabs').onclick=e=>{if(e.target.dataset.t)tab(e.target.d
 /* ═════════════ Inicio ═════════════ */
 (async function init(){
   try{const th=localStorage.getItem('pb_theme');if(th)document.documentElement.dataset.theme=th;
-    const st=JSON.parse(localStorage.getItem('pb_state')||'null');if(st&&st.S){S=mergeDef(DEFAULT,st.S);if(st.units)units=st.units;}}catch(e){}
+    const q=Proy.params(),it=q.proy&&q.item?Proy.item(q.proy,q.item):null;
+    const st=it?it.guardado:(q.nuevo?null:JSON.parse(localStorage.getItem('pb_state')||'null'));
+    if(st&&st.S){S=mergeDef(DEFAULT,st.S);if(st.units)units=st.units;}}catch(e){}
   CAT=await (await fetch('/api/placa_base/catalogos')).json();
   if(window.PerfilesLocales)await PerfilesLocales.cargar();
   renderUnits();renderInputs();calc();
   if(window.Tools)Tools.install({
     api:'/api/placa_base',inputs:()=>S,nMax:12,modulo:'placa_base',titulo:'Placa base y pernos de anclaje',reporte:()=>reportHTML(),res:()=>RES,
-    state:()=>({S,units}),etiqueta:()=>S.elemento,archivo:'Dibujos_placa_base',
+    state:()=>({S,units}),etiqueta:()=>S.elemento,archivo:'Dibujos_placa_base',miniatura:1,
     cols:[{key:'P',label:'Pu (Tonf) (+) compresión'},{key:'V',label:'Vu (Tonf)'},{key:'M',label:'Mu (Tonf·m)'}],
     setCombos(list,modo){const base=modo==='add'?S.combos:[];S.combos=base.concat(list.map(c=>({nombre:c.nombre,P:c.P||0,V:c.V||0,M:c.M||0}))).slice(0,12);
       selCombo=Math.min(selCombo,S.combos.length-1);renderCombos();changed();},

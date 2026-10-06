@@ -34,7 +34,8 @@ document.body.innerHTML=`
   <div class="ucard" id="unitSel"></div>
   <p class="note">Las unidades se aplican a los datos de entrada, resultados, dibujos y reporte. El cálculo es el mismo en cualquier sistema.</p></div></section>
 <section class="tab" id="t-rep"><div class="card"><h2>Reporte de diseño</h2>
-  <div style="margin-bottom:8px;display:flex;gap:8px;flex-wrap:wrap"><button class="pri" id="repPrint">Imprimir / Guardar PDF</button><button id="repDl">Descargar HTML</button></div>
+  <div style="margin-bottom:8px;display:flex;gap:8px;flex-wrap:wrap"><button class="pri" id="repPrint">Imprimir / Guardar PDF</button><button id="repDl">Descargar HTML</button>
+  <button id="repDocx">Descargar Word (.docx)</button><label class="note"><input type="checkbox" id="repMem"> incluir memoria detallada</label><span id="repMsg" class="note"></span></div>
   <iframe id="repFrame" title="Reporte"></iframe></div></section>
 </main>`;
 document.getElementById('svgs').innerHTML=(MODULE.svgs||[]).map(s=>`<div id="${s.id}"></div>`).join('');
@@ -255,6 +256,9 @@ function reportHTML(){
 }
 document.getElementById('btnReport').onclick=()=>tab('rep');
 document.getElementById('repPrint').onclick=()=>{const f=document.getElementById('repFrame');f.contentWindow.focus();f.contentWindow.print();};
+document.getElementById('repDocx').onclick=async()=>{const m=document.getElementById('repMsg');m.textContent='Generando…';
+  try{await Docx.descargar(reportHTML(),`Reporte_${MODULE.id}_${String(S.DIS_C8||'').replace(/\W+/g,'_')}`,{memoria:document.getElementById('repMem').checked,titulo:MODULE.title});m.textContent='';}
+  catch(e){m.textContent='Error: '+e.message;}};
 document.getElementById('repDl').onclick=()=>{const blob=new Blob([reportHTML()],{type:'text/html'});const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);a.download=`Reporte_${MODULE.id}_${String(S.DIS_C8||'').replace(/\W+/g,'_')}.html`;a.click();};
 
@@ -284,17 +288,21 @@ document.getElementById('tabs').onclick=e=>{if(e.target.dataset.t)tab(e.target.d
 document.getElementById('addCombo').onclick=()=>{if(S.combos.length>=SPEC.combos.n)return;const c={nombre:'C'+(S.combos.length+1)};for(const col of SPEC.combos.cols)if(col.key!=='nombre')c[col.key]=0;S.combos.push(c);renderCombos();changed();};
 (async function init(){
   initTheme();
-  await new Promise(ok=>{const sc=document.createElement('script');sc.src='/tools.js';sc.onload=ok;sc.onerror=ok;document.head.appendChild(sc);});
+  for(const u of ['/proy.js','/docx.js','/dxf.js','/tools.js'])await new Promise(ok=>{const sc=document.createElement('script');sc.src=u;sc.onload=ok;sc.onerror=ok;document.head.appendChild(sc);});
   if(window.PerfilesLocales)await PerfilesLocales.cargar();
   SPEC=await (await fetch(MODULE.api+'/spec')).json();
   document.getElementById('norma').textContent=SPEC.norma||'';
   S=defaultState();
-  try{const st=JSON.parse(localStorage.getItem(SKEY())||'null');if(st&&st.S){S={...S,...st.S};if(st.units)units={...units,...st.units};}}catch(e){}
+  try{
+    const q=window.Proy?Proy.params():{},it=q.proy&&q.item?Proy.item(q.proy,q.item):null;
+    const st=it?it.guardado:(q.nuevo?null:JSON.parse(localStorage.getItem(SKEY())||'null'));        // «nuevo» = conexión nueva con valores por defecto
+    if(st&&st.S){S={...S,...st.S};if(st.units)units={...units,...st.units};}
+  }catch(e){}
   if(!HASC()){document.getElementById('tabCar').style.display='none';}
   renderUnits();renderInputs();if(HASC())renderCombos();calc();
   if(window.Tools)Tools.install({
     api:MODULE.api,inputs:()=>S,modulo:MODULE.id,titulo:MODULE.title,reporte:()=>reportHTML(),res:()=>RES,state:()=>({S,units}),
-    etiqueta:()=>S.DIS_C8,archivo:'Dibujos_'+MODULE.id,
+    etiqueta:()=>S.DIS_C8,archivo:'Dibujos_'+MODULE.id,miniatura:0,
     cols:HASC()?SPEC.combos.cols.filter(c=>c.key!=='nombre').map(c=>({key:c.key,label:c.label})):[],nMax:HASC()?SPEC.combos.n:0,
     setCombos(list,modo){const base=modo==='add'?S.combos:[];S.combos=base.concat(list).slice(0,SPEC.combos.n);renderCombos();changed();},
     apply(prop){for(const k in prop)S[k]=prop[k];renderInputs();if(HASC())renderCombos();changed();}});

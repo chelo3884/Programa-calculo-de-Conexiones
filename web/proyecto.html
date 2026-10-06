@@ -1,81 +1,146 @@
 <!doctype html>
-<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Reporte de proyecto</title>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Proyecto</title>
 <link rel="icon" href="/icon.png"><link rel="stylesheet" href="/style.css">
-<style>.pg{max-width:1100px;margin:0 auto;padding:16px}.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:14px}
-.card h2{margin:0 0 10px;font-size:14px;text-transform:uppercase;letter-spacing:.04em;color:var(--acc)}
+<style>.pg{max-width:1180px;margin:0 auto;padding:16px}.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:14px}
+.card h2{margin:0 0 10px;font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--acc);display:flex;align-items:center;gap:10px}.card h2 .sp{flex:1}
 .f{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px 14px}.f label{display:block;font-size:12px;color:var(--mut)}.f input{width:100%}
-td button{padding:2px 8px}.r{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}</style></head><body>
-<header><div><h1><a href="/" style="color:inherit;text-decoration:none">⌂</a> Reporte de proyecto</h1><div class="sub">Reúne las conexiones agregadas con «＋ Proyecto» en un solo reporte</div></div><div class="sp"></div>
+.r{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center}
+.cg{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.cn{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--card);display:flex;flex-direction:column}
+.cn .im{height:140px;background:var(--bg);border-bottom:1px solid var(--line);padding:6px}.cn .im svg{width:100%;height:100%}
+.cn .tx{padding:10px 12px;display:flex;flex-direction:column;gap:5px;flex:1}.cn input.nom{font-weight:650;border:1px solid transparent;background:transparent;padding:2px 4px;width:100%}.cn input.nom:hover,.cn input.nom:focus{border-color:var(--line);background:var(--card)}
+.cn .sub{font-size:12px;color:var(--mut)}.cn .ac{display:flex;gap:5px;flex-wrap:wrap;margin-top:auto}.cn .ac button{padding:3px 9px;font-size:12.5px}
+.add{border:2px dashed var(--line);border-radius:12px;display:grid;place-items:center;min-height:240px;color:var(--acc);font-weight:650;cursor:pointer;text-align:center;padding:10px}.add:hover{border-color:var(--acc)}
+.sel{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
+.sel a{border:1px solid var(--line);border-radius:10px;overflow:hidden;color:inherit;text-decoration:none;background:var(--card)}.sel a:hover{border-color:var(--acc)}
+.sel img{width:100%;height:90px;object-fit:contain;background:var(--bg);display:block;padding:4px}.sel span{display:block;padding:6px 8px;font-size:12.5px}
+dialog{border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);width:min(900px,94vw);max-height:88vh}dialog::backdrop{background:rgba(0,0,0,.45)}
+</style></head><body>
+<header><div><h1><a href="/" style="color:inherit;text-decoration:none" title="Inicio">⌂</a> <span id="titulo">Proyectos</span></h1><div class="sub" id="sub"></div></div><div class="sp"></div>
 <button id="btnTheme">◐</button></header>
-<div class="pg">
-<div class="card"><h2>Datos del reporte</h2><div class="f" id="meta"></div>
-<div class="r"><label class="btn">Firma / sello (imagen) <input type="file" id="firma" accept="image/*" hidden></label><span id="firmaOk" class="note"></span><button id="firmaDel">Quitar firma</button></div></div>
-<div class="card"><h2>Conexiones del proyecto</h2><div style="overflow:auto"><table id="lista"></table></div><p class="note" id="vacio"></p>
-<div class="r"><button class="pri" id="prev">Vista previa</button><button id="print">Imprimir / Guardar PDF</button><button id="dl">Descargar HTML</button>
-<button id="save">Guardar proyecto (.json)</button><label class="btn">Abrir proyecto <input type="file" id="open" accept=".json" hidden></label><button id="clear">Vaciar</button></div></div>
-<div class="card" id="vista" hidden><h2>Vista previa</h2><iframe id="frame" title="Reporte"></iframe></div></div>
-<script src="/common.js"></script>
+<div class="pg" id="pg"></div>
+<dialog id="dlgAdd"><div style="display:flex;align-items:center;padding:10px 16px;border-bottom:1px solid var(--line)"><b style="flex:1">Agregar una conexión al proyecto</b><button id="dlgX">✕</button></div>
+<div style="padding:14px 16px;overflow:auto;max-height:72vh"><div id="selCat"></div></div></dialog>
+<script src="/common.js"></script><script src="/modulos.js"></script><script src="/proy.js"></script><script src="/docx.js"></script>
 <script>
 "use strict";
 initTheme();document.getElementById('btnTheme').onclick=toggleTheme;
-const KEY='cx_proyecto';
-let P={meta:{},items:[]};
-const load=()=>{try{P=JSON.parse(localStorage.getItem(KEY)||'null')||{meta:{},items:[]};}catch(e){}};
-const store=()=>{try{localStorage.setItem(KEY,JSON.stringify(P));}catch(e){alert('No se pudo guardar: sin espacio en el navegador.');}};
+const $=id=>document.getElementById(id),E=s=>esc(s==null?'':s);
+const ESTADO={'CUMPLE':['okbg','ok'],'CUMPLE AL LÍMITE':['warnbg','warn'],'NO CUMPLE':['badbg','bad']};
+const chip=e=>{const x=ESTADO[e];return x?`<span class="st" style="background:var(--${x[0]});color:var(--${x[1]})">${e==='CUMPLE AL LÍMITE'?'AL LÍMITE':e}</span>`:'';};
+const id=new URLSearchParams(location.search).get('id');
+let P=null;
+function bajar(blob,nom){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=nom;a.click();}
+const slug=s=>String(s||'proyecto').replace(/\W+/g,'_');
+
+/* ───────── lista de proyectos ───────── */
+function lista(){
+  $('titulo').textContent='Todos los proyectos';$('sub').textContent='';
+  const L=Proy.recientes();
+  $('pg').innerHTML=`<div class="card"><h2>Proyectos<span class="sp"></span><button id="np" class="pri">＋ Nuevo proyecto</button><label class="btn">Abrir archivo (.json) <input type="file" id="abrir" accept=".json" hidden></label></h2>
+    ${L.length?`<table><tr><th>Proyecto</th><th>Cliente</th><th class="n">Conexiones</th><th>Estado</th><th>Modificado</th><th></th></tr>${L.map(p=>`<tr><td><b>${E(p.nombre)}</b></td><td>${E(p.meta&&p.meta.cliente)}</td><td class="n">${p.items.length}</td><td>${chip(Proy.peor(p))}</td><td class="note">${E((p.modificado||'').slice(0,10))}</td>
+      <td style="white-space:nowrap"><a class="btn" href="/proyecto.html?id=${p.id}">Abrir</a> <button data-del="${p.id}">✕</button></td></tr>`).join('')}</table>`:'<p class="note">Aún no hay proyectos. Cree uno y agregue conexiones desde la página de inicio.</p>'}</div>`;
+  $('np').onclick=()=>{const n=prompt('Nombre del proyecto:','');if(n===null)return;const p=Proy.crear(n.trim()||'Proyecto nuevo');location.href='/proyecto.html?id='+p.id;};
+  $('pg').querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{if(confirm('¿Eliminar este proyecto y todas sus conexiones?')){Proy.borrar(b.dataset.del);lista();}});
+  $('abrir').onchange=importar;
+}
+async function importar(e){const f=e.target.files[0];if(!f)return;
+  try{const j=JSON.parse(await f.text());let p;
+    if(j.tipo==='proyecto_conexiones'&&j.version===2)p=j.proyecto;
+    else if(j.tipo==='proyecto_conexiones'&&j.P)p={id:Proy.uid(),nombre:(j.P.meta&&j.P.meta.proyecto)||'Proyecto importado',meta:j.P.meta||{},creado:new Date().toISOString(),modificado:new Date().toISOString(),items:j.P.items||[]};
+    else throw 0;
+    p.id=Proy.uid();Proy.leer().proyectos.push(p);Proy.setActivo(p.id);location.href='/proyecto.html?id='+p.id;}
+  catch(x){alert('El archivo no es un proyecto de conexiones.');}}
+
+/* ───────── un proyecto ───────── */
 const CAMPOS=[['proyecto','Proyecto'],['cliente','Cliente'],['ubicacion','Ubicación'],['ingeniero','Ingeniero responsable'],['registro','Registro profesional / SENESCYT'],
   ['empresa','Empresa'],['revision','Revisión'],['fecha','Fecha'],['norma','Normas de referencia']];
-function renderMeta(){
-  const b=document.getElementById('meta');b.innerHTML='';
-  for(const [k,l] of CAMPOS){const d=document.createElement('div');d.innerHTML=`<label>${l}</label><input data-k="${k}">`;
-    const i=d.querySelector('input');if(P.meta[k]==null)P.meta[k]=(k==='fecha'?new Date().toISOString().slice(0,10):k==='norma'?'AISC 360-16 · AISC 358-16 · ACI 318-19 · AISC Design Guides':'');i.value=P.meta[k];
-    i.oninput=()=>{P.meta[k]=i.value;store();};b.appendChild(d);}
-  document.getElementById('firmaOk').textContent=P.meta.firma?'Firma cargada':'';
+function pagina(){
+  Proy.setActivo(P.id);
+  $('titulo').textContent=P.nombre;$('sub').textContent=`${P.items.length} conexión${P.items.length===1?'':'es'}`;document.title=P.nombre+' — Proyecto';
+  $('pg').innerHTML=`
+  <div class="card"><h2>Conexiones<span class="sp"></span><button id="addTop" class="pri">＋ Agregar conexión</button></h2><div class="cg" id="cg"></div></div>
+  <div class="card" id="reporte"><h2>Reporte del proyecto</h2>
+    <div class="r"><button class="pri" id="docx">Descargar Word (.docx) del proyecto</button><label class="note"><input type="checkbox" id="mem"> incluir memoria detallada</label><span id="msg" class="note"></span></div>
+    <div class="r"><button id="prev">Vista previa</button><button id="print">Imprimir / Guardar PDF</button><button id="dl">Descargar HTML</button></div></div>
+  <div class="card"><h2>Datos del reporte (portada)</h2><div class="f" id="meta"></div>
+    <div class="r"><label class="btn">Firma / sello (imagen) <input type="file" id="firma" accept="image/*" hidden></label><span id="firmaOk" class="note"></span><button id="firmaDel">Quitar firma</button></div></div>
+  <div class="card"><h2>Archivo del proyecto</h2><div class="r"><button id="save">Guardar proyecto (.json)</button><button id="ren">Renombrar</button><button id="del">Eliminar proyecto</button></div>
+    <p class="note">Los proyectos viven en el navegador (≈ 5 MB). Descargue el .json para respaldarlo o llevarlo a otro equipo.</p></div>
+  <div class="card" id="vista" hidden><h2>Vista previa</h2><iframe id="frame" title="Reporte"></iframe></div>`;
+  conexiones();meta();
+  $('addTop').onclick=abrirGaleria;
+  $('docx').onclick=()=>word(null);$('prev').onclick=prev;$('print').onclick=()=>{prev();setTimeout(()=>{const f=$('frame');f.contentWindow.focus();f.contentWindow.print();},700);};
+  $('dl').onclick=()=>bajar(new Blob([reporte()],{type:'text/html'}),`Reporte_${slug(P.nombre)}.html`);
+  $('save').onclick=()=>bajar(new Blob([JSON.stringify({tipo:'proyecto_conexiones',version:2,proyecto:P})],{type:'application/json'}),`Proyecto_${slug(P.nombre)}.json`);
+  $('ren').onclick=()=>{const n=prompt('Nombre del proyecto:',P.nombre);if(n){P.nombre=n.trim();P.meta.proyecto=P.nombre;Proy.escribir();pagina();}};
+  $('del').onclick=()=>{if(confirm('¿Eliminar este proyecto y todas sus conexiones?')){Proy.borrar(P.id);location.href='/';}};
+  $('firma').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
+    r.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,400/im.width),c=document.createElement('canvas');c.width=im.width*k;c.height=im.height*k;
+      c.getContext('2d').drawImage(im,0,0,c.width,c.height);P.meta.firma=c.toDataURL('image/png');Proy.escribir();meta();};im.src=r.result;};r.readAsDataURL(f);};
+  $('firmaDel').onclick=()=>{delete P.meta.firma;Proy.escribir();meta();};
 }
-document.getElementById('firma').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
-  r.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,400/im.width),c=document.createElement('canvas');c.width=im.width*k;c.height=im.height*k;
-    c.getContext('2d').drawImage(im,0,0,c.width,c.height);P.meta.firma=c.toDataURL('image/png');store();renderMeta();};im.src=r.result;};r.readAsDataURL(f);};
-document.getElementById('firmaDel').onclick=()=>{delete P.meta.firma;store();renderMeta();};
-const E=s=>esc(s==null?'':s);
-function renderLista(){
-  const t=document.getElementById('lista');
-  t.innerHTML='<tr><th>#</th><th>Conexión</th><th>Tipo</th><th class="n">Ratio máx.</th><th>Estado</th><th>Gobierna</th><th></th></tr>'+P.items.map((it,i)=>
-   `<tr><td>${i+1}</td><td><input data-n="${i}" value="${E(it.etiqueta)}" style="width:100%"></td><td class="note">${E(it.titulo)}</td><td class="n"><b>${rfmt(it.ratio)}</b></td>
-    <td><span class="st s-${String(it.estado).replace(' ','-')}">${E(it.estado)}</span></td><td class="note">${it.gob?E(it.gob.nombre)+(it.gob.combo&&it.gob.combo!=='—'?' ('+E(it.gob.combo)+')':''):''}</td>
-    <td style="white-space:nowrap"><button data-up="${i}">↑</button><button data-dn="${i}">↓</button><button data-op="${i}" title="Abrir en el módulo">Abrir</button><button data-rm="${i}">✕</button></td></tr>`).join('');
-  document.getElementById('vacio').textContent=P.items.length?'':'Aún no hay conexiones. Abra un módulo, diseñe la conexión y use el botón «＋ Proyecto» de la barra superior.';
-  t.querySelectorAll('[data-n]').forEach(x=>x.oninput=()=>{P.items[+x.dataset.n].etiqueta=x.value;store();});
-  t.querySelectorAll('[data-up]').forEach(x=>x.onclick=()=>{const i=+x.dataset.up;if(i>0){[P.items[i-1],P.items[i]]=[P.items[i],P.items[i-1]];store();renderLista();}});
-  t.querySelectorAll('[data-dn]').forEach(x=>x.onclick=()=>{const i=+x.dataset.dn;if(i<P.items.length-1){[P.items[i+1],P.items[i]]=[P.items[i],P.items[i+1]];store();renderLista();}});
-  t.querySelectorAll('[data-rm]').forEach(x=>x.onclick=()=>{if(confirm('¿Quitar esta conexión del proyecto?')){P.items.splice(+x.dataset.rm,1);store();renderLista();}});
-  t.querySelectorAll('[data-op]').forEach(x=>x.onclick=()=>{const it=P.items[+x.dataset.op];
-    try{localStorage.setItem(it.modulo==='placa_base'?'pb_state':'xl_'+it.modulo,JSON.stringify(it.guardado));}catch(e){}location.href='/'+it.modulo+'.html';});
+function meta(){
+  const b=$('meta');b.innerHTML='';
+  for(const [k,l] of CAMPOS){const d=document.createElement('div');d.innerHTML=`<label>${l}</label><input>`;const i=d.querySelector('input');
+    if(P.meta[k]==null)P.meta[k]=k==='proyecto'?P.nombre:k==='fecha'?new Date().toISOString().slice(0,10):k==='norma'?'AISC 360-16 · AISC 358-16 · ACI 318-19 · AISC Design Guides':'';
+    i.value=P.meta[k];i.oninput=()=>{P.meta[k]=i.value;Proy.escribir();};b.appendChild(d);}
+  $('firmaOk').textContent=P.meta.firma?'Firma cargada':'';
 }
-function reporte(){
-  const m=P.meta,f=m.fecha||new Date().toISOString().slice(0,10),n=P.items.length;
-  const peor=P.items.reduce((a,i)=>a==null||(i.ratio!=null&&i.ratio>a)?i.ratio:a,null);
-  const todos=P.items.every(i=>i.estado==='CUMPLE'),alguno=P.items.some(i=>i.estado==='NO CUMPLE');
+function conexiones(){
+  $('cg').innerHTML=P.items.map((it,i)=>`<div class="cn"><div class="im">${it.thumb||`<img src="/thumbs/${it.modulo}.svg" style="width:100%;height:100%;object-fit:contain">`}</div>
+    <div class="tx"><input class="nom" data-n="${i}" value="${E(it.etiqueta)}"><div class="sub">${E(modulo(it.modulo).corto)} · ${E(it.fecha)}</div>
+    <div>${chip(it.estado)} <b>${rfmt(it.ratio)}</b> <span class="sub">${it.gob?E(it.gob.nombre):''}</span></div>
+    <div class="ac"><button class="pri" data-ed="${i}">Editar</button><button data-wd="${i}" title="Reporte Word de esta conexión">Word</button><button data-dup="${i}">Duplicar</button>
+    <button data-up="${i}">↑</button><button data-dn="${i}">↓</button><button data-rm="${i}">✕</button></div></div></div>`).join('')+
+    `<div class="add" id="add2">＋ Agregar conexión<br><span class="sub" style="font-weight:400">elija el tipo y se abre vacía</span></div>`;
+  const q=(a,f)=>$('cg').querySelectorAll(a).forEach(f);
+  q('[data-n]',x=>x.oninput=()=>{P.items[+x.dataset.n].etiqueta=x.value;Proy.escribir();});
+  q('[data-ed]',x=>x.onclick=()=>{const it=P.items[+x.dataset.ed];location.href=`/${it.modulo}.html?proy=${P.id}&item=${it.id}`;});
+  q('[data-wd]',x=>x.onclick=()=>{word(P.items[+x.dataset.wd]);});
+  q('[data-dup]',x=>x.onclick=()=>{const it=JSON.parse(JSON.stringify(P.items[+x.dataset.dup]));it.id=Proy.uid();it.etiqueta+=' (copia)';P.items.splice(+x.dataset.dup+1,0,it);Proy.tocar(P.id);pagina();});
+  q('[data-up]',x=>x.onclick=()=>{const i=+x.dataset.up;if(i>0){[P.items[i-1],P.items[i]]=[P.items[i],P.items[i-1]];Proy.tocar(P.id);conexiones();}});
+  q('[data-dn]',x=>x.onclick=()=>{const i=+x.dataset.dn;if(i<P.items.length-1){[P.items[i+1],P.items[i]]=[P.items[i],P.items[i+1]];Proy.tocar(P.id);conexiones();}});
+  q('[data-rm]',x=>x.onclick=()=>{if(confirm('¿Quitar esta conexión del proyecto?')){P.items.splice(+x.dataset.rm,1);Proy.tocar(P.id);pagina();}});
+  $('add2').onclick=abrirGaleria;
+}
+function abrirGaleria(){
+  $('selCat').innerHTML=CATEGORIAS.map(c=>`<h3 style="font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--acc);margin:12px 0 6px">${c}</h3><div class="sel">${MODULOS.filter(m=>m.cat===c).map(m=>
+    `<a href="/${m.id}.html?proy=${P.id}&nuevo=1"><img src="/thumbs/${m.id}.svg" alt=""><span>${E(m.corto)}</span></a>`).join('')}</div>`).join('');
+  $('dlgAdd').showModal();$('dlgX').onclick=()=>$('dlgAdd').close();
+}
+/* ───────── reporte ───────── */
+function reporte(items){
+  items=items||P.items;const m=P.meta,f=m.fecha||new Date().toISOString().slice(0,10),n=items.length;
+  const peor=items.reduce((a,i)=>a==null||(i.ratio!=null&&i.ratio>a)?i.ratio:a,null),todos=items.every(i=>i.estado==='CUMPLE'),alguno=items.some(i=>i.estado==='NO CUMPLE');
   const cls=!n?'':alguno?'bd':todos?'ok':'wn';
-  const css=(P.items[0]&&P.items[0].estilo)||'body{font:12px Arial}';
+  const css=(items[0]&&items[0].estilo)||'body{font:12px Arial}';
   const extra=`.cover{min-height:240mm;display:flex;flex-direction:column;justify-content:space-between}.cover h1{font-size:28px;margin:40mm 0 6mm}
    .cover .sub{font-size:15px;color:#444}.firma{margin-top:30mm;width:240px;border-top:1px solid #111;padding-top:4px;text-align:center;font-size:11px}.firma img{max-width:230px;max-height:90px;display:block;margin:0 auto 4px}
    .conn{page-break-before:always}.rs td{padding:4px 6px}`;
-  const filas=P.items.map((i,k)=>`<tr><td>${k+1}</td><td>${E(i.etiqueta)}</td><td>${E(i.titulo)}</td><td class="n"><b>${rfmt(i.ratio)}</b></td><td class="s ${String(i.estado).replace(' ','-')}">${E(i.estado)}</td><td>${i.gob?E(i.gob.nombre):''}</td></tr>`).join('');
-  return `<!doctype html><html lang="es"><head><meta charset="utf-8"><title>${E(m.proyecto||'Reporte de proyecto')}</title><style>${css}${extra}</style></head><body>
-  <div class="cover"><div><h1>Memoria de cálculo de conexiones metálicas</h1><div class="sub"><b>${E(m.proyecto)}</b></div><div class="sub">${E(m.ubicacion)}</div>
+  const filas=items.map((i,k)=>`<tr><td>${k+1}</td><td>${E(i.etiqueta)}</td><td>${E(modulo(i.modulo).titulo)}</td><td class="n"><b>${rfmt(i.ratio)}</b></td><td class="s ${String(i.estado).replace(' ','-')}">${E(i.estado)}</td><td>${i.gob?E(i.gob.nombre):''}</td></tr>`).join('');
+  return `<!doctype html><html lang="es"><head><meta charset="utf-8"><title>${E(m.proyecto||P.nombre)}</title><style>${css}${extra}</style></head><body>
+  <div class="cover"><div><h1>Memoria de cálculo de conexiones metálicas</h1><div class="sub"><b>${E(m.proyecto||P.nombre)}</b></div><div class="sub">${E(m.ubicacion)}</div>
   <table style="margin-top:14mm;max-width:520px">${[['Cliente',m.cliente],['Ingeniero responsable',m.ingeniero],['Registro profesional',m.registro],['Empresa',m.empresa],['Revisión',m.revision],['Fecha',f],['Normas',m.norma]].filter(r=>r[1]).map(r=>`<tr><td>${r[0]}</td><td><b>${E(r[1])}</b></td></tr>`).join('')}</table></div>
   <div><div class="firma">${m.firma?`<img src="${m.firma}" alt="firma">`:'<br><br>'}${E(m.ingeniero)||'Ingeniero responsable'}</div>
   <p class="note" style="margin-top:12mm">Herramienta de apoyo: la responsabilidad del diseño es del ingeniero que la usa. Cada memoria es una copia del cálculo en la fecha indicada.</p></div></div>
   <div class="conn"><h1>Resumen de conexiones</h1><div class="res ${cls}">${!n?'Sin conexiones':alguno?'HAY CONEXIONES QUE NO CUMPLEN':todos?'TODAS CUMPLEN':'CUMPLEN, ALGUNAS AL LÍMITE'}${peor!=null?' — ratio máximo '+rfmt(peor):''}</div>
   <table class="rs"><tr><th>#</th><th>Conexión</th><th>Tipo</th><th class="n">Ratio máx.</th><th>Estado</th><th>Verificación gobernante</th></tr>${filas}</table>
   <p class="note">Ratio = demanda / capacidad de diseño (o requerido / provisto). El estado «AL LÍMITE» es el ratio entre el límite verde del módulo y 1.00.</p></div>
-  ${P.items.map((i,k)=>`<section class="conn"><div class="note">Conexión ${k+1} de ${n} — ${E(i.etiqueta)}</div>${i.cuerpo}</section>`).join('')}</body></html>`;
+  ${items.map((i,k)=>`<section class="conn"><div class="note">Conexión ${k+1} de ${n} — ${E(i.etiqueta)}</div>${i.cuerpo}</section>`).join('')}</body></html>`;
 }
-document.getElementById('prev').onclick=()=>{document.getElementById('vista').hidden=false;document.getElementById('frame').srcdoc=reporte();document.getElementById('vista').scrollIntoView();};
-document.getElementById('print').onclick=()=>{document.getElementById('prev').click();setTimeout(()=>{const f=document.getElementById('frame');f.contentWindow.focus();f.contentWindow.print();},600);};
-const bajar=(txt,nom,tipo)=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:tipo}));a.download=nom;a.click();};
-document.getElementById('dl').onclick=()=>bajar(reporte(),`Reporte_${(P.meta.proyecto||'proyecto').replace(/\W+/g,'_')}.html`,'text/html');
-document.getElementById('save').onclick=()=>bajar(JSON.stringify({tipo:'proyecto_conexiones',version:1,P},null,0),`Proyecto_${(P.meta.proyecto||'conexiones').replace(/\W+/g,'_')}.json`,'application/json');
-document.getElementById('open').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const j=JSON.parse(await f.text());if(j.tipo!=='proyecto_conexiones')throw 0;P=j.P;store();renderMeta();renderLista();}catch(x){alert('El archivo no es un proyecto de conexiones.');}};
-document.getElementById('clear').onclick=()=>{if(confirm('¿Quitar TODAS las conexiones del proyecto?')){P.items=[];store();renderLista();}};
-load();renderMeta();renderLista();
+function prev(){$('vista').hidden=false;$('frame').srcdoc=reporte();$('vista').scrollIntoView();}
+async function word(it){
+  const m=$('msg');m.textContent='Generando Word…';
+  try{
+    if(it){const html=`<!doctype html><html><head><meta charset="utf-8"><style>${it.estilo}</style></head><body>${it.cuerpo}</body></html>`;
+      await Docx.descargar(html,`Reporte_${slug(it.etiqueta)}`,{memoria:$('mem').checked,titulo:it.titulo});}
+    else await Docx.descargar(reporte(),`Reporte_${slug(P.nombre)}`,{memoria:$('mem').checked,titulo:P.nombre});
+    m.textContent='';
+  }catch(e){m.textContent='Error: '+e.message;}
+}
+P=id?Proy.get(id):null;
+if(id&&!P){$('pg').innerHTML='<div class="card"><p>No se encontró ese proyecto en este navegador.</p><a class="btn" href="/proyecto.html">Ver todos los proyectos</a></div>';}
+else if(P)pagina();else lista();
+if(location.hash==='#reporte'&&P)setTimeout(()=>$('reporte').scrollIntoView(),100);
 </script></body></html>

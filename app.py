@@ -21,6 +21,7 @@ from end_plate import engine as end_plate_engine
 from placa_base.engine import CATALOGOS, calcular
 from rodilla import engine as rodilla_engine
 import autodiseno
+import docx_writer
 import cargas
 import perfiles_usuario
 from wuf import engine as wuf_engine
@@ -108,6 +109,7 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         funciones = {"/api/placa_base/calc": calcular, "/api/nec_combos": _api_nec, "/api/sap_parse": _api_sap_parse,
                      "/api/sap_import": _api_sap_import,
+                     "/api/docx": lambda d: docx_writer.build(d["bloques"], d.get("titulo") or "Memoria de cálculo de conexiones metálicas"),
                      "/api/perfiles": lambda d: {"perfiles": perfiles_usuario.guardar(d["perfiles"])},
                      "/api/perfiles_importar": lambda d: {"perfiles": perfiles_usuario.parse_texto(d["texto"])},
                      "/api/placa_base/barrido": lambda d: _api_barrido("placa_base", calcular, None, d), "/api/placa_base/auto": lambda d: _api_auto("placa_base", calcular, None, d)}
@@ -121,7 +123,10 @@ class Handler(BaseHTTPRequestHandler):
         try:
             n = int(self.headers.get("Content-Length", 0))
             datos = json.loads(self.rfile.read(n) or b"{}")
-            self._send(200, funciones[self.path](datos))
+            res = funciones[self.path](datos)
+            if isinstance(res, bytes):
+                return self._send(200, res, "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+            self._send(200, res)
         except (ValueError, KeyError, TypeError, ZeroDivisionError) as exc:
             self._send(400, {"error": f"{type(exc).__name__}: {exc}"})
 

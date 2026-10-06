@@ -198,24 +198,52 @@ window.Tools=(()=>{
   function dimsLocal(valor){const n=valor.slice(6),p=locales().find(x=>x.nombre===n);return p||null;}
   window.PerfilesLocales={opciones:opcionesLocales,dims:dimsLocal,cargar:async()=>{try{window.LOCALES=(await (await fetch('/api/perfiles')).json()).perfiles||[];}catch(e){window.LOCALES=[];}}};
 
-  /* ───────────── Reporte de proyecto (varias conexiones) ───────────── */
-  const KEY='cx_proyecto';
-  const leer=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'null')||{meta:{},items:[]};}catch(e){return {meta:{},items:[]};}};
-  function agregarProyecto(){
+  /* ───────────── Proyectos ───────────── */
+  const esc2=E;
+  function toast(html){
+    let t=document.getElementById('toastCx');if(!t){t=document.createElement('div');t.id='toastCx';
+      t.style.cssText='position:fixed;right:16px;bottom:16px;background:var(--card);border:1px solid var(--ok);color:var(--ink);padding:10px 14px;border-radius:10px;box-shadow:0 4px 18px rgba(0,0,0,.25);z-index:50;max-width:380px';document.body.appendChild(t);}
+    t.innerHTML=html;t.style.display='block';clearTimeout(t._h);t._h=setTimeout(()=>t.style.display='none',6500);
+  }
+  function proyActual(){const q=Proy.params();return Proy.get(q.proy)||Proy.activo();}
+  function etiquetaBoton(){
+    const b=document.getElementById('btnProy');if(!b)return;
+    const p=proyActual(),q=Proy.params(),it=p&&q.item?Proy.item(p.id,q.item):null;
+    b.textContent=p?(it?`Guardar en «${p.nombre}»`:`＋ Agregar a «${p.nombre}»`):'＋ Agregar a un proyecto';
+    b.className=it?'pri':'';
+    const c=document.getElementById('btnProyCambiar');if(c)c.textContent=p?'Proyecto: '+p.nombre+' ▾':'Elegir proyecto ▾';
+  }
+  function elegirProyecto(cb){
+    const P=Proy.leer();
+    abrir('Elegir proyecto',`<p class="note">Las conexiones se guardan dentro de un proyecto; el reporte reúne todas las de un mismo proyecto.</p>
+      ${P.proyectos.length?`<table>${Proy.recientes().map(p=>`<tr><td><label><input type="radio" name="pj" value="${p.id}" ${p.id===(proyActual()||{}).id?'checked':''}> <b>${E(p.nombre)}</b></label></td><td class="note">${p.items.length} conexión(es)</td></tr>`).join('')}</table>`:'<p class="note">Aún no hay proyectos.</p>'}
+      <div class="r"><label>Nuevo proyecto: <input id="pjNom" placeholder="p. ej. Edificio Quito Norte" style="width:260px"></label></div>`,
+      '<button class="pri" id="pjOk">Aceptar</button>');
+    q('#pjOk').onclick=()=>{
+      const nom=q('#pjNom').value.trim();let pid;
+      if(nom){pid=Proy.crear(nom).id;}else{const r=dlg.querySelector('input[name=pj]:checked');if(!r){q('#pjNom').focus();return;}pid=r.value;}
+      Proy.setActivo(pid);dlg.close();
+      const u=new URL(location.href);u.searchParams.set('proy',pid);u.searchParams.delete('item');history.replaceState(null,'',u);
+      etiquetaBoton();if(cb)cb(pid);};
+  }
+  function guardarEnProyecto(){
     if(!cfg.reporte||!cfg.res())return;
-    const nombre=prompt('Nombre de esta conexión en el proyecto (si ya existe con el mismo nombre se reemplaza):',cfg.etiqueta()||cfg.titulo);
-    if(nombre===null)return;
+    const q=Proy.params();let p=proyActual();
+    if(!p)return elegirProyecto(()=>guardarEnProyecto());
+    const previo=q.item?Proy.item(p.id,q.item):null;
+    let nombre=previo?previo.etiqueta:prompt('Nombre de esta conexión en «'+p.nombre+'»:',cfg.etiqueta()||cfg.titulo);
+    if(nombre===null)return;nombre=(nombre||'').trim()||cfg.titulo;
     const html=cfg.reporte(),st=/<style>([\s\S]*?)<\/style>/.exec(html),bd=/<body>([\s\S]*)<\/body>/.exec(html);
     const R=cfg.res(),cs=(R.checks||[]).filter(c=>c.ratio!=null),gob=cs.reduce((a,c)=>!a||c.ratio>a.ratio?c:a,null);
-    const item={id:Date.now().toString(36),modulo:cfg.modulo,titulo:cfg.titulo,etiqueta:nombre.trim()||cfg.titulo,estado:R.resumen.estado,
-      ratio:R.resumen.ratio_max,gob:gob?{nombre:gob.nombre,combo:gob.combo}:null,estilo:st?st[1]:'',cuerpo:bd?bd[1]:'',
+    const it={id:previo?previo.id:Proy.uid(),modulo:cfg.modulo,titulo:cfg.titulo,etiqueta:nombre,estado:R.resumen.estado,ratio:R.resumen.ratio_max,
+      gob:gob?{nombre:gob.nombre,combo:gob.combo}:null,estilo:st?st[1]:'',cuerpo:bd?bd[1]:'',thumb:Proy.miniatura(cfg.miniatura||0),
       guardado:cfg.state(),fecha:new Date().toISOString().slice(0,10)};
-    const P=leer(),i=P.items.findIndex(x=>x.modulo===item.modulo&&x.etiqueta===item.etiqueta);
-    if(i>=0){item.id=P.items[i].id;P.items[i]=item;}else P.items.push(item);
-    try{localStorage.setItem(KEY,JSON.stringify(P));}
-    catch(e){alert('No hay espacio en el navegador para guardar otra conexión. Descargue el proyecto desde la página «Proyecto» y vacíelo.');return;}
-    abrir('Proyecto',`<p><b>${E(item.etiqueta)}</b> quedó guardada (${P.items.length} conexión${P.items.length>1?'es':''} en el proyecto). Es una copia fija del reporte actual: si cambia el diseño, vuelva a agregarla con el mismo nombre.</p>`,
-      '<a class="btn pri" href="/proyecto.html" style="text-decoration:none">Ir al reporte de proyecto</a>');
+    if(!Proy.guardarItem(p.id,it)){alert('No hay espacio en el navegador para guardar otra conexión. Descargue el proyecto (.json) desde la página del proyecto y quite conexiones que ya no necesite.');return;}
+    Proy.setActivo(p.id);
+    const u=new URL(location.href);u.searchParams.set('proy',p.id);u.searchParams.set('item',it.id);u.searchParams.delete('nuevo');history.replaceState(null,'',u);
+    etiquetaBoton();
+    toast(`<b>${E(nombre)}</b> ${previo?'actualizada':'agregada'} en «${E(p.nombre)}» (${Proy.get(p.id).items.length} conexión${Proy.get(p.id).items.length>1?'es':''}).<br>
+      <a href="/proyecto.html?id=${p.id}">Ver el proyecto</a> · <a href="/#agregar">Agregar otra conexión</a>`);
   }
 
   function install(c){
@@ -227,7 +255,8 @@ window.Tools=(()=>{
     if(th&&cfg.api&&!document.getElementById('btnBar')){
       const b=document.createElement('button');b.id='btnBar';b.textContent='Barrido';b.title='Gráfica del ratio al variar un parámetro';b.onclick=barrido;th.before(b);}
     if(th&&cfg.reporte&&!document.getElementById('btnProy')){
-      const b=document.createElement('button');b.id='btnProy';b.textContent='＋ Proyecto';b.title='Agregar esta conexión al reporte de proyecto';b.onclick=agregarProyecto;th.before(b);}
+      const c=document.createElement('button');c.id='btnProyCambiar';c.title='Proyecto al que se agregan las conexiones';c.onclick=()=>elegirProyecto();th.before(c);
+      const b=document.createElement('button');b.id='btnProy';b.title='Guardar esta conexión en el proyecto (se incluye en su reporte)';b.onclick=guardarEnProyecto;th.before(b);etiquetaBoton();}
     if(th&&!document.getElementById('btnDxf')){
       const sc=document.createElement('script');sc.src='/dxf.js';document.head.appendChild(sc);
       const b=document.createElement('button');b.id='btnDxf';b.textContent='Exportar DXF';b.title='Dibujos de la página en DXF (mm, 1:1)';
@@ -235,5 +264,5 @@ window.Tools=(()=>{
     if(th&&cfg.api&&!document.getElementById('btnAuto')){
       const b=document.createElement('button');b.id='btnAuto';b.textContent='Proponer diseño';b.onclick=auto;th.before(b);}
   }
-  return {install};
+  return {install,toast,elegirProyecto};
 })();
