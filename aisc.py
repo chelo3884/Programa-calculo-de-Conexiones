@@ -130,3 +130,55 @@ def rn_zona_panel(Fy, dc, tw, Pr=0.0, Py=1.0, phi=0.90):
 def ancho_whitmore(gramil, L, angulo=30.0):
     """Manual Fig. 9-1: lw = g + 2·L·tan 30°."""
     return gramil + 2 * L * math.tan(math.radians(angulo))
+
+
+# ── elementos en compresión (E3 / J4.4) ───────────────────────────────────────────────────────────────────────
+def fcr_compresion(Fy, KLr):
+    """E3: esfuerzo crítico de pandeo por flexión."""
+    Fe = math.pi ** 2 * E / KLr ** 2
+    return 0.658 ** (Fy / Fe) * Fy if KLr <= 4.71 * math.sqrt(E / Fy) else 0.877 * Fe
+
+
+def rn_compresion_placa(Fy, Ag, KLr, phi=0.90):
+    """J4.4: φ·Fy·Ag si KL/r ≤ 25; si no, E3."""
+    return phi * (Fy if KLr <= 25 else fcr_compresion(Fy, KLr)) * Ag
+
+
+# ── placa transversal a HSS rectangular (Spec. K1.3b; DG24 Tabla 7-2) ─────────────────────────────────────────────
+def hss_flujo_placa(Fy, t, B, Bp, Fyp, tp, phi=0.95):
+    """K1-2: fluencia local de la placa (ala) por distribución desigual: φ·mín(10/(B/t)·Fy·t·Bp ; Fyp·tp·Bp)."""
+    return phi * min(10.0 / (B / t) * Fy * t * Bp, Fyp * tp * Bp)
+
+
+def hss_punzonamiento(Fy, t, B, Bp, tp, phi=0.95):
+    """K1-3 (0.85·B ≤ Bp ≤ B − 2t): φ·0.6·Fy·t·(2tp + 2Bep), Bep = 10·Bp/(B/t) ≤ Bp."""
+    Bep = min(10.0 * Bp / (B / t), Bp)
+    return phi * 0.6 * Fy * t * (2 * tp + 2 * Bep)
+
+
+def hss_pared_fluencia(Fy, t, N, k=None, phi=1.0):
+    """K1-4 (Bp = B): 2·Fy·t·(5k + N), k = radio exterior ≈ 1.5t."""
+    k = 1.5 * t if k is None else k
+    return phi * 2 * Fy * t * (5 * k + N)
+
+
+def hss_pared_aplastamiento(Fy, t, H, N, Qf=1.0, phi=0.75):
+    """K1-5 (Bp = B, placa a compresión, conexión en T): 1.6·t²·(1 + 3N/(H − 3t))·√(E·Fy)·Qf."""
+    return phi * 1.6 * t ** 2 * (1 + 3 * N / (H - 3 * t)) * math.sqrt(E * Fy) * Qf
+
+
+def hss_pared_pandeo(Fy, t, H, Qf=1.0, phi=0.90):
+    """K1-6 (Bp = B, placas a compresión a ambos lados): 48·t³/(H − 3t)·√(E·Fy)·Qf."""
+    return phi * 48 * t ** 3 / (H - 3 * t) * math.sqrt(E * Fy) * Qf
+
+
+def hss_Qf(U, beta, compresion=True):
+    """K2-10: Qf = 1 en tracción; 1.3 − 0.4·U/β ≤ 1 en compresión (placa transversal)."""
+    return min(1.3 - 0.4 * U / beta, 1.0) if compresion else 1.0
+
+
+def hss_props(B, H, t):
+    """Área y módulo elástico aproximados de un HSS (sin radios de esquina; cm, cm², cm³)."""
+    A = 2 * t * (B + H - 2 * t)
+    S = (B * H ** 3 - (B - 2 * t) * (H - 2 * t) ** 3) / (6 * H)
+    return A, S

@@ -90,3 +90,24 @@ class TestAISC(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestHSSDG24(unittest.TestCase):
+    """AISC Design Guide 24, Ej. 4.3: W16x57 soldada a HSS10x10x1/2 (t = 0.465 in, A500 Gr B, Fy = 46 ksi)."""
+
+    def test_flujo_placa_K1_2(self):
+        B, t, bf, tf = 10 * IN, 0.465 * IN, 7.12 * IN, 0.715 * IN
+        Rn = aisc.hss_flujo_placa(46 * KSI, t, B, bf, 50 * KSI, tf, phi=1.0)
+        self.assertAlmostEqual(Rn / KIP, 70.8, delta=0.15)
+        self.assertAlmostEqual(aisc.hss_flujo_placa(46 * KSI, t, B, bf, 50 * KSI, tf) / KIP, 67.3, delta=0.15)
+
+    def test_punzonamiento_no_aplica_pero_formula(self):
+        # fórmula K1-3 con el mismo ejemplo (referencia numérica propia, no impresa en la guía)
+        B, t, bf, tf = 10 * IN, 0.465 * IN, 9 * IN, 0.715 * IN
+        Bep = min(10 * bf / (B / t), bf)
+        self.assertAlmostEqual(aisc.hss_punzonamiento(46 * KSI, t, B, bf, tf), 0.95 * 0.6 * 46 * KSI * t * (2 * tf + 2 * Bep), places=3)
+
+    def test_compresion_placa_J4_4(self):
+        # DG24 Ej. 4.2: PL 5/8 x 14, KL/r = 16.7 < 25 → φFyAg = 0.9·36·8.75 = 283.5 kip
+        Ag = 14 * 0.625 * IN ** 2
+        self.assertAlmostEqual(aisc.rn_compresion_placa(36 * KSI, Ag, 16.7) / KIP, 283.5, delta=0.5)

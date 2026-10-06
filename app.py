@@ -26,13 +26,17 @@ import perfiles_usuario
 from wuf import engine as wuf_engine
 from gusset import engine as gusset_engine
 from cortante_hss import engine as hss_engine
+from hss_directa import engine as hss_directa_engine
+from hss_pasante import engine as hss_pasante_engine
 
 MODULOS_XL = {"end_plate": end_plate_engine, "bfp": bfp_engine, "rodilla": rodilla_engine,
               "cortante_vv": cortante_vv_engine, "cortante_vc": cortante_vc_engine,
               "empalme_viga": empalme_viga_engine, "empalme_col": empalme_col_engine,
               "wuf": wuf_engine,
               "gusset": gusset_engine,
-              "cortante_hss": hss_engine}
+              "cortante_hss": hss_engine,
+              "hss_directa": hss_directa_engine,
+              "hss_pasante": hss_pasante_engine}
 
 WEB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "web")
 

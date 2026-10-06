@@ -136,6 +136,18 @@ def _c_emp_col(i):
             + _bolts(4 * _f(i, "wa_nr") * _f(i, "wa_nc"), i["wa_diam"], 20))
 
 
+def _c_hss_directa(i):
+    return (_f(i, "sp_t") * (2 * _f(i, "sp_lev", 38) + (_f(i, "sp_n", 3) - 1) * _f(i, "sp_s", 76)) * (_f(i, "sp_a", 76) + _f(i, "sp_leh", 50)) * RHO
+            + _bolts(_f(i, "sp_n", 3), i["pn_diam"], 25) + _fillet(_f(i, "sp_w"), 2 * (2 * _f(i, "sp_lev", 38) + (_f(i, "sp_n", 3) - 1) * _f(i, "sp_s", 76)))
+            + (_fillet(_f(i, "al_w"), 4 * 150) if i.get("al_tipo") == "Filete" else 0))
+
+
+def _c_hss_pasante(i):
+    L = 2 * (_f(i, "pp_lep") + (_f(i, "pp_nb") - 1) * _f(i, "pp_s") + _f(i, "pp_a")) + 300
+    return (2 * _f(i, "pp_t") * _f(i, "pp_bp") * L * RHO + _bolts(4 * _f(i, "pp_nb") * _f(i, "pp_rows", 2), i["pn_diam"], _f(i, "pp_t") + 20)
+            + _fillet(_f(i, "pp_w"), 4 * 800))
+
+
 def _cnt(a, b):
     return list(range(a, b + 1))
 
@@ -176,6 +188,12 @@ CONFIG = {
                                  ("fa_diam", "Diámetro pernos ala", DIAMS[1:6]), ("pw_t", "Placas de alma", GRUESOS[:10]),
                                  ("wa_nr", "Filas pernos de alma", _cnt(2, 6)), ("wa_diam", "Diámetro pernos alma", DIAMS[1:6])]),
 }
+CONFIG["hss_directa"] = (_c_hss_directa, [("sp_t", "Placa de corte: espesor", GRUESOS[:11]), ("sp_n", "Placa de corte: pernos", _cnt(2, 8)),
+                                         ("sp_w", "Placa de corte: filete", FILETES), ("pn_diam", "Diámetro de pernos", DIAMS[:5]),
+                                         ("al_w", "Filete de alas", FILETES)])
+CONFIG["hss_pasante"] = (_c_hss_pasante, [("pp_t", "Espesor de placa pasante", GRUESOS[3:13]), ("pp_nb", "Pernos por fila", _cnt(3, 9)),
+                                          ("pn_diam", "Diámetro de pernos", DIAMS[1:6]), ("pp_w", "Filete placa–HSS", FILETES),
+                                          ("pp_bp", "Ancho de placa", lambda i: _abs_n(i, "pp_bp", 25, 7))])
 CONFIG["cortante_vc"] = CONFIG["cortante_vv"]
 CONFIG["cortante_hss"] = (_c_cortante, [v for v in CONFIG["cortante_vv"][1] if v[0] != "an_t"])
 
