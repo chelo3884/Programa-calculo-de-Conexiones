@@ -44,7 +44,7 @@ function fmt(v,q){
 const rfmt=v=>v===null||v===undefined?'—':v.toFixed(2);
 function withU(v,q){const u=uf(q);return fmt(v,q)+(u.l?' '+u.l:'');}
 const R6=x=>parseFloat(x.toPrecision(6));
-const esc=s=>String(s).replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
+const esc=s=>String(s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
 function qOfUnit(u){return ({'mm':'Ls','m':'Lm','Tonf':'F','Tonf·m':'M','kgf/cm²':'S','cm':'Lc'})[u]||'';}
 function initTheme(){try{const th=localStorage.getItem('cx_theme');if(th)document.documentElement.dataset.theme=th;}catch(e){}}
 function toggleTheme(){const r=document.documentElement,dark=getComputedStyle(r).getPropertyValue('--bg').trim()==='#12161c';
