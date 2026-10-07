@@ -44,6 +44,17 @@ class TestNivel(unittest.TestCase):
         r = calcular({})
         self.assertEqual(r["derivados"]["setback_ef"], 15)
 
+    def test_placa_en_T(self):
+        r = calcular({"tipo": "Placa simple extendida", "pl_a": 150, "pl_w": 8})
+        g = r["raw"]["global"]
+        self.assertEqual(g[101], 1)                                                   # placa en T
+        self.assertAlmostEqual(g[102], 10.2 - 1.0)                                    # xs = setback_ef − 10 mm
+        self.assertAlmostEqual(g[103], (40 - 1.2 - 1) - (0 + 2.2), places=6)          # Hs: del borde superior a 10 mm sobre el ala inferior
+        # Mu de la lengüeta = Ru·(a − xs), no Ru·a
+        self.assertAlmostEqual(g[65], 6000 * (15.0 - 9.2))
+        self.assertLess(_c(r, "Placa en T")["ratio"], 1)
+        self.assertEqual(_c(calcular({}), "Placa en T")["estado"], "N/A")             # convencional: no aplica
+
 
 if __name__ == "__main__":
     unittest.main()

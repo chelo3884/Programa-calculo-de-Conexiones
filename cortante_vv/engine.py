@@ -37,9 +37,29 @@ _NUEVOS = [
      f"(('N/A') if ({_NA}) else (((d_dz+e_top+e_L)/_max((g_d-g_tf-0.5),0.01))))", "'—'"),
 ]
 xl_model = types.SimpleNamespace(**{k: getattr(_xl0, k) for k in ("NCOMBO", "DERIVED", "COMBO", "RATIO_COL")})
-xl_model.GLOBAL = list(_xl0.GLOBAL) + [
+_TT = "((1) if (_and(_eq(t_se,1),(not _eq(vg_nivel,'No aplica')))) else (0))"
+_BLOQUE_T = [
     (100, '0. TIPO, GEOMETRÍA Y MATERIALES', 'dz', 'Desnivel: tope de la viga soportada bajo el tope de la viga principal', 'cm', 'd_dz',
-     f"((0) if (_or(_eq(vg_nivel,'Ala superior al ras'),{_NA})) else ((((g_d-b_d)/2)) if (_eq(vg_nivel,'Centrada')) else ((vg_dz/10))))")]
+     f"((0) if (_or(_eq(vg_nivel,'Ala superior al ras'),{_NA})) else ((((g_d-b_d)/2)) if (_eq(vg_nivel,'Centrada')) else ((vg_dz/10))))"),
+    (101, '4. PLACA SIMPLE EXTENDIDA — Manual Parte 10', 'T', '1 = placa extendida en T (tramo ancho soldado a la principal + lengüeta atornillada)', '-', 't_T', _TT),
+    (102, '4. PLACA SIMPLE EXTENDIDA — Manual Parte 10', 'xs', 'Ancho del tramo ancho: hasta 10 mm antes del extremo de la viga', 'cm', 'x_xs', "((_max(((setback/10)-1),0)) if (_eq(t_T,1)) else (0))"),
+    (103, '4. PLACA SIMPLE EXTENDIDA — Manual Parte 10', 'Hs', 'Altura del tramo ancho: del borde superior de la placa a 10 mm sobre el ala inferior de la principal', 'cm', 'x_Hs',
+     "((_max(((g_d-g_tf-1)-(d_dz+e_top)),e_L)) if (_eq(t_T,1)) else (e_L))"),
+]
+_idx = next(i for i, c in enumerate(_xl0.GLOBAL) if c[0] == 65)
+xl_model.GLOBAL = list(_xl0.GLOBAL[:_idx]) + _BLOQUE_T + list(_xl0.GLOBAL[_idx:])
+_G2 = []
+for _g in xl_model.GLOBAL:
+    if _g[0] == 65 and _g[6].strip() == '(k_R*e_xb)':          # Mu de la lengüeta en la unión con el tramo ancho
+        _g = _g[:6] + ("((k_R*_max((e_xb-x_xs),0)) if (_eq(t_T,1)) else (k_R*e_xb))",)
+    elif _g[0] == 78:                                          # filetes: longitud = altura del tramo ancho en la placa en T
+        _g = _g[:6] + (_g[6].replace('*e_L)', '*x_Hs)'),)
+    _G2.append(_g)
+xl_model.GLOBAL = _G2 + [
+    (104, '5. SOLDADURA Y VIGA PRINCIPAL (placa simple)', 'f', 'Placa en T: tensión en los filetes por V y Ru·a (2 filetes de longitud Hs, elástico): √((Ru/2Hs)² + (Ru·a·3/Hs²)²)', 'kgf/cm', 'w_fT',
+     "(_sqrt(((k_R/(2*x_Hs))**2)+(((k_R*e_xb*3)/(x_Hs**2))**2)))"),
+    (105, '5. SOLDADURA Y VIGA PRINCIPAL (placa simple)', 'q', 'Resistencia por cm de filete: 0.75·0.6·FEXX·0.707·w', 'kgf/cm', 'w_qT',
+     "((((0.75*0.6)*w_FEXX)*0.707)*pl_w/10)")]
 xl_model.CHECKS = []
 for _c in _xl0.CHECKS:
     if _c[0] == 48 and _c[1] == 'CHEQUEO':       # el ratio explotaba (÷1e-9) cuando la placa quedaba al ras del tope de la viga
@@ -48,6 +68,10 @@ for _c in _xl0.CHECKS:
               f"(({_c[5]}) if ({_NA}) else (((b_k) if ((c_top<=0)) else (0))))", _c[6],
               f"(({_c[7]}) if ({_NA}) else (_min((((b_k) if ((c_top<=0)) else (0))/_max(e_top,0.01)),99)))", _c[8])
     xl_model.CHECKS.append(_c)
+    if _c[0] == 28:
+        xl_model.CHECKS.append((66, 'CHEQUEO', 'Placa en T: filetes al alma de la principal con excentricidad a (grupo de 2 filetes, elástico)', 'J2.4 · criterio propio', 'kgf/cm',
+                                "(('—') if (_eq(t_T,0)) else (w_fT))", "(('—') if (_eq(t_T,0)) else (w_qT))",
+                                "(('N/A') if (_eq(t_T,0)) else ((w_fT/_max(w_qT,1e-09))))", "'—'"))
 xl_model.CHECKS += _NUEVOS
 
 _MOD = XlModule(os.path.dirname(os.path.abspath(__file__)), xl_model)
@@ -71,6 +95,9 @@ for _s in SPEC["secciones"]:
                                "row": _s["campos"][_i]["row"] - 1, "options": [POS_AUTO, POS_MAN]}]
 SPEC["notas"].append("Placa extendida: se usa para NO destajar la viga soportada; el extremo de la viga queda fuera de la punta del ala de la principal, "
                      "es decir a (bfg − twg)/2 + holgura del alma, y `a` debe ser mayor que ese valor más el borde de la viga (Manual Parte 10, placa extendida).")
+SPEC["notas"].append("Placa en T (extendida): tramo ancho soldado a la principal entre sus alas (hasta 10 mm del ala inferior) y una lengüeta de altura L con los pernos. "
+                     "Momento de la lengüeta = Ru·(a − xs) en la unión con el tramo ancho; filetes con longitud Hs y excentricidad a (grupo elástico, criterio propio: el Manual Parte 10 no trata esta forma). "
+                     "El alma de la soportada debe tener borde ≥ 2·db: aumente `a` por encima de (bfg − twg)/2 + holgura + 2·db.")
 SPEC["notas"].append("Posición automática: el borde superior de la placa queda 10 mm bajo la cara inferior del ala superior de la viga principal "
                      "(y no más arriba que el destaje / ala de la soportada); el primer perno se deduce como ztop + Lev.")
 CAT = _MOD.CAT

@@ -44,7 +44,13 @@ function cortElev(RES,S,col){
     s+=dimV(X(x1+g.c)+8,Y(top),Y(top-g.dc),`dc ${mm(g.dc)}`)+dimH(X(x1),X(x1+g.c),Y(top)-8,`c ${mm(g.c)}`);}
   // placa o ángulos
   const yb1=top-g.top,ytop=yb1+g.lev,ybot=yb1-(g.n-1)*g.s-g.lev;
-  s+=`<rect x="${X(0)}" y="${Y(ytop)}" width="${g.xplate*sc}" height="${(ytop-ybot)*sc}" fill="var(--steelf)" stroke="var(--ink)" stroke-width="1.3" opacity=".92"/>`;
+  const T=!col&&!g.doble&&g.tipo==='Placa simple extendida',xs=Math.max(g.set-10,0),ystem=pbot+g.stf+10;
+  if(T&&xs>0&&ystem<ybot){   // placa en T: tramo ancho soldado al alma de la principal + lengüeta con los pernos
+    const P=[[0,ytop],[g.xplate,ytop],[g.xplate,ybot],[xs,ybot],[xs,ystem],[0,ystem]];
+    s+=`<polygon points="${P.map(q=>X(q[0])+','+Y(q[1])).join(' ')}" fill="var(--steelf)" stroke="var(--ink)" stroke-width="1.5" opacity=".95"/>`;
+    s+=`<path d="M${X(0)} ${Y(ytop)}V${Y(ystem)}" stroke="var(--tens)" stroke-width="4"/>`;
+    s+=dimV(X(0)-14,Y(ytop),Y(ystem),`Hs = ${mm(ytop-ystem)}`);
+  }else s+=`<rect x="${X(0)}" y="${Y(ytop)}" width="${g.xplate*sc}" height="${(ytop-ybot)*sc}" fill="var(--steelf)" stroke="var(--ink)" stroke-width="1.3" opacity=".92"/>`;
   const rb=Math.max(3,(g.doble?19:19)/2*sc);
   for(let k=0;k<g.n;k++)s+=`<circle cx="${X(g.xbolt)}" cy="${Y(yb1-k*g.s)}" r="${rb}" fill="var(--bolt)" stroke="var(--card)"/>`;
   if(g.doble)s+=`<text class="dt" x="${X(g.xplate/2)}" y="${Y(ytop)+13}" text-anchor="middle">2 ángulos</text>`;
