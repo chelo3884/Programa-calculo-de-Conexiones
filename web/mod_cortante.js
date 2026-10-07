@@ -5,7 +5,7 @@ const dimV=(x,y1,y2,txt)=>`<path class="dim" d="M${x-4} ${y1}H${x+4}M${x-4} ${y2
 const mm=v=>fmt(v,'Ls'); // v en mm → unidad de longitud de perfiles
 function cortGeom(RES,S,col){
   const D=RES.derivados,doble=S.tipo==='Doble ángulo apernado';
-  const g={tipo:S.tipo,doble,n:S.n_b,s:S.pn_s,top:S.pn_top,lev:S.pn_Lev,set:S.setback||0,
+  const g={tipo:S.tipo,doble,n:S.n_b,s:S.pn_s,top:(RES.derivados&&RES.derivados.pn_top_ef!=null?RES.derivados.pn_top_ef:S.pn_top),lev:S.pn_Lev,set:S.setback||0,
     d:D.vg_d_mm,bf:D.vg_bf_mm,tw:D.vg_tw_mm,tf:D.vg_tf_mm,
     dc:(col?0:(S.destaje==='Sin destaje'?0:S.cope_dc)),c:(col?0:(S.destaje==='Sin destaje'?0:S.cope_c)),doble_destaje:S.destaje&&S.destaje.startsWith('Destaje doble'),
     tp:S.pl_tp,a:S.pl_a,leh:S.pl_Leh,lb:S.an_lb,ls:S.an_ls,t:S.an_t,gb:S.an_gb,gs:S.an_gs};
@@ -83,13 +83,14 @@ function cortanteModule(kind){
   return {
     id:col?'cortante_vc':'cortante_vv', api:'/api/'+(col?'cortante_vc':'cortante_vv'),
     title:col?'Conexión simple a cortante — viga al ala de columna':'Conexión simple a cortante — viga secundaria a viga principal',
-    rebuild:['tipo','destaje','vg_nivel','co_perfil','vp_perfil'],
+    rebuild:['tipo','destaje','vg_nivel','pn_pos','co_perfil','vp_perfil'],
     visible(f,S){const n=f.name,t=S.tipo,doble=t==='Doble ángulo apernado';
       if(['pl_acero','pl_tp','pl_a','pl_Leh','sd_elec','pl_w'].includes(n))return !doble;
       if(['an_acero','an_lb','an_ls','an_t','an_gb','an_gs'].includes(n))return doble;
       if(n==='Ru_op')return doble;
       if(n==='cope_dc'||n==='cope_c')return S.destaje!=='Sin destaje';
       if(n==='vg_dz')return S.vg_nivel==='Desnivel manual';
+      if(n==='pn_top'&&S.pn_pos&&S.pn_pos.startsWith('Autom'))return false;
       return true;},
     comboHelp:'',
     svgs:[{id:'svgElev',fn:(R,S)=>cortElev(R,S,col)},{id:'svgPlan',fn:(R,S)=>cortPlan(R,S,col)}],

@@ -38,7 +38,7 @@ class _Base:
 
     def _run(self, nombre):
         fx = self.FX[nombre]
-        inp = dict(fx["cambios"])
+        inp = dict(fx["cambios"], **getattr(self, "extra", {}))
         inp["combos"] = fx["combos"]
         res = self.eng.calcular(inp)
         raw = res["raw"]
@@ -83,6 +83,7 @@ class TestRodilla(_Base, unittest.TestCase):
 
 class TestCortanteVV(_Base, unittest.TestCase):
     modulo = "cortante_vv"
+    extra = {"pn_pos": "Manual (tope de viga → primer perno)", "vg_nivel": "No aplica"}      # el Excel no tiene estas opciones
 
 
 class TestEmpalmeColumna(_Base, unittest.TestCase):
