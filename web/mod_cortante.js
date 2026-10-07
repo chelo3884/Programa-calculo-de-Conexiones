@@ -11,6 +11,7 @@ function cortGeom(RES,S,col){
     tp:S.pl_tp,a:S.pl_a,leh:S.pl_Leh,lb:S.an_lb,ls:S.an_ls,t:S.an_t,gb:S.an_gb,gs:S.an_gs};
   if(col){g.sd=D.co_d_mm;g.sbf=D.co_bf_mm;g.stw=D.co_tw_mm;g.stf=D.co_tf_mm;}
   else{g.sd=D.vp_d_mm;g.sbf=D.vp_bf_mm;g.stw=D.vp_tw_mm;g.stf=D.vp_tf_mm;}
+  g.dbolt=({'5/8"':15.9,'3/4"':19.05,'7/8"':22.2,'1"':25.4,'1-1/8"':28.6,'1-1/4"':31.8})[S.pn_diam]||19;
   g.dz=col?0:(S.vg_nivel==='Centrada'?(g.sd-g.d)/2:S.vg_nivel==='Desnivel manual'?(+S.vg_dz||0):0);
   g.xplate=doble?g.lb:g.a+g.leh; g.xbolt=doble?g.gb:g.a;
   g.L=2*g.lev+(g.n-1)*g.s;
@@ -54,7 +55,7 @@ function cortElev(RES,S,col){
 }
 function cortPlan(RES,S,col){
   const g=cortGeom(RES,S,col),W=440,H=420,m=34;
-  const xend=Math.max(g.xplate*2.6,120),ys=Math.max(g.sbf,2*g.lb+g.tw,180)/2;
+  const xend=Math.max(g.xplate*(g.doble?2.6:1.7),120),ys=Math.max(g.sbf,2*g.lb+g.tw,180)/2;
   const sc=Math.min((W-2*m-70)/(xend+60),(H-2*m)/(2*ys+20)),x0=m+70+60*0,cy=H/2,X=a=>x0+a*sc,Y=a=>cy-a*sc;
   let s=`<svg data-sc="${sc}" data-f="1" viewBox="0 0 ${W} ${H}" role="img" aria-label="Planta"><text x="8" y="16" style="font-weight:700">PLANTA (corte bajo el ala)</text>`;
   const ts=col?g.stf:g.stw;
@@ -69,12 +70,18 @@ function cortPlan(RES,S,col){
       s+=`<rect x="${X(0)}" y="${Y(sg>0?g.tw/2+g.t:-g.tw/2)}" width="${g.lb*sc}" height="${g.t*sc}" fill="var(--steelf)" stroke="var(--ink)" stroke-width="1.2"/>`;
       s+=`<rect x="${X(0)}" y="${Y(sg>0?g.tw/2+g.ls:-g.tw/2-g.t)}" width="${g.t*sc}" height="${(g.ls-g.tw/2)*sc}" fill="var(--steelf)" stroke="var(--ink)" stroke-width="1.2" transform="translate(0 0)"/>`;}
   }else{
-    s+=`<rect x="${X(0)}" y="${Y(g.tw/2+g.tp)}" width="${g.xplate*sc}" height="${g.tp*sc}" fill="var(--steelf)" stroke="var(--ink)" stroke-width="1.3"/>`;
-    s+=`<path d="M${X(0)} ${Y(g.tw/2+g.tp)}l${-6} ${-6}v${6}z" fill="var(--tens)"/>`;
+    const ext=g.tipo==='Placa simple extendida',pt=Math.max(g.tp,5);
+    // placa soldada al alma de la principal (x = 0), que SALE del alma hasta la línea de pernos y su borde Leh
+    s+=`<rect x="${X(0)}" y="${Y(g.tw/2+pt)}" width="${g.xplate*sc}" height="${pt*sc}" fill="${ext?'var(--steel)':'var(--steelf)'}" stroke="var(--ink)" stroke-width="${ext?1.8:1.3}"/>`;
+    s+=`<path d="M${X(0)} ${Y(g.tw/2+pt)}l${-7} ${-7}v${7}z M${X(0)} ${Y(g.tw/2)}l${-7} ${7}v${-7}z" fill="var(--tens)"/>`;
+    // perno en sección: vástago, cabeza y tuerca
+    const bxr=X(g.xbolt),yt=Y(g.tw/2+pt)-3,yb2=Y(-g.tw/2)+3,db=Math.max(g.dbolt||19,6)*sc;
+    s+=`<rect x="${bxr-db/2}" y="${yt}" width="${db}" height="${yb2-yt}" fill="var(--bolt)"/>`;
+    s+=`<rect x="${bxr-db}" y="${yt-4}" width="${2*db}" height="5" fill="var(--bolt)"/><rect x="${bxr-db}" y="${yb2}" width="${2*db}" height="5" fill="var(--bolt)"/>`;
+    s+=`<text class="dt" x="${X(0)+4}" y="${Y(-g.tw/2)+34}">${ext?'placa extendida':'placa'} ${mm(g.xplate)} × tp ${mm(g.tp)}</text>`;
   }
-  const yb=g.tw/2+(g.doble?g.t:g.tp);
-  s+=`<rect x="${X(g.xbolt)-2}" y="${Y(yb+6)}" width="4" height="${(2*yb+12)*sc*(g.doble?1:0.55)}" fill="var(--tens)"/>`;
-  s+=dimH(X(0),X(g.xbolt),Y(-ys)-4,g.doble?`gb ${mm(g.xbolt)}`:`a ${mm(g.a)}`);
+  if(g.doble){const yb=g.tw/2+g.t;s+=`<rect x="${X(g.xbolt)-2}" y="${Y(yb+6)}" width="4" height="${(2*yb+12)*sc}" fill="var(--tens)"/>`;}
+  s+=dimH(X(0),X(g.xbolt),Y(-ys)-4,g.doble?`gb ${mm(g.xbolt)}`:`a ${mm(g.a)}${g.tipo==='Placa simple extendida'?(g.a>89?' (extendida: a > 89)':' (a ≤ 89: convencional)'):''}`);
   if(!g.doble)s+=dimH(X(g.xbolt),X(g.xplate),Y(-ys)-18,`Leh ${mm(g.leh)}`);
   return s+`<text class="dt" x="${W-8}" y="${H-6}" text-anchor="end">esquemático · cotas [${uf('Ls').l}]</text></svg>`;
 }
