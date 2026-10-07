@@ -31,7 +31,7 @@ COLUMNAS = {_col("G", r): (_col("H", r), _col("I", r), _col("J", r), _col("K", r
 
 # ── especificación de entradas: la de cortante_vv con la sección de soporte reemplazada ──────────────
 CAT = _vv.CAT
-_ocultos = {"destaje", "cope_dc", "cope_c", "Ru_op"}
+_ocultos = {"destaje", "cope_dc", "cope_c", "Ru_op", "vg_nivel", "vg_dz"}
 SPEC = copy.deepcopy(_vv.SPEC)
 SPEC["titulo"] = "CONEXIÓN SIMPLE A CORTANTE — VIGA AL ALA DE COLUMNA"
 SPEC["norma"] = ("AISC 360-16 (J2, J3, J4)  ·  AISC Manual 15ª ed. Partes 9 y 10  ·  LRFD  ·  "
@@ -85,7 +85,7 @@ def calcular(inp: dict) -> dict:
         d, bf, tw, tf = COLUMNAS[co]
     vv = {k: v for k, v in inp.items() if not k.startswith("co_")}
     vv.update({"destaje": "Sin destaje", "cope_dc": 0, "cope_c": 0, "Ru_op": 0,
-               "vp_perfil": ARMADO, "DIS_E29": d, "DIS_E30": bf, "DIS_E31": tf, "DIS_E32": tf,
+               "vg_nivel": "No aplica", "vp_perfil": ARMADO, "DIS_E29": d, "DIS_E30": bf, "DIS_E31": tf, "DIS_E32": tf,
                "vp_acero": inp.get("co_acero", "A572 Gr50")})
     res = _vv.calcular(vv)
     for c in res["checks"]:
