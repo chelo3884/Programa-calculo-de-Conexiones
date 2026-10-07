@@ -203,6 +203,17 @@ def _c_hss_dia(i):
 CONFIG["hss_diafragma"] = (_c_hss_dia, [("pr_t", "Espesor de placa", GRUESOS[3:13]), ("pr_ws", "Franja ws junto al HSS", lambda i: _abs_n(i, "pr_ws", 12.7, 8)),
                                         ("pr_nb", "Pernos por fila", _cnt(3, 9)), ("pn_diam", "Diámetro de pernos", DIAMS[1:6]),
                                         ("pr_w", "Filete placa–HSS", FILETES)])
+def _c_dext(i):
+    L = 2 * (_f(i, "dx_lner") + 150)
+    return (4 * _f(i, "dx_td") * (_f(i, "dx_hd") * 2 + 250) * (_f(i, "dx_lner") + 150) * RHO + _fillet(_f(i, "dx_w"), 4 * 900) * (1 if i.get("dx_sold") == "Filete" else 0.5)
+            + L * 0)
+
+
+CONFIG["hss_dext"] = (_c_dext, [("dx_td", "Espesor del diafragma", GRUESOS[3:13]), ("dx_hd", "Saliente hd", lambda i: _abs_n(i, "dx_hd", 10, 8)),
+                                ("dx_lner", "Lnervio", lambda i: _abs_n(i, "dx_lner", 25, 8))])
+CONFIG["hss_placalong"] = (lambda i: _f(i, "pl_tp") * _f(i, "pl_hp") * 300 * RHO + _bolts(_f(i, "pn_n"), i["pn_diam"], 2 * _f(i, "pl_tp")) + _fillet(_f(i, "pl_w"), 2 * _f(i, "pl_hp")),
+                           [("pl_tp", "Espesor de la placa", GRUESOS[:11]), ("pl_hp", "Ancho de la placa", lambda i: _abs_n(i, "pl_hp", 25, 8)),
+                            ("pl_w", "Filete", FILETES), ("pn_n", "Pernos", _cnt(1, 6)), ("pn_diam", "Diámetro de pernos", DIAMS[1:6])])
 CONFIG["cortante_vc"] = CONFIG["cortante_vv"]
 CONFIG["cortante_hss"] = (_c_cortante, [v for v in CONFIG["cortante_vv"][1] if v[0] != "an_t"])
 

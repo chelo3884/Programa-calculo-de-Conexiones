@@ -30,6 +30,8 @@ from cortante_hss import engine as hss_engine
 from hss_directa import engine as hss_directa_engine
 from hss_pasante import engine as hss_pasante_engine
 from hss_diafragma import engine as hss_diafragma_engine
+from hss_dext import engine as hss_dext_engine
+from hss_placalong import engine as hss_placalong_engine
 
 MODULOS_XL = {"end_plate": end_plate_engine, "bfp": bfp_engine, "rodilla": rodilla_engine,
               "cortante_vv": cortante_vv_engine, "cortante_vc": cortante_vc_engine,
@@ -39,7 +41,9 @@ MODULOS_XL = {"end_plate": end_plate_engine, "bfp": bfp_engine, "rodilla": rodil
               "cortante_hss": hss_engine,
               "hss_directa": hss_directa_engine,
               "hss_pasante": hss_pasante_engine,
-              "hss_diafragma": hss_diafragma_engine}
+              "hss_diafragma": hss_diafragma_engine,
+              "hss_dext": hss_dext_engine,
+              "hss_placalong": hss_placalong_engine}
 
 WEB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "web")
 

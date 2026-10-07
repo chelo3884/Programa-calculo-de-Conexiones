@@ -13,7 +13,7 @@ RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, RAIZ)
 import app  # noqa: E402
 
-MODULOS = {"placa_base": 1, "end_plate": 0, "bfp": 0, "rodilla": 0, "wuf": 0, "hss_directa": 0, "hss_pasante": 0, "hss_diafragma": 1,
+MODULOS = {"placa_base": 1, "end_plate": 0, "bfp": 0, "rodilla": 0, "wuf": 0, "hss_directa": 0, "hss_pasante": 0, "hss_diafragma": 1, "hss_dext": 1, "hss_placalong": 0,
            "cortante_vc": 0, "cortante_vv": 0, "cortante_hss": 0, "empalme_viga": 0, "empalme_col": 0, "gusset": 0}
 PALETA = {"--conc": "#e7e2d8", "--steelf": "#cfd6df", "--steel": "#8d99a8", "--grout": "#c9c3b4", "--bolt": "#444", "--tens": "#d92d20",
           "--comp": "#2e6fd0", "--ink": "#1b2430", "--mut": "#667085", "--card": "#ffffff", "--acc": "#1f4e8c", "--line": "#d9dfe7"}

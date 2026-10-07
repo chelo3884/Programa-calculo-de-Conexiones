@@ -182,3 +182,31 @@ def hss_props(B, H, t):
     A = 2 * t * (B + H - 2 * t)
     S = (B * H ** 3 - (B - 2 * t) * (H - 2 * t) ** 3) / (6 * H)
     return A, S
+
+
+# ── CIDECT Design Guide 9 (columnas de perfil tubular, versión en español) ────────────────────────────────────────
+def cidect_dext_Pbf(bc, tc, td, hd, fdu):
+    """Tabla 8.3, ec. (2): resistencia última a esfuerzo axial en un ala (diafragma externo, columna RHS).
+    P* = 3.17·(tc/bc)^(2/3)·(td/bc)^(2/3)·((tc + hd)/bc)^(1/3)·bc²·fd,u  (sin coeficiente de resistencia adicional)."""
+    return 3.17 * (tc / bc) ** (2 / 3) * (td / bc) ** (2 / 3) * ((tc + hd) / bc) ** (1 / 3) * bc ** 2 * fdu
+
+
+def cidect_dext_esbeltez(bc, hd, td, fdy):
+    """Tabla 8.3: (bc/2 + hd)/td ≤ 240/√fd,y (fd,y en N/mm²). Devuelve (valor, límite); fdy en kgf/cm²."""
+    return (bc / 2 + hd) / td, 240.0 / math.sqrt(fdy / 10.1972)
+
+
+def cidect_placa_long_Np(fcy, tc, bc, bp, hp, theta_deg, w, n):
+    """Ec. 10.1: resistencia mayorada de la cara de la RHS con placa longitudinal (φ implícito = 1.0).
+    Np* = 2·fc,y·tc² / ((1 − β')·senθ) · (hp'/bc' + 2·√(1 − β')·√(1 − n²)), β' = (bp + 2w)/bc', bc' = bc − tc,
+    hp' = hp/senθ + 2w. bp = espesor de la placa, hp = ancho de la placa (perpendicular a la carga)."""
+    s = math.sin(math.radians(theta_deg))
+    bcp = bc - tc
+    bet = (bp + 2 * w) / bcp
+    hpp = hp / s + 2 * w
+    return 2 * fcy * tc ** 2 / ((1 - bet) * s) * (hpp / bcp + 2 * math.sqrt(1 - bet) * math.sqrt(max(0.0, 1 - n ** 2)))
+
+
+def cidect_placa_long_servicio(Np, beta_p, clase):
+    """Ecs. 10.2a/b/c: carga límite de servicio (deformación 1 % de bc)."""
+    return Np / {1: 1.5 - 0.9 * beta_p, 2: 2.0 - 1.25 * beta_p, 3: 2.7 - 2.0 * beta_p}[clase]
