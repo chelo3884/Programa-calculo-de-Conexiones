@@ -214,6 +214,17 @@ CONFIG["hss_dext"] = (_c_dext, [("dx_td", "Espesor del diafragma", GRUESOS[3:13]
 CONFIG["hss_placalong"] = (lambda i: _f(i, "pl_tp") * _f(i, "pl_hp") * 300 * RHO + _bolts(_f(i, "pn_n"), i["pn_diam"], 2 * _f(i, "pl_tp")) + _fillet(_f(i, "pl_w"), 2 * _f(i, "pl_hp")),
                            [("pl_tp", "Espesor de la placa", GRUESOS[:11]), ("pl_hp", "Ancho de la placa", lambda i: _abs_n(i, "pl_hp", 25, 8)),
                             ("pl_w", "Filete", FILETES), ("pn_n", "Pernos", _cnt(1, 6)), ("pn_diam", "Diámetro de pernos", DIAMS[1:6])])
+CONFIG["hss_placasimple"] = (lambda i: _f(i, "sp_t") * (2 * _f(i, "sp_lev") + (_f(i, "sp_n") - 1) * _f(i, "sp_s")) * 120 * RHO + _bolts(_f(i, "sp_n"), i["pn_diam"], _f(i, "sp_t") + 8)
+                             + _fillet(_f(i, "sp_w"), 2 * (2 * _f(i, "sp_lev") + (_f(i, "sp_n") - 1) * _f(i, "sp_s"))),
+                             [("sp_t", "Espesor de la placa", GRUESOS[:11]), ("sp_n", "Número de pernos", _cnt(2, 8)), ("sp_w", "Filete", FILETES),
+                              ("pn_diam", "Diámetro de pernos", DIAMS[:5])])
+CONFIG["empalme_rhs"] = (lambda i: 2 * _f(i, "pl_t") * _f(i, "pl_B") * _f(i, "pl_H") * RHO + _bolts(4 * (_f(i, "pn_nx") + _f(i, "pn_ny")), i["pn_diam"], 2 * _f(i, "pl_t"))
+                         + _fillet(_f(i, "sd_w"), 2 * 4 * 250),
+                         [("pl_t", "Espesor de la placa", GRUESOS[3:13]), ("pn_nx", "Pernos por lado (B)", [2, 3, 4]), ("pn_ny", "Pernos por lado (H)", [2, 3, 4]),
+                          ("pn_diam", "Diámetro de pernos", DIAMS[1:6]), ("sd_w", "Filete", FILETES)])
+CONFIG["hss_diafragma_atornillado"] = (lambda i: _f(i, "ms_bf") * 16 * 2 * 600 * RHO + _bolts(4 * (_f(i, "nf_e") + _f(i, "nf_i") + _f(i, "nw_m") + _f(i, "nw_v")), "3/4\"", 60),
+                                       [("ms_bf", "Ancho de la ménsula", lambda i: _abs_n(i, "ms_bf", 20, 8)), ("nf_i", "Pernos interiores del ala", _cnt(2, 8)),
+                                        ("nw_v", "Pernos de cortante del alma", _cnt(2, 6))])
 CONFIG["cortante_vc"] = CONFIG["cortante_vv"]
 CONFIG["cortante_hss"] = (_c_cortante, [v for v in CONFIG["cortante_vv"][1] if v[0] != "an_t"])
 

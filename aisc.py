@@ -210,3 +210,18 @@ def cidect_placa_long_Np(fcy, tc, bc, bp, hp, theta_deg, w, n):
 def cidect_placa_long_servicio(Np, beta_p, clase):
     """Ecs. 10.2a/b/c: carga límite de servicio (deformación 1 % de bc)."""
     return Np / {1: 1.5 - 0.9 * beta_p, 2: 2.0 - 1.25 * beta_p, 3: 2.7 - 2.0 * beta_p}[clase]
+
+
+def cidect_empalme_tnec(Nb, T, a, b, db, dh, p, fpy, phi=0.9):
+    """CIDECT 9 §11.1.1.2 (ecs. 11.3–11.10, Willibald et al. 2003): espesor necesario de la placa de extremo de una RHS atornillada en 4 lados.
+    Nb = resistencia del perno a tracción (sin palanca), T = tracción por perno, a, b, db, dh, p en cm, fpy en kgf/cm².
+    Devuelve dict(a1, b1, rho, beta, delta, alfa, t) con a' = a + db/2 (a ≤ 1.25 b), b' = b − db/2, ρ = b'/a', β' = (Nb/T − 1)/ρ,
+    δ = 1 − dh/p, α' = 1 si β' ≥ 1; si no (1/δ)·β'/(1 − β') acotado a [0, 1]; t = √(4·T·b'/(φ·p·fpy·(1 + δ·α')))."""
+    a1 = min(a, 1.25 * b) + db / 2
+    b1 = b - db / 2
+    rho = b1 / a1
+    beta = (Nb / T - 1.0) / rho if T > 0 else 1e9
+    delta = 1.0 - dh / p
+    alfa = 1.0 if beta >= 1.0 else max(0.0, min(1.0, beta / (1.0 - beta) / delta))
+    t = math.sqrt(4 * T * b1 / (phi * p * fpy * (1 + delta * alfa))) if T > 0 else 0.0
+    return {"a1": a1, "b1": b1, "rho": rho, "beta": beta, "delta": delta, "alfa": alfa, "t": t}
