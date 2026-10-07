@@ -33,6 +33,17 @@ class TestNivel(unittest.TestCase):
         r = calcular({"vg_nivel": "No aplica"})
         self.assertEqual(_c(r, "Placa/ángulos bajo el ala")["estado"], "N/A")
 
+    def test_extendida_evita_destaje(self):
+        r = calcular({"tipo": "Placa simple extendida", "destaje": "Destaje superior", "cope_dc": 30, "pl_a": 130})
+        self.assertAlmostEqual(r["derivados"]["setback_ef"], 15 + (180 - 6) / 2)       # holgura + (bfg − twg)/2: el extremo de la viga queda fuera del ala
+        self.assertEqual(r["raw"]["global"][20], 0)                                    # destaje superior anulado (c_top)
+        self.assertEqual(_c(r, "Destaje superior libra")["estado"], "N/A")
+        self.assertEqual(_c(r, "Destaje superior: longitud")["estado"], "N/A")
+
+    def test_convencional_no_cambia_el_extremo(self):
+        r = calcular({})
+        self.assertEqual(r["derivados"]["setback_ef"], 15)
+
 
 if __name__ == "__main__":
     unittest.main()

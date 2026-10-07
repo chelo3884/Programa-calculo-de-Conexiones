@@ -7,12 +7,13 @@ function cortGeom(RES,S,col){
   const D=RES.derivados,doble=S.tipo==='Doble ángulo apernado';
   const g={tipo:S.tipo,doble,n:S.n_b,s:S.pn_s,top:(RES.derivados&&RES.derivados.pn_top_ef!=null?RES.derivados.pn_top_ef:S.pn_top),lev:S.pn_Lev,set:S.setback||0,
     d:D.vg_d_mm,bf:D.vg_bf_mm,tw:D.vg_tw_mm,tf:D.vg_tf_mm,
-    dc:(col?0:(S.destaje==='Sin destaje'?0:S.cope_dc)),c:(col?0:(S.destaje==='Sin destaje'?0:S.cope_c)),doble_destaje:S.destaje&&S.destaje.startsWith('Destaje doble'),
+    dc:(col||S.tipo==='Placa simple extendida'?0:(S.destaje==='Sin destaje'?0:S.cope_dc)),c:(col||S.tipo==='Placa simple extendida'?0:(S.destaje==='Sin destaje'?0:S.cope_c)),doble_destaje:S.destaje&&S.destaje.startsWith('Destaje doble'),
     tp:S.pl_tp,a:S.pl_a,leh:S.pl_Leh,lb:S.an_lb,ls:S.an_ls,t:S.an_t,gb:S.an_gb,gs:S.an_gs};
   if(col){g.sd=D.co_d_mm;g.sbf=D.co_bf_mm;g.stw=D.co_tw_mm;g.stf=D.co_tf_mm;}
   else{g.sd=D.vp_d_mm;g.sbf=D.vp_bf_mm;g.stw=D.vp_tw_mm;g.stf=D.vp_tf_mm;}
   g.dbolt=({'5/8"':15.9,'3/4"':19.05,'7/8"':22.2,'1"':25.4,'1-1/8"':28.6,'1-1/4"':31.8})[S.pn_diam]||19;
   g.dz=col?0:(S.vg_nivel==='Centrada'?(g.sd-g.d)/2:S.vg_nivel==='Desnivel manual'?(+S.vg_dz||0):0);
+  g.set=(!col&&RES.derivados&&RES.derivados.setback_ef!=null)?RES.derivados.setback_ef:g.set;
   g.xplate=doble?g.lb:g.a+g.leh; g.xbolt=doble?g.gb:g.a;
   g.L=2*g.lev+(g.n-1)*g.s;
   return g;
@@ -38,9 +39,9 @@ function cortElev(RES,S,col){
   const x1=g.set;
   s+=`<rect x="${X(x1)}" y="${Y(top-g.tf)}" width="${(xend-x1)*sc}" height="${(g.d-2*g.tf)*sc}" fill="var(--conc)" stroke="var(--ink)" stroke-width=".8" opacity=".8"/>`;
   s+=`<g fill="var(--steel)" stroke="var(--ink)" stroke-width="1"><rect x="${X(x1+g.c)}" y="${Y(top)}" width="${(xend-x1-g.c)*sc}" height="${g.tf*sc}"/><rect x="${X(x1+(g.doble_destaje?g.c:0))}" y="${Y(-top+g.tf)}" width="${(xend-x1-(g.doble_destaje?g.c:0))*sc}" height="${g.tf*sc}"/></g>`;
-  if(g.c>0){ // zona rebajada
-    s+=`<rect x="${X(x1)}" y="${Y(top-g.dc)}" width="${g.c*sc}" height="${g.dc*sc}" fill="var(--card)" stroke="var(--mut)" stroke-dasharray="3 2"/>`;
-    s+=dimV(X(x1)-10,Y(top),Y(top-g.dc),`dc ${mm(g.dc)}`)+dimH(X(x1),X(x1+g.c),Y(top)-8,`c ${mm(g.c)}`);}
+  if(g.c>0){ // destaje: siempre desde el ala superior hacia abajo (profundidad dc medida desde el tope de la viga)
+    s+=`<rect x="${X(x1)}" y="${Y(top)}" width="${g.c*sc}" height="${g.dc*sc}" fill="var(--card)" stroke="var(--mut)" stroke-dasharray="3 2"/>`;
+    s+=dimV(X(x1+g.c)+8,Y(top),Y(top-g.dc),`dc ${mm(g.dc)}`)+dimH(X(x1),X(x1+g.c),Y(top)-8,`c ${mm(g.c)}`);}
   // placa o ángulos
   const yb1=top-g.top,ytop=yb1+g.lev,ybot=yb1-(g.n-1)*g.s-g.lev;
   s+=`<rect x="${X(0)}" y="${Y(ytop)}" width="${g.xplate*sc}" height="${(ytop-ybot)*sc}" fill="var(--steelf)" stroke="var(--ink)" stroke-width="1.3" opacity=".92"/>`;
@@ -61,7 +62,7 @@ function cortPlan(RES,S,col){
   const ts=col?g.stf:g.stw;
   s+=`<rect x="${X(-ts)}" y="${Y(ys)}" width="${ts*sc}" height="${2*ys*sc}" fill="var(--steel)" stroke="var(--ink)" stroke-width="1.2"/>`;
   if(col)s+=`<rect x="${X(-ts-60)}" y="${Y(g.stw/2)}" width="${60*sc}" height="${g.stw*sc}" fill="var(--steel)" stroke="var(--ink)" opacity=".5"/>`;
-  else s+=`<g fill="var(--steel)" stroke="var(--ink)" opacity=".6"><rect x="${X(-ts-40)}" y="${Y(ys)}" width="${(ts+80)*sc}" height="${g.stf*sc}"/><rect x="${X(-ts-40)}" y="${Y(-ys+g.stf)}" width="${(ts+80)*sc}" height="${g.stf*sc}"/></g>`;
+  else s+=`<rect x="${X(-ts/2-g.sbf/2)}" y="${Y(ys)}" width="${g.sbf*sc}" height="${2*ys*sc}" fill="var(--steel)" stroke="var(--ink)" stroke-dasharray="4 3" opacity=".3"/><text class="dt" x="${X(g.sbf/2-ts/2)+4}" y="${Y(ys)+12}">ala de la principal</text>`;
   const x1=g.set;
   s+=`<rect x="${X(x1)}" y="${Y(g.tw/2)}" width="${(xend-x1)*sc}" height="${g.tw*sc}" fill="var(--conc)" stroke="var(--ink)" stroke-width="1"/>`;
   s+=`<text class="dt" x="${X(xend)-4}" y="${Y(g.tw/2)-5}" text-anchor="end">alma de viga soportada</text>`;
@@ -95,7 +96,8 @@ function cortanteModule(kind){
       if(['pl_acero','pl_tp','pl_a','pl_Leh','sd_elec','pl_w'].includes(n))return !doble;
       if(['an_acero','an_lb','an_ls','an_t','an_gb','an_gs'].includes(n))return doble;
       if(n==='Ru_op')return doble;
-      if(n==='cope_dc'||n==='cope_c')return S.destaje!=='Sin destaje';
+      if(n==='destaje')return t!=='Placa simple extendida';
+      if(n==='cope_dc'||n==='cope_c')return S.destaje!=='Sin destaje'&&t!=='Placa simple extendida';
       if(n==='vg_dz')return S.vg_nivel==='Desnivel manual';
       if(n==='pn_top'&&S.pn_pos&&S.pn_pos.startsWith('Autom'))return false;
       return true;},

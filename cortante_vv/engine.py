@@ -16,8 +16,9 @@ from . import xl_model as _xl0  # noqa: E402
 # `cortante_hss` y `cortante_vc` siguen usando el modelo original / desactivan estas verificaciones (vg_nivel = "No aplica").
 NIVELES = ["Ala superior al ras", "Centrada", "Desnivel manual"]
 _NA = "_eq(vg_nivel,'No aplica')"
-_SOLAPA_SUP = f"_or({_NA},(d_dz>=g_tf))"                   # sin conflicto entre alas superiores
-_SOLAPA_INF = f"_or({_NA},((d_dz+b_d)<=(g_d-g_tf)))"        # sin conflicto entre alas inferiores
+_EXT = "_eq(t_se,1)"                                        # placa extendida: la viga termina fuera del ala de la principal, no hay destaje
+_SOLAPA_SUP = f"_or({_NA},{_EXT},(d_dz>=g_tf))"             # sin conflicto entre alas superiores
+_SOLAPA_INF = f"_or({_NA},{_EXT},((d_dz+b_d)<=(g_d-g_tf)))"  # sin conflicto entre alas inferiores
 _NUEVOS = [
     (60, 'CHEQUEO', 'Destaje superior libra el ala superior de la viga principal: dc ≥ tfg − dz + 10 mm', 'Geometría (holgura 10 mm: criterio propio)', 'cm',
      f"(('—') if ({_SOLAPA_SUP}) else ((g_tf-d_dz+1)))", f"(('—') if ({_SOLAPA_SUP}) else (c_top))",
@@ -68,6 +69,8 @@ for _s in SPEC["secciones"]:
         _i = next(i for i, c in enumerate(_s["campos"]) if c["name"] == "pn_top")
         _s["campos"][_i:_i] = [{"name": "pn_pos", "label": "Posición vertical de la placa / ángulos", "unit": "", "default": POS_AUTO,
                                "row": _s["campos"][_i]["row"] - 1, "options": [POS_AUTO, POS_MAN]}]
+SPEC["notas"].append("Placa extendida: se usa para NO destajar la viga soportada; el extremo de la viga queda fuera de la punta del ala de la principal, "
+                     "es decir a (bfg − twg)/2 + holgura del alma, y `a` debe ser mayor que ese valor más el borde de la viga (Manual Parte 10, placa extendida).")
 SPEC["notas"].append("Posición automática: el borde superior de la placa queda 10 mm bajo la cara inferior del ala superior de la viga principal "
                      "(y no más arriba que el destaje / ala de la soportada); el primer perno se deduce como ztop + Lev.")
 CAT = _MOD.CAT
@@ -75,15 +78,25 @@ CAT = _MOD.CAT
 
 def calcular(inp: dict) -> dict:
     inp = dict(inp)
-    auto = str(inp.get("pn_pos", POS_AUTO)).startswith("Autom") and inp.get("vg_nivel", NIVELES[0]) != "No aplica"
+    nivel = inp.get("vg_nivel", NIVELES[0])
+    ext = inp.get("tipo") == "Placa simple extendida" and nivel != "No aplica"
+    auto = str(inp.get("pn_pos", POS_AUTO)).startswith("Autom") and nivel != "No aplica"
+    set_ef = None
+    if ext:
+        inp["destaje"] = "Sin destaje"            # la placa extendida existe precisamente para no destajar la viga soportada
+    if ext or auto:
+        d = _MOD.calcular(dict(inp, pn_top=0))["derivados"]
+        dz = {"Centrada": (d["vp_d_mm"] - d["vg_d_mm"]) / 2, "Desnivel manual": float(inp.get("vg_dz", 0) or 0)}.get(nivel, 0.0)
+        if ext and (dz < d["vp_tf_mm"] or dz + d["vg_d_mm"] > d["vp_d_mm"] - d["vp_tf_mm"]):
+            # las alas se solapan en altura: el extremo de la viga debe quedar fuera de la punta del ala de la principal
+            set_ef = float(inp.get("setback", 15) or 0) + (d["vp_bf_mm"] - d["vp_tw_mm"]) / 2
+            inp["setback"] = set_ef
     if auto:
-        r0 = _MOD.calcular(dict(inp, pn_top=0))
-        d = r0["derivados"]
-        dz = {"Centrada": (d["vp_d_mm"] - d["vg_d_mm"]) / 2, "Desnivel manual": float(inp.get("vg_dz", 0) or 0)}.get(inp.get("vg_nivel", NIVELES[0]), 0.0)
         kw = float(inp.get("vg_kw", 5) or 0)
         dc = 0.0 if inp.get("destaje", "Destaje superior") == "Sin destaje" else float(inp.get("cope_dc", 30) or 0)
         e_top = max(d["vp_tf_mm"] + 10 - dz, 0.0 if dc > 0 else d["vg_tf_mm"] + kw)            # mm bajo el tope de la viga soportada
         inp["pn_top"] = e_top + float(inp.get("pn_Lev", 35) or 0)
     res = _MOD.calcular(inp)
-    res["derivados"]["pn_top_ef"] = inp.get("pn_top", 70) if not auto else inp["pn_top"]
+    res["derivados"]["pn_top_ef"] = inp.get("pn_top", 70)
+    res["derivados"]["setback_ef"] = set_ef if set_ef is not None else inp.get("setback", 15)
     return res
