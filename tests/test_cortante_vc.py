@@ -19,7 +19,7 @@ class TestCortanteVC(unittest.TestCase):
         d, bf, tw, tf = COLUMNAS["HA500X250X10X15"]
         base = {"tipo": "Placa simple convencional", "Ru": 7, "n_b": 4}
         vc = calcular(dict(base, co_perfil="HA500X250X10X15"))
-        vv = calcular_vv(dict(base, destaje="Sin destaje", Ru_op=0, vp_perfil="ARMADO (flejes soldados)",
+        vv = calcular_vv(dict(base, destaje="Sin destaje", Ru_op=0, vg_nivel="No aplica", vp_perfil="ARMADO (flejes soldados)",
                               DIS_E29=d, DIS_E30=bf, DIS_E31=tf, DIS_E32=tf))
         self.assertEqual(len(vc["checks"]), len(vv["checks"]))
         for a, b in zip(vc["checks"], vv["checks"]):

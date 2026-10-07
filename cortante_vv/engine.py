@@ -56,10 +56,6 @@ for _s in SPEC["secciones"]:
         _s["campos"][_i:_i] = [
             {"name": "vg_nivel", "label": "Nivel de la viga soportada respecto a la principal", "unit": "", "default": NIVELES[0], "row": _r + 1, "options": NIVELES},
             {"name": "vg_dz", "label": "Desnivel manual: tope de la soportada bajo el tope de la principal", "unit": "mm", "default": 0, "row": _r + 2}]
-for _s in SPEC["secciones"]:
-    for _c in _s["campos"]:
-        if _c["name"] == "cope_c":
-            _c["default"] = 100            # c ≥ (bfg − twg)/2 − holgura + 10 mm para la viga principal por defecto
 SPEC["notas"] = list(SPEC.get("notas", [])) + [
     "Nivel de las vigas: lo usual es alinear las alas superiores (desnivel 0): la soportada necesita destaje superior para librar el ala de la principal "
     "(dc ≥ tfg + 10 mm y c ≥ (bfg − twg)/2 − holgura + 10 mm). Con «Centrada» la placa debe quedar entre las alas de la principal."]
