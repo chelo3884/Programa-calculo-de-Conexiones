@@ -45,8 +45,8 @@ _BLOQUE_T = [
      f"((0) if (_or(_eq(vg_nivel,'Ala superior al ras'),{_NA})) else ((((g_d-b_d)/2)) if (_eq(vg_nivel,'Centrada')) else ((vg_dz/10))))"),
     (101, '4. PLACA SIMPLE EXTENDIDA — Manual Parte 10', 'T', '1 = placa extendida en T (tramo ancho soldado a la principal + lengüeta atornillada)', '-', 't_T', _TT),
     (102, '4. PLACA SIMPLE EXTENDIDA — Manual Parte 10', 'xs', 'Ancho del tramo ancho: hasta 10 mm antes del extremo de la viga', 'cm', 'x_xs', "((_max(((setback/10)-1),0)) if (_eq(t_T,1)) else (0))"),
-    (103, '4. PLACA SIMPLE EXTENDIDA — Manual Parte 10', 'Hs', 'Altura del tramo ancho: del borde superior de la placa a 10 mm sobre el ala inferior de la principal', 'cm', 'x_Hs',
-     "((_max(((g_d-g_tf-1)-(d_dz+e_top)),e_L)) if (_eq(t_T,1)) else (e_L))"),
+    (103, '4. PLACA SIMPLE EXTENDIDA — Manual Parte 10', 'Hs', 'Altura del tramo ancho: alma libre de la principal menos 2 mm de ajuste en cada ala (se suelda también a las alas)', 'cm', 'x_Hs',
+     "((_max((g_d-(2*g_tf)-0.4),e_L)) if (_eq(t_T,1)) else (e_L))"),
 ]
 _idx = next(i for i, c in enumerate(_xl0.GLOBAL) if c[0] == 65)
 xl_model.GLOBAL = list(_xl0.GLOBAL[:_idx]) + _BLOQUE_T + list(_xl0.GLOBAL[_idx:])
@@ -104,8 +104,8 @@ for _s in SPEC["secciones"]:
                                                          "row": _c["row"] + 1, "options": [A_AUTO, A_MAN]})
 SPEC["notas"].append("Placa extendida: se usa para NO destajar la viga soportada; el extremo de la viga queda fuera de la punta del ala de la principal, "
                      "es decir a (bfg − twg)/2 + holgura del alma, y `a` debe ser mayor que ese valor más el borde de la viga (Manual Parte 10, placa extendida).")
-SPEC["notas"].append("Placa en T (extendida): tramo ancho soldado a la principal entre sus alas (hasta 10 mm del ala inferior) y una lengüeta de altura L con los pernos. "
-                     "Momento de la lengüeta = Ru·(a − xs) en la unión con el tramo ancho; filetes con longitud Hs y excentricidad a (grupo elástico, criterio propio: el Manual Parte 10 no trata esta forma). "
+SPEC["notas"].append("Placa en T (extendida): tramo ancho soldado a la principal que ocupa todo el alma libre entre sus alas (ajuste de 2 mm, soldable también a las alas) y una lengüeta de altura L con los pernos, que no crece. "
+                     "Momento de la lengüeta = Ru·(a − xs) en la unión con el tramo ancho; filetes del alma con longitud Hs (no se cuentan los de las alas) y excentricidad a (grupo elástico, criterio propio: el Manual Parte 10 no trata esta forma). "
                      "El alma de la soportada debe tener borde ≥ 2·db: aumente `a` por encima de (bfg − twg)/2 + holgura + 2·db.")
 SPEC["notas"].append("Posición automática: el borde superior de la placa queda 10 mm bajo la cara inferior del ala superior de la viga principal "
                      "(y no más arriba que el destaje / ala de la soportada); el primer perno se deduce como ztop + Lev.")

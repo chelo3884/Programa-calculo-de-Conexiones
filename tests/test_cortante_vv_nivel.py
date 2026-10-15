@@ -49,7 +49,7 @@ class TestNivel(unittest.TestCase):
         g = r["raw"]["global"]
         self.assertEqual(g[101], 1)                                                   # placa en T
         self.assertAlmostEqual(g[102], 10.2 - 1.0)                                    # xs = setback_ef − 10 mm
-        self.assertAlmostEqual(g[103], (40 - 1.2 - 1) - (0 + 2.2), places=6)          # Hs: del borde superior a 10 mm sobre el ala inferior
+        self.assertAlmostEqual(g[103], 40 - 2 * 1.2 - 0.4, places=6)                    # Hs: alma libre de la principal − 2 mm por ala
         # Mu de la lengüeta = Ru·(a − xs), no Ru·a
         self.assertAlmostEqual(g[65], 6000 * (15.0 - 9.2))
         self.assertLess(_c(r, "Placa en T")["ratio"], 1)
