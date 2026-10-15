@@ -83,7 +83,7 @@ class TestRodilla(_Base, unittest.TestCase):
 
 class TestCortanteVV(_Base, unittest.TestCase):
     modulo = "cortante_vv"
-    extra = {"pn_pos": "Manual (tope de viga → primer perno)", "vg_nivel": "No aplica"}      # el Excel no tiene estas opciones
+    extra = {"pn_pos": "Manual (tope de viga → primer perno)", "vg_nivel": "No aplica", "pl_a_modo": "Manual"}      # el Excel no tiene estas opciones
 
 
 class TestEmpalmeColumna(_Base, unittest.TestCase):

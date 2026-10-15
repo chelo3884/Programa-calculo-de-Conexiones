@@ -55,6 +55,15 @@ class TestNivel(unittest.TestCase):
         self.assertLess(_c(r, "Placa en T")["ratio"], 1)
         self.assertEqual(_c(calcular({}), "Placa en T")["estado"], "N/A")             # convencional: no aplica
 
+    def test_a_automatico_en_extendida(self):
+        r = calcular({"tipo": "Placa simple extendida"})
+        # extremo de la viga 102 mm + máx(2·db = 38.1 ; borde J3.4 = 25.4) + 5 mm → 145.1 → 150 mm
+        self.assertEqual(r["derivados"]["pl_a_ef"], 150)
+        self.assertNotEqual(_c(r, "Leh en alma de viga ≥ 2")["estado"], "NO CUMPLE")
+        r2 = calcular({"tipo": "Placa simple extendida", "pl_a_modo": "Manual", "pl_a": 100})
+        self.assertEqual(r2["derivados"]["pl_a_ef"], 100)
+        self.assertEqual(_c(r2, "Leh en alma de viga ≥ 2")["estado"], "NO CUMPLE")      # a manual demasiado corto
+
 
 if __name__ == "__main__":
     unittest.main()

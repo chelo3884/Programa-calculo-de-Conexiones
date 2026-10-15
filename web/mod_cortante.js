@@ -8,7 +8,7 @@ function cortGeom(RES,S,col){
   const g={tipo:S.tipo,doble,n:S.n_b,s:S.pn_s,top:(RES.derivados&&RES.derivados.pn_top_ef!=null?RES.derivados.pn_top_ef:S.pn_top),lev:S.pn_Lev,set:S.setback||0,
     d:D.vg_d_mm,bf:D.vg_bf_mm,tw:D.vg_tw_mm,tf:D.vg_tf_mm,
     dc:(col||S.tipo==='Placa simple extendida'?0:(S.destaje==='Sin destaje'?0:S.cope_dc)),c:(col||S.tipo==='Placa simple extendida'?0:(S.destaje==='Sin destaje'?0:S.cope_c)),doble_destaje:S.destaje&&S.destaje.startsWith('Destaje doble'),
-    tp:S.pl_tp,a:S.pl_a,leh:S.pl_Leh,lb:S.an_lb,ls:S.an_ls,t:S.an_t,gb:S.an_gb,gs:S.an_gs};
+    tp:S.pl_tp,a:(RES.derivados&&RES.derivados.pl_a_ef!=null&&!col?RES.derivados.pl_a_ef:S.pl_a),leh:S.pl_Leh,lb:S.an_lb,ls:S.an_ls,t:S.an_t,gb:S.an_gb,gs:S.an_gs};
   if(col){g.sd=D.co_d_mm;g.sbf=D.co_bf_mm;g.stw=D.co_tw_mm;g.stf=D.co_tf_mm;}
   else{g.sd=D.vp_d_mm;g.sbf=D.vp_bf_mm;g.stw=D.vp_tw_mm;g.stf=D.vp_tf_mm;}
   g.dbolt=({'5/8"':15.9,'3/4"':19.05,'7/8"':22.2,'1"':25.4,'1-1/8"':28.6,'1-1/4"':31.8})[S.pn_diam]||19;
@@ -68,10 +68,11 @@ function cortPlan(RES,S,col){
   const ts=col?g.stf:g.stw;
   s+=`<rect x="${X(-ts)}" y="${Y(ys)}" width="${ts*sc}" height="${2*ys*sc}" fill="var(--steel)" stroke="var(--ink)" stroke-width="1.2"/>`;
   if(col)s+=`<rect x="${X(-ts-60)}" y="${Y(g.stw/2)}" width="${60*sc}" height="${g.stw*sc}" fill="var(--steel)" stroke="var(--ink)" opacity=".5"/>`;
-  else s+=`<rect x="${X(-ts/2-g.sbf/2)}" y="${Y(ys)}" width="${g.sbf*sc}" height="${2*ys*sc}" fill="var(--steel)" stroke="var(--ink)" stroke-dasharray="4 3" opacity=".3"/><text class="dt" x="${X(g.sbf/2-ts/2)+4}" y="${Y(ys)+12}">ala de la principal</text>`;
+  else s+=`<rect x="${X(-ts/2-g.sbf/2)}" y="${Y(ys)}" width="${g.sbf*sc}" height="${2*ys*sc}" fill="var(--steel)" stroke="var(--ink)" stroke-dasharray="4 3" opacity=".3"/><text class="dt" x="${X(-ts/2-g.sbf/2)+4}" y="${Y(-ys)-5}">ala de la principal</text>`;
   const x1=g.set;
   s+=`<rect x="${X(x1)}" y="${Y(g.tw/2)}" width="${(xend-x1)*sc}" height="${g.tw*sc}" fill="var(--conc)" stroke="var(--ink)" stroke-width="1"/>`;
-  s+=`<text class="dt" x="${X(xend)-4}" y="${Y(g.tw/2)-5}" text-anchor="end">alma de viga soportada</text>`;
+  s+=`<text class="dt" x="${X(xend)-4}" y="${Y(g.tw/2)-26}" text-anchor="end">alma de viga soportada</text>`;
+  if(!col&&!g.doble)s+=`<rect x="${X(x1)}" y="${Y(g.bf/2)}" width="${(xend-x1)*sc}" height="${g.bf*sc}" fill="none" stroke="var(--mut)" stroke-dasharray="5 3"/><text class="dt" x="${X(x1)+4}" y="${Y(g.bf/2)+12}">ala superior (proyección)</text>`;
   if(g.doble){ // dos ángulos, uno por cada cara del alma
     for(const sg of [1,-1]){
       s+=`<rect x="${X(0)}" y="${Y(sg>0?g.tw/2+g.t:-g.tw/2)}" width="${g.lb*sc}" height="${g.t*sc}" fill="var(--steelf)" stroke="var(--ink)" stroke-width="1.2"/>`;
@@ -88,8 +89,8 @@ function cortPlan(RES,S,col){
     s+=`<text class="dt" x="${X(0)+4}" y="${Y(-g.tw/2)+34}">${ext?'placa extendida':'placa'} ${mm(g.xplate)} × tp ${mm(g.tp)}</text>`;
   }
   if(g.doble){const yb=g.tw/2+g.t;s+=`<rect x="${X(g.xbolt)-2}" y="${Y(yb+6)}" width="4" height="${(2*yb+12)*sc}" fill="var(--tens)"/>`;}
-  s+=dimH(X(0),X(g.xbolt),Y(-ys)-4,g.doble?`gb ${mm(g.xbolt)}`:`a ${mm(g.a)}${g.tipo==='Placa simple extendida'?(g.a>89?' (extendida: a > 89)':' (a ≤ 89: convencional)'):''}`);
-  if(!g.doble)s+=dimH(X(g.xbolt),X(g.xplate),Y(-ys)-18,`Leh ${mm(g.leh)}`);
+  s+=dimH(X(0),X(g.xbolt),Y(-ys)+10,g.doble?`gb ${mm(g.xbolt)}`:`a ${mm(g.a)}${g.tipo==='Placa simple extendida'?(g.a>89?' (extendida: a > 89)':' (a ≤ 89: convencional)'):''}`);
+  if(!g.doble)s+=dimH(X(g.xbolt),X(g.xplate),Y(-ys)-8,`Leh ${mm(g.leh)}`);
   return s+`<text class="dt" x="${W-8}" y="${H-6}" text-anchor="end">esquemático · cotas [${uf('Ls').l}]</text></svg>`;
 }
 function cortanteModule(kind){
@@ -97,8 +98,10 @@ function cortanteModule(kind){
   return {
     id:col?'cortante_vc':'cortante_vv', api:'/api/'+(col?'cortante_vc':'cortante_vv'),
     title:col?'Conexión simple a cortante — viga al ala de columna':'Conexión simple a cortante — viga secundaria a viga principal',
-    rebuild:['tipo','destaje','vg_nivel','pn_pos','co_perfil','vp_perfil'],
+    rebuild:['tipo','destaje','vg_nivel','pn_pos','pl_a_modo','co_perfil','vp_perfil'],
     visible(f,S){const n=f.name,t=S.tipo,doble=t==='Doble ángulo apernado';
+      if(n==='pl_a_modo')return t==='Placa simple extendida';
+      if(n==='pl_a'&&t==='Placa simple extendida'&&String(S.pl_a_modo||'').startsWith('Autom'))return false;
       if(['pl_acero','pl_tp','pl_a','pl_Leh','sd_elec','pl_w'].includes(n))return !doble;
       if(['an_acero','an_lb','an_ls','an_t','an_gb','an_gs'].includes(n))return doble;
       if(n==='Ru_op')return doble;

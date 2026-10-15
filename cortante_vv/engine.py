@@ -3,11 +3,13 @@
 Evalúa el modelo generado desde CORTANTE_VIGA_VIGA_AISC.xlsx (AISC 360-16 J2, J3, J4; AISC Manual 15.ª ed.
 Partes 9 y 10; LRFD). Ver tools/xl2py.py y xlcore.py. Unidades canónicas: Tonf · mm · kgf/cm².
 """
+import math
 import os
 import sys
 import types
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+import aisc  # noqa: E402
 from xlcore import XlModule  # noqa: E402
 
 from . import xl_model as _xl0  # noqa: E402
@@ -86,6 +88,8 @@ for _s in SPEC["secciones"]:
 SPEC["notas"] = list(SPEC.get("notas", [])) + [
     "Nivel de las vigas: lo usual es alinear las alas superiores (desnivel 0): la soportada necesita destaje superior para librar el ala de la principal "
     "(dc ≥ tfg + 10 mm y c ≥ (bfg − twg)/2 − holgura + 10 mm). Con «Centrada» la placa debe quedar entre las alas de la principal."]
+A_AUTO = "Automática (extendida: fuera del ala + borde del alma)"
+A_MAN = "Manual"
 POS_AUTO = "Automática: 10 mm bajo el ala de la viga principal"
 POS_MAN = "Manual (tope de viga → primer perno)"
 for _s in SPEC["secciones"]:
@@ -93,6 +97,11 @@ for _s in SPEC["secciones"]:
         _i = next(i for i, c in enumerate(_s["campos"]) if c["name"] == "pn_top")
         _s["campos"][_i:_i] = [{"name": "pn_pos", "label": "Posición vertical de la placa / ángulos", "unit": "", "default": POS_AUTO,
                                "row": _s["campos"][_i]["row"] - 1, "options": [POS_AUTO, POS_MAN]}]
+for _s in SPEC["secciones"]:
+    if any(c["name"] == "pl_a" for c in _s["campos"]):
+        _c = next(c for c in _s["campos"] if c["name"] == "pl_a")
+        _s["campos"].insert(_s["campos"].index(_c) + 1, {"name": "pl_a_modo", "label": "a en placa extendida", "unit": "", "default": A_AUTO,
+                                                         "row": _c["row"] + 1, "options": [A_AUTO, A_MAN]})
 SPEC["notas"].append("Placa extendida: se usa para NO destajar la viga soportada; el extremo de la viga queda fuera de la punta del ala de la principal, "
                      "es decir a (bfg − twg)/2 + holgura del alma, y `a` debe ser mayor que ese valor más el borde de la viga (Manual Parte 10, placa extendida).")
 SPEC["notas"].append("Placa en T (extendida): tramo ancho soldado a la principal entre sus alas (hasta 10 mm del ala inferior) y una lengüeta de altura L con los pernos. "
@@ -118,6 +127,12 @@ def calcular(inp: dict) -> dict:
             # las alas se solapan en altura: el extremo de la viga debe quedar fuera de la punta del ala de la principal
             set_ef = float(inp.get("setback", 15) or 0) + (d["vp_bf_mm"] - d["vp_tw_mm"]) / 2
             inp["setback"] = set_ef
+    a_ef = None
+    if ext and str(inp.get("pl_a_modo", A_AUTO)).startswith("Autom"):
+        # a = extremo de la viga (fuera del ala) + borde del alma ≥ máx(2·db ; borde mínimo J3.4) + 5 mm, redondeado a 5 mm
+        pn = aisc.perno(inp.get("pn_diam", '3/4"'), inp.get("pn_grado", "A325-N (roscas incl.)"))
+        a_ef = math.ceil((float(inp["setback"]) + 10 * max(2 * pn["db"], pn["edge"]) + 5) / 5) * 5
+        inp["pl_a"] = a_ef
     if auto:
         kw = float(inp.get("vg_kw", 5) or 0)
         dc = 0.0 if inp.get("destaje", "Destaje superior") == "Sin destaje" else float(inp.get("cope_dc", 30) or 0)
@@ -125,5 +140,6 @@ def calcular(inp: dict) -> dict:
         inp["pn_top"] = e_top + float(inp.get("pn_Lev", 35) or 0)
     res = _MOD.calcular(inp)
     res["derivados"]["pn_top_ef"] = inp.get("pn_top", 70)
+    res["derivados"]["pl_a_ef"] = inp.get("pl_a", 65)
     res["derivados"]["setback_ef"] = set_ef if set_ef is not None else inp.get("setback", 15)
     return res

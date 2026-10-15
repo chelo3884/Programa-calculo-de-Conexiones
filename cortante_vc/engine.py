@@ -31,7 +31,7 @@ COLUMNAS = {_col("G", r): (_col("H", r), _col("I", r), _col("J", r), _col("K", r
 
 # ── especificación de entradas: la de cortante_vv con la sección de soporte reemplazada ──────────────
 CAT = _vv.CAT
-_ocultos = {"destaje", "cope_dc", "cope_c", "Ru_op", "vg_nivel", "vg_dz", "pn_pos"}
+_ocultos = {"destaje", "cope_dc", "cope_c", "Ru_op", "vg_nivel", "vg_dz", "pn_pos", "pl_a_modo"}
 SPEC = copy.deepcopy(_vv.SPEC)
 SPEC["titulo"] = "CONEXIÓN SIMPLE A CORTANTE — VIGA AL ALA DE COLUMNA"
 SPEC["norma"] = ("AISC 360-16 (J2, J3, J4)  ·  AISC Manual 15ª ed. Partes 9 y 10  ·  LRFD  ·  "
