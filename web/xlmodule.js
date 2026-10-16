@@ -5,6 +5,8 @@ let SPEC=null, S=null, RES=null, seq=0, timer=null;
 const ARMADO='ARMADO (flejes soldados)';
 const HASC=()=>!!(SPEC&&SPEC.combos);
 const SKEY=()=>'xl_'+MODULE.id;
+const HAS3=!!(window.MODEL3D&&window.MODEL3D[MODULE.id]&&window.V3D);
+let V3=null,MODE3=false;try{MODE3=HAS3&&localStorage.getItem('cx_vista')==='3d';}catch(e){}
 
 document.title='Conexiones — '+MODULE.title;
 document.body.innerHTML=`
@@ -20,7 +22,7 @@ document.body.innerHTML=`
   <button data-t="mem">Memoria de cálculo</button><button data-t="uni">Unidades</button><button data-t="rep">Reporte</button></nav>
 <main><div id="err" class="err"></div>
 <section class="tab on" id="t-dis"><div class="grid"><div id="inputs"></div><div>
-  <div class="card"><h2>Geometría (se actualiza al mover los parámetros)</h2><div class="two" id="svgs"></div></div>
+  <div class="card"><h2>Geometría (se actualiza al mover los parámetros)${HAS3?'<span class="seg"><button id="b2d" class="on">2D</button><button id="b3d">3D</button></span>':''}</h2><div class="two" id="svgs"></div><div id="v3box" style="display:none"></div></div>
   <div class="card"><h2>Verificaciones</h2><div style="overflow:auto"><table id="tblChecks"></table></div>
   <div class="note" style="margin-top:6px">Ratio = demanda / capacidad de diseño (o requerido / provisto). Verde ≤ límite · Ámbar entre el límite y 1.00 · Rojo &gt; 1.00.</div></div>
 </div></div></section>
@@ -39,6 +41,7 @@ document.body.innerHTML=`
   <iframe id="repFrame" title="Reporte"></iframe></div></section>
 </main>`;
 document.getElementById('svgs').innerHTML=(MODULE.svgs||[]).map(s=>`<div id="${s.id}"></div>`).join('');
+if(HAS3){document.getElementById('b2d').onclick=()=>setMode3(false);document.getElementById('b3d').onclick=()=>setMode3(true);if(MODE3)setMode3(true);}
 
 /* ═════════════ Estado ═════════════ */
 function defaultState(){
@@ -127,7 +130,15 @@ async function calc(){
     err.style.display='none';RES=j;renderAll();
   }catch(e){err.style.display='block';err.textContent='No se pudo contactar el servidor: '+e;}
 }
-function drawAll(){for(const s of (MODULE.svgs||[])){try{document.getElementById(s.id).innerHTML=s.fn(RES,S);}catch(e){document.getElementById(s.id).innerHTML='<p class="note">Dibujo no disponible para estos datos.</p>';}}}
+function draw3(){
+  if(!HAS3||!MODE3||!RES)return;
+  try{if(!V3)V3=V3D.mount(document.getElementById('v3box'));V3.set(MODEL3D[MODULE.id](RES,S));}
+  catch(e){document.getElementById('v3box').innerHTML='<p class="note">Vista 3D no disponible para estos datos ('+esc(e.message)+').</p>';V3=null;}
+}
+function setMode3(m){MODE3=m;try{localStorage.setItem('cx_vista',m?'3d':'2d');}catch(e){}
+  document.getElementById('svgs').style.display=m?'none':'';document.getElementById('v3box').style.display=m?'':'none';
+  document.getElementById('b2d').classList.toggle('on',!m);document.getElementById('b3d').classList.toggle('on',m);if(m)draw3();}
+function drawAll(){draw3();for(const s of (MODULE.svgs||[])){try{document.getElementById(s.id).innerHTML=s.fn(RES,S);}catch(e){document.getElementById(s.id).innerHTML='<p class="note">Dibujo no disponible para estos datos.</p>';}}}
 function renderAll(){
   const b=document.getElementById('badge'),rs=RES.resumen;
   const cls=rs.estado==='CUMPLE'?'b-ok':rs.estado==='CUMPLE AL LÍMITE'?'b-warn':rs.estado==='NO CUMPLE'?'b-bad':'b-na';

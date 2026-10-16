@@ -68,6 +68,15 @@ iframe{width:100%;height:78vh;border:1px solid var(--line);border-radius:8px;bac
 .err{background:var(--badbg);color:var(--bad);padding:8px 12px;border-radius:8px;margin-bottom:10px;display:none}
 .memo td.sym{font-family:ui-monospace,Consolas,monospace;white-space:nowrap}
 details{margin-bottom:8px}summary{cursor:pointer;font-weight:600;padding:4px 0}
+/* Visor 3D y conmutador 2D/3D */
+.seg{display:inline-flex;margin-left:10px;border:1px solid var(--line);border-radius:8px;overflow:hidden;vertical-align:middle}
+.seg button{border:0;border-radius:0;padding:3px 12px;font-size:12px;background:var(--card);color:var(--mut);cursor:pointer}
+.seg button.on{background:var(--acc);color:#fff}
+.v3-bar{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap}.v3-bar button{font-size:12px;padding:3px 10px}.v3-bar button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.v3-sp{flex:1}.v3-wrap{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--card)}
+.v3-cv{display:block;width:100%;touch-action:none;cursor:grab}.v3-cv:active{cursor:grabbing}
+.v3-leg{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--mut);margin-top:6px}.v3-leg i{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:5px;border:1px solid var(--line);vertical-align:-1px}
+.v3-hint{font-size:11px;color:var(--mut);margin-top:4px}
 </style>
 </head>
 <body>
@@ -93,8 +102,9 @@ details{margin-bottom:8px}summary{cursor:pointer;font-weight:600;padding:4px 0}
   <div id="inputs"></div>
   <div>
     <div class="card"><h2>Geometría (se actualiza al mover los parámetros) <span class="note" id="combSelWrap"> · combinación en dibujo:
-      <select id="combSel" style="width:auto"></select></span></h2>
-      <div class="two"><div id="svgPlan"></div><div id="svgElev"></div></div></div>
+      <select id="combSel" style="width:auto"></select></span>
+      <span class="seg"><button id="b2d" class="on">2D</button><button id="b3d">3D</button></span></h2>
+      <div class="two" id="svgs2d"><div id="svgPlan"></div><div id="svgElev"></div></div><div id="v3box" style="display:none"></div></div>
     <div class="card"><h2>Verificaciones — combinación gobernante por chequeo</h2>
       <div style="overflow:auto"><table id="tblChecks"></table></div>
       <div class="note" style="margin-top:6px">Ratio = demanda / capacidad de diseño. Verde ≤ límite · Ámbar entre el límite y 1.00 · Rojo &gt; 1.00.</div></div>
@@ -129,7 +139,7 @@ details{margin-bottom:8px}summary{cursor:pointer;font-weight:600;padding:4px 0}
 </section>
 </main>
 
-<script src="/proy.js"></script><script src="/docx.js"></script><script src="/dxf.js"></script><script src="/tools.js"></script>
+<script src="/viewer3d.js"></script><script src="/model3d.js"></script><script src="/proy.js"></script><script src="/docx.js"></script><script src="/dxf.js"></script><script src="/tools.js"></script>
 <script>
 "use strict";
 /* ═════════════ Unidades ═════════════ */
@@ -192,6 +202,16 @@ const DEFAULT = {
 };
 let S = JSON.parse(JSON.stringify(DEFAULT));
 let CAT=null, RES=null, selCombo=2, seq=0;
+let V3=null,MODE3=false;try{MODE3=localStorage.getItem('cx_vista')==='3d';}catch(e){}
+function draw3(){
+  if(!MODE3||!RES||!RES.geom)return;
+  try{if(!V3)V3=V3D.mount(document.getElementById('v3box'));V3.set(MODEL3D.placa_base(RES,RES.geom));}
+  catch(e){document.getElementById('v3box').innerHTML='<p class="note">Vista 3D no disponible para estos datos ('+e.message+').</p>';V3=null;}
+}
+function setMode3(m){MODE3=m;try{localStorage.setItem('cx_vista',m?'3d':'2d');}catch(e){}
+  document.getElementById('svgs2d').style.display=m?'none':'';document.getElementById('v3box').style.display=m?'':'none';
+  document.getElementById('b2d').classList.toggle('on',!m);document.getElementById('b3d').classList.toggle('on',m);if(m)draw3();}
+addEventListener('DOMContentLoaded',()=>{document.getElementById('b2d').onclick=()=>setMode3(false);document.getElementById('b3d').onclick=()=>setMode3(true);if(MODE3)setMode3(true);});
 
 /* ═════════════ Definición de campos ═════════════ */
 const SEC = ()=>[
@@ -337,14 +357,14 @@ function renderAll(){
   const b=document.getElementById('badge'),rs=RES.resumen;
   const cls=rs.estado==='CUMPLE'?'b-ok':rs.estado==='CUMPLE AL LÍMITE'?'b-warn':rs.estado==='NO CUMPLE'?'b-bad':'b-na';
   b.className='badge '+cls;
-  b.textContent=(rs.estado==='NO CUMPLE'?'✖ ':rs.estado==='SIN CARGAS'?'':rs.estado==='CUMPLE'?'✔ ':'▲ ')+rs.estado+(rs.ratio_max!=null?` — ratio máx. ${rfmt(rs.ratio_max)}`:'');
+  b.textContent=(rs.estado==='NO CUMPLE'?'✖ ':rs.estado==='SIN CARGAS'?'':rs.estado==='CUMPLE'?'✔ ':'▲ ')+rs.estado+(rs.ratio_max!=null?` — ratio máx. ${rfmt(rs.ratio_max)}`:'')+(rs.ratio_geom!=null&&rs.ratio_geom>1?` · geometría ${rfmt(rs.ratio_geom)}`:'');
   const sel=document.getElementById('combSel');
   const cur=selCombo;sel.innerHTML=S.combos.map((c,i)=>`<option value="${i}">${c.nombre||'C'+(i+1)}</option>`).join('');
   if(cur>=S.combos.length)selCombo=Math.max(0,S.combos.length-1);sel.value=selCombo;
   renderInputsRO();
   renderChecks();renderCombos();renderDetalle();renderMemoria();
   document.getElementById('svgPlan').innerHTML=svgPlan();
-  document.getElementById('svgElev').innerHTML=svgElev();
+  document.getElementById('svgElev').innerHTML=svgElev();draw3();
   if(document.getElementById('t-rep').classList.contains('on'))buildReport();
 }
 function bar(r){
@@ -398,11 +418,11 @@ document.addEventListener('click',e=>{
   const tr=e.target.closest&&e.target.closest('#tblCombos tr');
   if(tr&&tr.rowIndex>0&&e.target.dataset.del===undefined){selCombo=tr.rowIndex-1;document.getElementById('combSel').value=selCombo;
     document.querySelectorAll('#tblCombos tr').forEach((r,i)=>r.style.background=i===tr.rowIndex?'var(--acc2)':'');
-    renderDetalle();document.getElementById('svgPlan').innerHTML=svgPlan();document.getElementById('svgElev').innerHTML=svgElev();}
+    renderDetalle();document.getElementById('svgPlan').innerHTML=svgPlan();document.getElementById('svgElev').innerHTML=svgElev();draw3();}
   if(e.target.dataset.del!==undefined){S.combos.splice(+e.target.dataset.del,1);renderCombos();changed();}
 });
 document.getElementById('addCombo').onclick=()=>{S.combos.push({nombre:'C'+(S.combos.length+1),P:0,V:0,M:0});renderCombos();changed();};
-document.getElementById('combSel').onchange=e=>{selCombo=+e.target.value;renderDetalle();document.getElementById('svgPlan').innerHTML=svgPlan();document.getElementById('svgElev').innerHTML=svgElev();};
+document.getElementById('combSel').onchange=e=>{selCombo=+e.target.value;renderDetalle();document.getElementById('svgPlan').innerHTML=svgPlan();document.getElementById('svgElev').innerHTML=svgElev();draw3();};
 
 function renderDetalle(){
   const c=RES.combos[selCombo],box=document.getElementById('detalle');

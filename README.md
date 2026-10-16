@@ -162,3 +162,10 @@ El «ratio máx.» de la cabecera (y de la lista de proyectos, la propuesta de d
 Las comprobaciones geométricas y de detallado (grupos «… (requerido / provisto)» y «PRECALIFICACIÓN»: bordes, pasos, filetes mínimos, límites de aplicabilidad)
 siguen en la tabla de verificaciones con su propio ratio, pero no suben el ratio máximo. Si alguna incumple (> 1) el estado sigue siendo **NO CUMPLE** y la cabecera
 añade «· geometría x.xx». La propuesta de diseño automática exige ambas cosas: resistencia ≤ límite y geometría ≤ 1.
+
+## Vista 3D
+Cada conexión (las 19 del catálogo) tiene un interruptor **2D | 3D** en la tarjeta de geometría. El visor (`web/viewer3d.js`) es propio, sin dependencias ni conexión a internet:
+rasterizador con z-buffer y proyección ortográfica; se gira arrastrando, se desplaza con Mayús + arrastre (o botón derecho), se acerca con la rueda, doble clic restablece, y hay vistas
+isométrica, frente, lateral y planta. Los modelos (`web/model3d.js`) usan las mismas variables que los dibujos 2D y se actualizan al cambiar los datos.
+Son **esquemáticos**: perfiles I y tubos sin radios de esquina, pernos como cilindro con cabeza y tuerca hexagonales, sin agujeros, soldaduras como franjas rojas, y la rodilla/cumbrera con la cartela
+simplificada. El interruptor se recuerda en el navegador.
