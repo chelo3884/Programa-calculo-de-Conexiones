@@ -14,6 +14,9 @@ from __future__ import annotations
 import copy
 import json
 import os
+import sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from resumen import resumir  # noqa: E402
 
 _OUT = {"F": 1e-3, "M": 1e-5, "ML": 1e-3, "S": 1.0, "Ls": 10.0, "Lc": 1.0, "A": 1.0, "FL": 1.0, "": 1.0}
 _UNIT = {"F": "Tonf", "M": "Tonf·m", "S": "kgf/cm²", "Ls": "mm", "Lc": "cm", "A": "cm²", "FL": "kgf/cm", "": "-"}
@@ -119,17 +122,8 @@ class Modulo:
             a["fila"] = i
             a["estado"] = estado(a["ratio"], lim)
             checks.append(a)
-        ratios = [c["ratio"] for c in checks if _num(c["ratio"])]
-        rmax = max(ratios) if ratios else None
-        if sc and not any(c["activo"] for c in combos):
-            msg = "SIN CARGAS"
-        elif rmax is not None and rmax > 1:
-            msg = "NO CUMPLE"
-        elif rmax is not None and rmax > lim:
-            msg = "CUMPLE AL LÍMITE"
-        else:
-            msg = "CUMPLE"
-        return {"resumen": {"estado": msg, "ratio_max": rmax}, "checks": checks, "combos": combos,
+        resumen = resumir(checks, lim, bool(sc and not any(c["activo"] for c in combos)))
+        return {"resumen": resumen, "checks": checks, "combos": combos,
                 "memoria_global": gh.rows, "vars": ctx.get("vars", {}), "inputs": I,
                 "derivados": ctx.get("derivados", {}),
                 "raw": {"global": {}, "rows": {}}}

@@ -70,7 +70,8 @@ class TestEndPlate(_Base, unittest.TestCase):
     def test_resumen_base(self):
         r = self._run("base_4E")
         self.assertEqual(r["resumen"]["estado"], "CUMPLE")
-        self.assertAlmostEqual(r["resumen"]["ratio_max"], 0.9, places=6)
+        self.assertAlmostEqual(r["resumen"]["ratio_max"], 0.8686239838, places=6)      # sin las comprobaciones geométricas (antes 0.9: gobernaba un detalle)
+        self.assertAlmostEqual(r["resumen"]["ratio_geom"], 0.9, places=6)
 
 
 class TestBFP(_Base, unittest.TestCase):

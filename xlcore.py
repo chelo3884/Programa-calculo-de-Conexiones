@@ -15,6 +15,10 @@ from __future__ import annotations
 
 import json
 import math
+import os as _os
+import sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.abspath(__file__)))
+from resumen import resumir  # noqa: E402
 import os
 
 # unidad de la hoja → (magnitud de la interfaz, factor desde kgf/cm a la unidad canónica)
@@ -239,18 +243,9 @@ class XlModule:
                            "cap": cap if _isnum(cap) else None, "ratio": ratio if _isnum(ratio) else None,
                            "estado": _estado(ratio, lim), "combo": combo if isinstance(combo, str) else "—"})
 
-        ratios = [c["ratio"] for c in checks if c["ratio"] is not None]
-        rmax = max(ratios) if ratios else None
-        if n and not any(c["activo"] for c in combos):
-            msg = "SIN CARGAS"
-        elif rmax is not None and rmax > 1:
-            msg = "NO CUMPLE"
-        elif rmax is not None and rmax > lim:
-            msg = "CUMPLE AL LÍMITE"
-        else:
-            msg = "CUMPLE"
+        resumen = resumir(checks, lim, bool(n and not any(c["activo"] for c in combos)))
 
-        return {"resumen": {"estado": msg, "ratio_max": rmax}, "checks": checks, "combos": combos,
+        return {"resumen": resumen, "checks": checks, "combos": combos,
                 "memoria_global": mem_global,
                 "vars": {k: v for k, v in env.items() if k[:2] in ("k_", "s_", "p_", "j_", "q_", "r_", "a_", "n_", "b_",
                                                                    "t_", "u_", "w_", "g_", "h_", "c_", "d_", "e_", "f_", "v_",

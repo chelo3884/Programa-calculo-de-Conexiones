@@ -20,6 +20,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 import aisc  # noqa: E402
+from resumen import resumir  # noqa: E402
 from cortante_vv import engine as _vv0  # noqa: E402
 from placa_base.engine import CATALOGOS  # noqa: E402
 from xlcore import XlModule  # noqa: E402
@@ -135,7 +136,7 @@ def calcular(inp: dict) -> dict:
     G = "COLUMNA HSS"
     bt = (Wc - 3 * tc) / tc
     lim_bt = 1.40 * math.sqrt(aisc.E / Fy)
-    _chk(res, G, "Pared no esbelta: b/t ≤ 1.40√(E/Fy)", "Manual Parte 10 (K.6)", bt, lim_bt, "", not through, lim)
+    _chk(res, "LÍMITES Y DETALLES (requerido / provisto)", "Pared no esbelta: b/t ≤ 1.40√(E/Fy)", "Manual Parte 10 (K.6)", bt, lim_bt, "", not through, lim)
     cap_p = 0.75 * Fu * tc * Lp ** 2 / 5
     _chk(res, G, "Punzonamiento de la pared: Ru·e ≤ φFu·t·lp²/5", "Manual Ec. 10-7a", Ru * a / 1e5, cap_p / 1e5, "M", not through, lim)
     if through:
@@ -148,10 +149,7 @@ def calcular(inp: dict) -> dict:
              aisc.rn_ruptura_corte(Fu, 2 * tc * Lp) / 1e3, "F", True, lim)
     for i, c in enumerate(res["checks"], 1):
         c["fila"] = i
-    ratios = [c["ratio"] for c in res["checks"] if c["ratio"] is not None]
-    rmax = max(ratios) if ratios else None
-    res["resumen"] = {"estado": "NO CUMPLE" if rmax and rmax > 1 else ("CUMPLE AL LÍMITE" if rmax and rmax > lim else "CUMPLE"),
-                      "ratio_max": rmax}
+    res["resumen"] = resumir(res["checks"], lim)
     res["derivados"].update({"co_bf_mm": W, "co_d_mm": D, "co_tw_mm": t, "co_tf_mm": t, "co_bt": bt})
     res["vars"]["hss"] = {"W": W, "D": D, "t": t, "through": through}
     return res

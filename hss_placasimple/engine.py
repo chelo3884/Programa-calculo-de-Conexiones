@@ -57,7 +57,7 @@ def global_fn(h, I):
     ctxg = C.placa_corte_global(h, I, P)
     L = ctxg["L"]
     Rwall = h.v("φRn", "Corte de las paredes laterales adyacentes a las soldaduras: 2·0.9·Lp·tc·0.6·fy", 2 * 0.9 * L * t * 0.6 * hFy, "F")
-    h.chk(G_CID, "Pared NO esbelta: (bc − 4t)/t ≤ 1.4·√(E/fc,y)", "CIDECT 9 §5.3", esb, lim, "")
+    h.chk(C.G_DET, "Pared NO esbelta: (bc − 4t)/t ≤ 1.4·√(E/fc,y)", "CIDECT 9 §5.3", esb, lim, "")
     h.chk(G_CID, "Espesor de placa: tp ≤ (fc,u/fp,y)·tc", "CIDECT 9 ec. 5.2", tp, hFu / pFy * t, "Lc")
     ctx = {"derivados": C.derivados(P),
            "vars": {"bd": bd, "bbf": bbf, "btw": btw, "btf": btf, "W": W, "D": D, "t": t, "n": ctxg["n"], "s": ctxg["s"], "lev": ctxg["lev"],

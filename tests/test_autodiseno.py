@@ -4,7 +4,8 @@ import sys
 import unittest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-import autodiseno  # noqa: E402
+import autodiseno
+from resumen import ratio_efectivo  # noqa: E402
 from end_plate import engine as ep  # noqa: E402
 from placa_base.engine import calcular as pb_calc  # noqa: E402
 from wuf import engine as wuf  # noqa: E402
@@ -24,7 +25,7 @@ class TestAuto(unittest.TestCase):
         # la propuesta cumple y cuesta menos que la inicial sobredimensionada
         d = copy.deepcopy(inp)
         d.update(r["propuesta"])
-        self.assertLessEqual(wuf.calcular(d)["resumen"]["ratio_max"], 0.9 + 1e-9)
+        self.assertLessEqual(ratio_efectivo(wuf.calcular(d)["resumen"]), 0.9 + 1e-9)
         self.assertLess(autodiseno.CONFIG["wuf"][0](d), autodiseno.CONFIG["wuf"][0](inp))
         self.assertLessEqual(r["evaluaciones"], 4000)
 
@@ -41,7 +42,7 @@ class TestAuto(unittest.TestCase):
         for comb in itertools.product(*[v["cands"] for v in vs]):
             d = copy.deepcopy(inp)
             d.update({v["name"]: x for v, x in zip(vs, comb)})
-            if wuf.calcular(d)["resumen"]["ratio_max"] <= 0.9:
+            if ratio_efectivo(wuf.calcular(d)["resumen"]) <= 0.9:
                 c = costo(d)
                 mejor = c if mejor is None else min(mejor, c)
         self.assertTrue(r["ok"])
@@ -83,4 +84,4 @@ class TestBarrido(unittest.TestCase):
         self.assertTrue(r["series"] and len(r["series"][0]["ratios"]) == 4)
         # la serie de mayor ratio nunca supera al ratio máximo global
         for k in range(4):
-            self.assertLessEqual(max(s["ratios"][k] for s in r["series"] if s["ratios"][k] is not None), r["ratio_max"][k] + 1e-9)
+            self.assertLessEqual(max((s["ratios"][k] for s in r["series"] if s["ratios"][k] is not None and not s["geom"]), default=0), r["ratio_max"][k] + 1e-9)

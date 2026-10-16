@@ -19,6 +19,10 @@ from __future__ import annotations
 import json
 import math
 import os
+import sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+from resumen import resumir  # noqa: E402
 
 _DIR = os.path.dirname(os.path.abspath(__file__))
 with open(os.path.join(_DIR, "catalogos.json"), encoding="utf-8") as _f:
@@ -554,20 +558,11 @@ def calcular(inp: dict) -> dict:
             dem, cap = req, prov
         checks.append(dict(grupo="GEOMETRÍA Y DETALLES (requerido / provisto)", nombre=nom, ref=ref,
                            ratio=rr, estado=_estado(rr, lim), combo="—", dem=dem, cap=cap, q=q))
-    ratios_all = [c["ratio"] for c in checks if c["ratio"] is not None]
-    rmax = max(ratios_all) if ratios_all else None
-    if not activos:
-        msg = "SIN CARGAS"
-    elif rmax > 1:
-        msg = "NO CUMPLE"
-    elif rmax > lim:
-        msg = "CUMPLE AL LÍMITE"
-    else:
-        msg = "CUMPLE"
+    resumen = resumir(checks, lim, not activos)
 
     tp_req_max = max((c["tp_req_mm"] for c in activos), default=0.0)
     return {
-        "resumen": {"estado": msg, "ratio_max": rmax, "tp_req_mm": tp_req_max},
+        "resumen": dict(resumen, tp_req_mm=tp_req_max),
         "checks": checks,
         "combos": combos_out,
         "memoria_global": _conv(T.rows),

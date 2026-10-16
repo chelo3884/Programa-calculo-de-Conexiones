@@ -132,7 +132,8 @@ function renderAll(){
   const b=document.getElementById('badge'),rs=RES.resumen;
   const cls=rs.estado==='CUMPLE'?'b-ok':rs.estado==='CUMPLE AL LÍMITE'?'b-warn':rs.estado==='NO CUMPLE'?'b-bad':'b-na';
   b.className='badge '+cls;
-  b.textContent=(rs.estado==='NO CUMPLE'?'✖ ':rs.estado==='SIN CARGAS'?'':rs.estado==='CUMPLE'?'✔ ':'▲ ')+rs.estado+(rs.ratio_max!=null?` — ratio máx. ${rfmt(rs.ratio_max)}`:'');
+  b.textContent=(rs.estado==='NO CUMPLE'?'✖ ':rs.estado==='SIN CARGAS'?'':rs.estado==='CUMPLE'?'✔ ':'▲ ')+rs.estado+(rs.ratio_max!=null?` — ratio máx. ${rfmt(rs.ratio_max)}`:'')+(rs.ratio_geom!=null&&rs.ratio_geom>1?` · geometría ${rfmt(rs.ratio_geom)}`:'');
+  b.title='El ratio máximo considera solo las comprobaciones de resistencia; las geométricas y de detallado se muestran aparte en la tabla.';
   refreshRO();renderChecks();if(HASC())renderCombos();renderMemoria();drawAll();
   if(document.getElementById('t-rep').classList.contains('on'))buildReport();
 }
@@ -246,7 +247,7 @@ function reportHTML(){
   return `<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Reporte — ${esc(S.DIS_C7)}</title><style>${css}</style></head><body>
   <h1>Memoria de cálculo — ${MODULE.title}</h1><div class="note">${esc(SPEC.norma||'')} · ${date}</div>
   <table style="margin-top:8px"><tr><td>Proyecto</td><td><b>${esc(S.DIS_C7)}</b></td><td>Elemento / nudo</td><td><b>${esc(S.DIS_C8)}</b></td></tr></table>
-  <div class="res ${cls}">${rs.estado}${rs.ratio_max!=null?' — ratio máximo '+rfmt(rs.ratio_max):''}</div>
+  <div class="res ${cls}">${rs.estado}${rs.ratio_max!=null?' — ratio máximo (resistencia) '+rfmt(rs.ratio_max):''}${rs.ratio_geom!=null?' · geometría y detalles '+rfmt(rs.ratio_geom):''}</div>
   <h2>1. Datos de entrada</h2><div class="cols">${inputs}</div>${combos}
   <h2>2. Geometría</h2><div class="dr">${drawings}</div>
   <h2>3. Resumen de verificaciones</h2>

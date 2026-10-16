@@ -155,3 +155,10 @@ Fuente: *CIDECT Design Guide 9 — Guía de diseño para uniones a columnas de p
 * **`hss_diafragma_atornillado` — unión atornillada con diafragma pasante y ménsula corta (§8.2, ecs. 8.9–8.14, ejemplo 8.2.1):** reproduce el ejemplo completo: Mb,n* = 672, Mcf = 741, Mj,cf* = 1031 (modo a) y 972 kN·m (modo b: 781 + 191), Mbs = 716 y Mbs,cf = 751 kN·m, cortante del empalme 264 kN vs 258 kN requeridos. El empalme usa el Eurocódigo 3 como en la guía (corte con γ = 1.25, aplastamiento sin factor). El deslizamiento en servicio es criterio propio. **No** verifica desgarro en bloque ni sección neta de las platabandas, ni la soldadura de la ménsula, ni el espesor del diafragma (la guía tampoco los desarrolla aquí); el coeficiente m (ec. 8.5) se limita a ≤ 1 por criterio propio.
 * El módulo `hss_diafragma` (placa de recorte del ejemplo Tedds) queda como referencia; para diafragmas externos use `hss_dext`.
 * **No programado de esta guía** (queda disponible si lo necesita): placas simples a RHS (5.3, con ejemplo), asientos (5.8–5.9), T (5.6), uniones semirrígidas con vigas I (6.3.2, ec. 6.19–6.23), uniones atornilladas con diafragma pasante (8.2, con ejemplo 8.2.1) y empalmes de columnas (cap. 11).
+
+
+## Ratio máximo de la cabecera
+El «ratio máx.» de la cabecera (y de la lista de proyectos, la propuesta de diseño y el barrido) considera **solo las comprobaciones de resistencia**.
+Las comprobaciones geométricas y de detallado (grupos «… (requerido / provisto)» y «PRECALIFICACIÓN»: bordes, pasos, filetes mínimos, límites de aplicabilidad)
+siguen en la tabla de verificaciones con su propio ratio, pero no suben el ratio máximo. Si alguna incumple (> 1) el estado sigue siendo **NO CUMPLE** y la cabecera
+añade «· geometría x.xx». La propuesta de diseño automática exige ambas cosas: resistencia ≤ límite y geometría ≤ 1.

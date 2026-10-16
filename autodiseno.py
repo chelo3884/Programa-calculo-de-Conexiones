@@ -13,6 +13,8 @@ import heapq
 import math
 import time
 
+from resumen import es_geom, ratio_efectivo
+
 RHO = 7.85e-6  # kg/mm³
 GRUESOS = [6, 8, 10, 12, 16, 19, 22, 25, 32, 38, 45, 50, 57, 63, 76]
 FILETES = [4, 5, 6, 8, 10, 12, 14, 16, 19]
@@ -288,7 +290,7 @@ def buscar(modulo, calcular, inp, nombres=None, lim=None, max_eval=4000, max_seg
         d = armar(idx)
         try:
             r = calcular(d)
-            rm = r["resumen"].get("ratio_max")
+            rm = ratio_efectivo(r["resumen"])
             return d, (math.inf if rm is None else rm), r
         except (ValueError, KeyError, TypeError, ZeroDivisionError):
             return d, math.inf, None
@@ -374,19 +376,21 @@ def barrido(calcular, inp, name, valores, top=5, lim=None):
             res.append(calcular(d))
         except (ValueError, KeyError, TypeError, ZeroDivisionError):
             res.append(None)
-    rmax, gob, mapa = [], [], {}
+    rmax, gob, mapa, geom = [], [], {}, {}
     for k, r in enumerate(res):
         if r is None:
             rmax.append(None)
             gob.append(None)
             continue
         cs = [c for c in r["checks"] if c.get("ratio") is not None]
-        g = max(cs, key=lambda c: c["ratio"], default=None)
-        rmax.append(r["resumen"].get("ratio_max"))
+        g = max((c for c in cs if not es_geom(c.get("grupo")) or c["ratio"] > 1), key=lambda c: c["ratio"], default=None)
+        for c in cs:
+            geom[c["nombre"]] = es_geom(c.get("grupo"))
+        rmax.append(ratio_efectivo(r["resumen"]))
         gob.append(g["nombre"] if g else None)
         for c in cs:
             mapa.setdefault(c["nombre"], [None] * len(valores))[k] = c["ratio"]
     orden = sorted(mapa, key=lambda n: -max((x for x in mapa[n] if x is not None), default=0))[:top]
     return {"variable": name, "valores": list(valores), "ratio_max": rmax, "gobierna": gob, "lim": lim,
-            "series": [{"nombre": n, "ratios": mapa[n]} for n in orden],
+            "series": [{"nombre": n, "ratios": mapa[n], "geom": geom.get(n, False)} for n in orden],
             "actual": _get(base, name)}
